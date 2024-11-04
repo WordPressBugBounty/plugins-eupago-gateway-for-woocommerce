@@ -69,12 +69,12 @@ class WC_Eupago_Callback {
     $order = new WC_Order( sanitize_text_field($_GET['identificador'] ));
 
     // Verificar se encomenda ainda não está paga!!
-    if ( !$order->has_status( array('on-hold', 'pending') ) ) {
+    /*if ( !$order->has_status( array('on-hold', 'pending') ) ) {
       $this->callback_log('A encomenda poderá já ter sido paga.', true);
-    }
+    }*/
    
 
-    // Confirma se existe valor e coincide com a encomenda
+    
     $order_total = version_compare( WC_VERSION, '3.0', '>=' ) ? $order->get_total() : $order->order_total;
     if ( sanitize_text_field(!isset( $_GET['valor'] )) || empty( sanitize_text_field($_GET['valor']) ) ) {
       $this->callback_log( 'Erro no valor', true );
@@ -90,8 +90,61 @@ class WC_Eupago_Callback {
     if ( sanitize_text_field(isset( $_GET['transacao'] )) ) $note.= '<br />Transação: ' . sanitize_text_field($_GET['transacao']);
     $order->add_order_note( $note );
     $order->payment_complete( sanitize_text_field($_GET['transacao'] ));
-    $this->callback_log( 'Pagamento com Sucesso!' );
 
+
+
+
+
+
+    if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php')) {
+      include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
+    }
+    $payment_method = $order->get_payment_method();
+    $payment_gateway =WC()->payment_gateways->payment_gateways; 
+    
+      switch ($payment_method) {
+          case 'eupago_multibanco':
+              $payment_method = $payment_gateway[4];//eupago_multibanco
+              $option_key = $payment_method->settings['sms_payment_confirmation_multibanco'];//yes
+              $option_text = 'sms_payment_confirmation_multibanco'; //sms_payment_confirmation_multibanco
+              break;
+          case 'eupago_mbway':
+              $payment_method = $payment_gateway[6];//eupago_mbway
+              $option_key = $payment_method->settings['sms_payment_confirmation_mbway'];//yes
+              $option_text = 'sms_payment_confirmation_mbway'; //sms_payment_confirmation_mbway
+              break;
+          case 'eupago_payshop':
+              $payment_method = $payment_gateway[5];//eupago_payshop
+              $option_key = $payment_method->settings['sms_payment_confirmation_payshop'];//yes
+              $option_text = 'sms_payment_confirmation_payshop'; //sms_payment_confirmation_payshop
+              break;
+          case 'eupago_cc':
+              $payment_method = $payment_gateway[8];//eupago_cc
+              $option_key = $payment_method->settings['sms_payment_confirmation_cc'];//yes
+              $option_text = 'sms_payment_confirmation_cc'; //sms_payment_confirmation_cc
+              break;
+          case 'eupago_cofidispay':
+              $payment_method = $payment_gateway[7];//eupago_cofidis
+              $option_key = $payment_method->settings['sms_payment_confirmation_cofidis'];//yes
+              $option_text = 'sms_payment_confirmation_cofidis'; //sms_payment_confirmation_cofidis
+              break;
+          default:
+              $option_key = null;
+              break;
+      }
+    
+      if ($option_text && $option_key === 'yes') {
+          if (function_exists('send_sms_processing')) {
+              $order_id = isset($_GET['identificador']) ? sanitize_text_field($_GET['identificador']) : null;
+              send_sms_processing($order_id);
+          } else {
+              $this->callback_log('Função send_sms_prossessing não encontrada.');
+          }
+      } else {
+          $this->callback_log('Opção do método de pagamento não é igual a "yes" ou não está definida.');
+      }
+
+      $this->callback_log( 'Pagamento com Sucesso!' );
   }
 
   function get_gateway($gateway = null) {

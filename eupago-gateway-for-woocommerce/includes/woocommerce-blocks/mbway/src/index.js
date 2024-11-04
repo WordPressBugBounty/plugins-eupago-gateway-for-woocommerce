@@ -77,6 +77,7 @@ const ContentMBWay = (props) => {
 
 	const selectStyle = {
 		width: '20%',
+		maxWidth: '20%',
 		borderRadius: 4,
 		lineHeight: 16,
 		margin: 0,
@@ -87,6 +88,7 @@ const ContentMBWay = (props) => {
 
 	const inputStyle = {
 		width: '80%',
+		maxWidth: '80%',
 		paddingTop: 15,
 		paddingBottom: 15,
 	};

@@ -440,6 +440,32 @@ function eupago_page_content()
 						<th scope="row"><label for="sms_enable"><?php esc_html_e($notificacoes_sms); ?></label></th>
 						<td><input type="checkbox" name="sms_enable" value="yes" <?php echo $sms_enable_checked; ?>><?php esc_html_e($texto_enable); ?></td>
 					</tr>
+                    <tr>
+                        <td colspan="2">
+                            <p style="color: #ff0000; font-weight: bold;">
+                                <?php
+                                // Captura a linguagem atual do WordPress
+                                $locale = get_locale();
+
+                                // Exibe a mensagem baseada na linguagem
+                                if ($locale == 'pt_PT') {
+                                    // Português
+                                    esc_html_e('Os SMS devem ser configurados em cada método de pagamento específico.', 'eupago-gateway-for-woocommerce');
+                                } elseif ($locale == 'en_US') {
+                                    // Inglês
+                                    esc_html_e('SMS must be configured for each specific payment method.', 'eupago-gateway-for-woocommerce');
+                                } elseif ($locale == 'es_ES') {
+                                    // Espanhol
+                                    esc_html_e('Los SMS deben configurarse en cada método de pago específico.', 'eupago-gateway-for-woocommerce');
+                                } else {
+                                    // Caso o idioma não seja um dos especificados, exibe o texto em inglês por padrão
+                                    esc_html_e('SMS must be configured for each specific payment method.', 'eupago-gateway-for-woocommerce');
+                                }
+                                ?>
+                            </p>
+                        </td>
+                    </tr>
+
 					<?php
                     if (!empty(get_option('eupago_sms_enable')) && get_option('eupago_sms_enable') == 'yes') {
                         $sms_enabled = 'eupago-sms-notifications active';
@@ -447,18 +473,6 @@ function eupago_page_content()
                         $sms_enabled = 'eupago-sms-notifications';
                     }
     ?>
-					<tr class="<?php echo esc_html($sms_enabled); ?>">
-						<th scope="row"><label for="sms_payment_hold"><?php esc_html_e($payment_on_hold); ?></label></th>
-						<td><input type="checkbox" name="sms_payment_hold" value="yes" <?php echo $sms_payment_hold_checked; ?>><?php esc_html_e($texto_enable); ?></td>
-					</tr>
-					<tr class="<?php echo esc_html($sms_enabled); ?>">
-						<th scope="row"><label for="sms_payment_confirmation"><?php esc_html_e($payment_confirmation); ?></label></th>
-						<td><input type="checkbox" name="sms_payment_confirmation" value="yes" <?php echo $sms_payment_confirmation_checked; ?>><?php esc_html_e($texto_enable); ?></td>
-					</tr>
-					<tr class="<?php echo esc_html($sms_enabled); ?>">
-						<th scope="row"><label for="sms_order_confirmation"><?php esc_html_e($sms_order_confirmation); ?></label></th>
-						<td><input type="checkbox" name="sms_order_confirmation" value="yes" <?php echo $sms_order_confirmation_checked; ?>><?php esc_html_e($texto_enable); ?></td>
-					</tr>
 					<tr class="<?php echo esc_html($sms_enabled); ?>">
 						<th scope="row"><label for="sms_intelidus_id"><?php esc_html_e('SMS Biziq ID:', 'eupago-gateway-for-woocommerce'); ?></label></th>
 						<td><input class="regular-text" type="text" name="sms_intelidus_id" value="<?php echo esc_attr(get_option('eupago_sms_intelidus_id')); ?>"></td>

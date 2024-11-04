@@ -43,12 +43,16 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
             $this->only_above = $this->get_option('only_above');
             $this->only_below = $this->get_option('only_below');
             $this->stock_when = $this->get_option('stock_when');
+            $this->sms_payment_hold_cofidis = $this->get_option('sms_payment_hold_cofidis');
+            $this->sms_payment_confirmation_cofidis = $this->get_option('sms_payment_confirmation_cofidis');
+            $this->sms_order_confirmation_cofidis = $this->get_option('sms_order_confirmation_cofidis');
 
             // Set the API.
             $this->client = new WC_Eupago_API($this);
 
             // Actions and filters
             add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
+           
 
             if (function_exists('icl_object_id') && function_exists('icl_register_string')) {
                 add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'register_wpml_strings']);
@@ -117,7 +121,11 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
 
             $texts = [
                 'enable_disable' => __('Enable/Disable', 'woocommerce'),
+                'payment_hold' => __('SMS Payment On Hold:', 'eupago-gateway-for-woocommerce'),
+                'payment_confirmation' => __('SMS Payment Confirmation:', 'eupago-gateway-for-woocommerce'),
                 'enable_label' => __('Enable CofidisPay (using Eupago)', 'eupago-for-woocommerce'),
+                'sms_order_confirmation' => __('SMS Order Confirmation:', 'eupago-gateway-for-woocommerce'),
+                'enable_label2' => 'Enable',
                 'title' => __('Title', 'woocommerce'),
                 'title_description' => __('This controls the title which the user sees during checkout.', 'woocommerce'),
                 'title_default' => __('Cofidis Pay', 'eupago-for-woocommerce'),
@@ -189,7 +197,12 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
             if ($admin_language === 'pt_PT' || $admin_language === 'pt_BR') {
                 $texts = [
                     'enable_disable' => 'Ativar/Desativar',
+                    'enable_label2' => 'Ativar',
+                    'payment_hold' => __('Confirmação SMS dos detalhes de Pagamento:', 'eupago-gateway-for-woocommerce'),
+                    'payment_confirmation' => __('SMS Confirmação do Pagamento:', 'eupago-gateway-for-woocommerce'),
                     'enable_label' => 'Ativar CofidisPay (usando Eupago)',
+                    'payment_confirmation' => __('Confirmação do pagamento por SMS:', 'eupago-gateway-for-woocommerce'),
+                    'sms_order_confirmation' => __('Confirmação de Pedido por SMS:', 'eupago-gateway-for-woocommerce'),
                     'title' => 'Título',
                     'title_description' => 'Controla o título que o usuário vê durante o checkout.',
                     'title_default' => 'Cofidis Pay',
@@ -264,6 +277,10 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
                 $texts = [
                     'enable_disable' => 'Activar/Desactivar',
                     'enable_label' => 'Activar CofidisPay (usando Eupago)',
+                    'enable_label2' => 'Activar',
+                    'payment_confirmation' => __('Confirmación de pago SMS:', 'eupago-gateway-for-woocommerce'),
+                    'sms_order_confirmation' => __('Confirmación del Pedido SMS:', 'eupago-gateway-for-woocommerce'),
+                    'payment_hold' => __('Pago SMS en espera:', 'eupago-gateway-for-woocommerce'),
                     'title' => 'Título',
                     'title_description' => 'Controla el título que el usuario ve durante el proceso de pago.',
                     'title_default' => 'Cofidis Pay',
@@ -401,6 +418,18 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
                     'description' => $texts['max_installments_description'],
                     'default' => '',
                     'options' => $texts['installment_options'],
+                ],
+                'sms_payment_hold_cofidis' => [
+                    'title' => $texts['payment_hold'],
+                    'type' => 'checkbox',
+                    'label' => $texts['enable_label2'],
+                    'default' => 'no',
+                ],
+                'sms_payment_confirmation_cofidis' => [
+                    'title' => $texts['payment_confirmation'],
+                    'type' => 'checkbox',
+                    'label' =>  $texts['enable_label2'],
+                    'default' => 'no',
                 ],
             ];
         }
@@ -584,6 +613,15 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
             // Empty awaiting payment session
             if (isset($_SESSION['order_awaiting_payment'])) {
                 unset($_SESSION['order_awaiting_payment']);
+            }
+
+            if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php') && $this->get_option('sms_payment_hold_cofidis') === 'yes') {
+                include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
+              if (function_exists('send_sms')) {
+                send_sms($order_id);
+              } else {
+                $this->callback_log('Função send_sms_prossessing não encontrada.');
+              }
             }
 
             // Return thankyou redirect
