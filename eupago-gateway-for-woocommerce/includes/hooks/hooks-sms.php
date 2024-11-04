@@ -1,16 +1,17 @@
 <?php
-
 /**
 * Eupago SMS.
 */
+
 // Send sms for pending order.
 function send_sms_pending($order_id) {
    $order = wc_get_order($order_id);
 
    $phone = $order->get_meta( '_billing_phone', true);
    $total_amount = $order->get_total();
-   if ((get_option('eupago_sms_enable') == 'yes') && (!empty($phone))) { 
+   if ((get_option('eupago_sms_enable') == 'yes') && (get_option('eupago_sms_payment_hold') == 'yes') && (!empty($phone))) { 
       $payment_method = $order->get_meta( '_payment_method', true);
+
       switch ($payment_method) {
          case 'eupago_multibanco': //multibanco
                $entity        = $order->get_meta( '_eupago_multibanco_entidade', true);
@@ -83,11 +84,16 @@ function send_sms_pending($order_id) {
 
    }
 }
+
+add_action( 'woocommerce_order_status_pending', 'send_sms_pending');
+add_action( 'woocommerce_order_status_on-hold', 'send_sms_pending');
+
+
 // Send sms for paid order.
 function send_sms_processing($order_id) {
    $order = wc_get_order($order_id);
    $phone = $order->get_meta( '_billing_phone', true);
-   if ((get_option('eupago_sms_enable') == 'yes')  && (!empty($phone))) {
+   if ((get_option('eupago_sms_enable') == 'yes') && (get_option('eupago_sms_payment_confirmation') == 'yes') && (!empty($phone))) {
       if (get_option('biziq_environment') == 'sandbox'){
          $url = 'https://sandboxapi.biziq.app/sms/add?accountid=' . get_option('eupago_sms_intelidus_id') . '&apikey=' . get_option('eupago_sms_intelidus_api');
       }
@@ -116,24 +122,11 @@ function send_sms_processing($order_id) {
    }
 }
 
-
-function send_sms_cc($order_id){
-   $order = wc_get_order($order_id);
-   send_sms_pending($order_id);
-}
-
-function send_sms($order_id){
-   $order = wc_get_order($order_id);
-   send_sms_pending($order_id);
-}
-
-
-
-
+add_action( 'woocommerce_order_status_processing', 'send_sms_processing');
 
 
 // Send sms for completed order.
-/*function send_sms_completed($order_id) {
+function send_sms_completed($order_id) {
    $order = wc_get_order($order_id);
    $phone = $order->get_meta( '_billing_phone', true);
    if ((get_option('eupago_sms_enable') == 'yes') && (get_option('eupago_sms_order_confirmation') == 'yes') && (!empty($phone))) {
@@ -162,7 +155,8 @@ function send_sms($order_id){
       $response_body = wp_remote_post( $url, $args );
       $response     = wp_remote_retrieve_body( $response_body );
    }
-}*/
-//add_action('woocommerce_order_status_completed', 'send_sms_completed');
-?>
+}
+
+add_action( 'woocommerce_order_status_completed', 'send_sms_completed');
+
 ?>
