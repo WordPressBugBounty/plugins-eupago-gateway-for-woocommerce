@@ -6,7 +6,7 @@ Plugin URI:
 Requires at least: 4.4
 Tested up to: 6.4.2
 Requires PHP: 7.0
-Stable tag: 4.2.0
+Stable tag: 4.2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,14 @@ Para começar a receber pagamentos deve primeiro aderir aos serviços da Eupago.
 O cliente dispõe de cerca de 4 minutos para realizar o pagamento após a finalização da compra. Este tempo é definido pela própria MB WAY.
 
 == Changelog ==
+
+= 4.2.2(07/11/2024) =
+* Debug on variables that aren't created on constructor of payment method classes
+
+= 4.2.1(03/10/2024) =
+* Added Terms and Conditions
+* Sending SMS from BIZIQ for each payment method
+
 = 4.2.0(22/08/2024) =
 * Added Country Code option for MBWay Service
 * Changed the behaviour of MBWay Service when the request fail

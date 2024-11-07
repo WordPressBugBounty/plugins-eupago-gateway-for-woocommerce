@@ -18,6 +18,15 @@ if (!class_exists('WC_Eupago_MBWAY')) {
          *
          * @return void
          */
+        protected $instructions;
+        protected $only_portugal;
+        protected $only_above;
+        protected $only_below;
+        protected $stock_when;
+        protected $sms_payment_hold_mbway;
+        protected $sms_payment_confirmation_mbway;
+        protected $sms_order_confirmation_mbway;
+        protected $client;
         public function __construct()
         {
             global $woocommerce;
@@ -41,9 +50,18 @@ if (!class_exists('WC_Eupago_MBWAY')) {
             $this->only_above = $this->get_option('only_above');
             $this->only_below = $this->get_option('only_below');
             $this->stock_when = $this->get_option('stock_when');
+            $this->sms_payment_hold_mbway = $this->get_option('sms_payment_hold_mbway');
+            $this->sms_payment_confirmation_mbway = $this->get_option('sms_payment_confirmation_mbway');
+            $this->sms_order_confirmation_mbway = $this->get_option('sms_order_confirmation_mbway');
 
             // Set the API.
             $this->client = new WC_Eupago_API($this);
+
+            // Actions and filters
+            add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
+            //add_action('woocommerce_order_status_on-hold' , array($this, 'send_sms_pending_mbway'));
+            //add_action('woocommerce_order_status_processing' , array($this, 'send_sms_processing_mbway'));
+            //add_action('woocommerce_order_status_completed', array($this, 'send_sms_completed_mbway'));
 
             // Actions and filters
             add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
@@ -118,6 +136,9 @@ if (!class_exists('WC_Eupago_MBWAY')) {
                 $language_description = esc_html(__('Seleccione el idioma para el proceso de pago.', 'eupago-gateway-for-woocommerce'));
             }
 
+            $payment_on_hold = __('SMS Payment On Hold:', 'eupago-gateway-for-woocommerce');
+            $texto_enable = esc_html__('Enable', 'eupago-gateway-for-woocommerce');
+            $sms_order_confirmation = esc_html('SMS Order Confirmation:', 'eupago-gateway-for-woocommerce');
             $enable_disable_title = __('Enable/Disable', 'eupago-gateway-for-woocommerce');
             $title_mbway = __('Title','eupago-gateway-for-woocommerce');
             $mbway = __('MBWAY','eupago-gateway-for-woocommerce');
@@ -143,6 +164,7 @@ if (!class_exists('WC_Eupago_MBWAY')) {
             $quando_order_paga = __('when order is paid (requires active callback)', 'eupago-gateway-for-woocommerce');
             $quando_order_colocada =  __('when order is placed (before payment)', 'eupago-gateway-for-woocommerce');
             $enable_mbway = __('Enable MBWAY (using Eupago)', 'eupago-gateway-for-woocommerce');
+            $payment_confirmation = esc_html__('SMS Payment Confirmation:', 'eupago-gateway-for-woocommerce');
             // Translate title based on the selected language
             if ($admin_language === 'pt_PT' || $admin_language === 'pt_BR') {
                 $enable_disable_title = __('Ativar/Desativar', 'eupago-gateway-for-woocommerce');
@@ -152,6 +174,10 @@ if (!class_exists('WC_Eupago_MBWAY')) {
                 $title_mbway = __('Título','eupago-gateway-for-woocommerce');
                 $description_checkout = __('Isto controla a descrição que o utilizador vê durante o pagamento.','eupago-gateway-for-woocommerce');
                 $description = __('Descrição','eupago-gateway-for-woocommerce');
+                $payment_on_hold = esc_html__('Confirmação SMS dos detalhes de Pagamento:', 'eupago-gateway-for-woocommerce');
+                $texto_enable = 'Ativar';
+                $payment_confirmation = esc_html__('Confirmação do pagamento por SMS:', 'eupago-gateway-for-woocommerce');
+                $sms_order_confirmation = esc_html__('Confirmação de Pedido por SMS:', 'eupago-gateway-for-woocommerce');
             } elseif ($admin_language === 'es_ES') {
                 $enable_disable_title = __('Activar/Desactivar', 'eupago-gateway-for-woocommerce');
                 $title_mbway = __('Título','eupago-gateway-for-woocommerce');
@@ -178,7 +204,10 @@ if (!class_exists('WC_Eupago_MBWAY')) {
                 $escolher_reduzir_stock = __('Elegir cuándo reducir el stock.', 'eupago-gateway-for-woocommerce');
                 $quando_order_paga = __('cuando el pedido se paga (requiere callback activo)', 'eupago-gateway-for-woocommerce');
                 $quando_order_colocada = __('cuando el pedido se realiza (antes del pago)', 'eupago-gateway-for-woocommerce');
-    
+                $payment_on_hold = esc_html__('Pago SMS en espera:', 'eupago-gateway-for-woocommerce');
+                $texto_enable = 'Habilitar';
+                $payment_confirmation = esc_html__('Confirmación de pago SMS:', 'eupago-gateway-for-woocommerce');
+                $sms_order_confirmation = esc_html__('Confirmación de pedido SMS:', 'eupago-gateway-for-woocommerce');
             }
 
             $this->form_fields = [
@@ -231,6 +260,18 @@ if (!class_exists('WC_Eupago_MBWAY')) {
                         '' => esc_html($quando_order_paga),
                         'order' => esc_html($quando_order_colocada),
                     ],
+                ],
+                'sms_payment_hold_mbway' => [
+                    'title' => esc_html($payment_on_hold),
+                    'type' => 'checkbox',
+                    'label' => esc_html($texto_enable),
+                    'default' => 'no',
+                ],
+                'sms_payment_confirmation_mbway' => [
+                    'title' => esc_html($payment_confirmation),
+                    'type' => 'checkbox',
+                    'label' => esc_html($texto_enable),
+                    'default' => 'no',
                 ],
             ];
         }
@@ -458,6 +499,16 @@ if (!class_exists('WC_Eupago_MBWAY')) {
         if (isset($_SESSION['order_awaiting_payment'])) {
             unset($_SESSION['order_awaiting_payment']);
         }
+
+        if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php') && $this->get_option('sms_payment_hold_mbway') === 'yes') {
+            include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
+          if (function_exists('send_sms')) {
+            send_sms($order_id);
+          } else {
+            $this->callback_log('Função send_sms_prossessing não encontrada.');
+          }
+        }
+
 
         // Return success and redirect to the thank you page
         return [

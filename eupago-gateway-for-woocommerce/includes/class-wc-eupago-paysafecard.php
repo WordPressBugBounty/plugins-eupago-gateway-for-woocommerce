@@ -15,6 +15,13 @@ if ( !class_exists( 'WC_Eupago_PF' ) ) {
     * @access public
     * @return void
     */
+    protected $instructions;
+    protected $only_portugal;
+    protected $only_above;
+    protected $only_below;
+    protected $stock_when;
+    protected $client;
+    
     public function __construct() {
 
       global $woocommerce;

@@ -14,6 +14,42 @@ if ( ! class_exists( 'WC_Eupago_Integration' ) ) :
 		/**
 		* Init and hook in the integration.
 		*/
+		 /**
+		 * Channel for integration.
+		*
+		* @var string
+		*/
+		protected $channel;
+
+		/**
+		 * API Key for authentication.
+		*
+		* @var string
+		*/
+		protected $api_key;
+
+		/**
+		 * Debug mode flag.
+		*
+		* @var bool
+		*/
+		protected $debug;
+
+		/**
+		 * Email for debug notifications.
+		*
+		* @var string
+		*/
+		protected $debug_email;
+
+		/**
+		 * Notification URL.
+		*
+		* @var string
+		*/
+		protected $notify_url;
+
+
 		public function __construct() {
 			global $woocommerce;
 
@@ -75,6 +111,22 @@ if ( ! class_exists( 'WC_Eupago_Integration' ) ) :
 		public function get_api() {
 			return $this->api_key;
 		}
+
+		public function is_debug() {
+			return $this->debug;
+		  }
+		
+		  public function get_debug_email() {
+			  return $this->debug_email;
+		  }
+		
+		  public function get_api_key() {
+			  return $this->api_key;
+		  }
+		
+		  public function get_notify_url() {
+			  return $this->notify_url;
+		  }
 
 	}
 

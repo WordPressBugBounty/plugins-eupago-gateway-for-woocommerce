@@ -19,6 +19,15 @@ if (!class_exists('WC_Eupago_CC')) {
          *
          * @return void
          */
+        protected $instructions;
+        protected $only_portugal;
+        protected $only_above;
+        protected $only_below;
+        protected $stock_when;
+        protected $sms_payment_hold_cc;
+        protected $sms_payment_confirmation_cc;
+        protected $sms_order_confirmation_cc;
+        protected $client;
         public function __construct()
         {
             global $woocommerce;
@@ -40,12 +49,19 @@ if (!class_exists('WC_Eupago_CC')) {
             $this->only_above = $this->get_option('only_above');
             $this->only_below = $this->get_option('only_below');
             $this->stock_when = $this->get_option('stock_when');
+            $this->sms_payment_hold_cc = $this->get_option('sms_payment_hold_cc');
+            $this->sms_payment_confirmation_cc = $this->get_option('sms_payment_confirmation_cc');
+            $this->sms_order_confirmation_cc = $this->get_option('sms_order_confirmation_cc');
 
             // Set the API.
             $this->client = new WC_Eupago_API($this);
 
             // Actions and filters
             add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
+            //add_action('woocommerce_order_status_pending', array($this, 'send_sms_pending_cc'));
+            //add_action('woocommerce_order_status_on-hold', array($this, 'send_sms_pending_cc'));
+            //add_action('woocommerce_order_status_processing' , array($this, 'send_sms_processing_cc'));
+            //add_action('woocommerce_order_status_completed', array($this, 'send_sms_completed_cc'));
 
             if (function_exists('icl_object_id') && function_exists('icl_register_string')) {
                 add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'register_wpml_strings']);
@@ -122,6 +138,9 @@ if (!class_exists('WC_Eupago_CC')) {
                 $language_description = esc_html(__('Seleccione el idioma para el proceso de pago.', 'eupago-gateway-for-woocommerce'));
             }
 
+
+            $texto_enable = esc_html__('Enable', 'eupago-gateway-for-woocommerce');
+            $payment_on_hold = __('SMS Payment On Hold:', 'eupago-gateway-for-woocommerce');
             $enable_disable_title = __('Enable/Disable', 'eupago-gateway-for-woocommerce');
             $title_credit_card = __('Title','eupago-gateway-for-woocommerce');
             $enable_credit_card = __('Enable Credit Card (using Eupago)','eupago-gateway-for-woocommerce');
@@ -132,6 +151,8 @@ if (!class_exists('WC_Eupago_CC')) {
             $pay_with_card = __('Pay with Card','eupago-gateway-for-woocommerce');
             $logo = __('Logo','eupago-gateway-for-woocommerce');
             $shop_logo = __('Store Logo for the checkout page','eupago-gateway-for-woocommerce');
+            $payment_confirmation = esc_html__('SMS Payment Confirmation:', 'eupago-gateway-for-woocommerce');
+            $sms_order_confirmation = esc_html('SMS Order Confirmation:', 'eupago-gateway-for-woocommerce');
             //Fim de Adição
             $instructions_text = __('Instructions', 'eupago-gateway-for-woocommerce');
             $description_instructions_text = __('Instructions to be added to the thank you page and the email sent to the customer.', 'eupago-gateway-for-woocommerce');
@@ -165,6 +186,8 @@ if (!class_exists('WC_Eupago_CC')) {
                 $pay_with_card = __('Pagar com Cartão','eupago-gateway-for-woocommerce');
                 $logo = __('Logo','eupago-gateway-for-woocommerce');
                 $shop_logo = __('Logotipo da loja para a página de pagamento','eupago-gateway-for-woocommerce');
+                $texto_enable = 'Ativar';
+                $payment_confirmation = esc_html__('Confirmação do pagamento por SMS:', 'eupago-gateway-for-woocommerce');
                 //Fim de adição
                 $instructions_text = __('Instruções', 'eupago-gateway-for-woocommerce');
                 $description_instructions_text = __('Instruções que serão adicionadas à página de agradecimento e ao e-mail enviado ao cliente.', 'eupago-gateway-for-woocommerce');
@@ -184,7 +207,8 @@ if (!class_exists('WC_Eupago_CC')) {
                 $escolher_reduzir_stock = __('Escolher quando reduzir o stock.', 'eupago-gateway-for-woocommerce');
                 $quando_order_paga = __('quando a encomenda é paga (requer callback ativo)', 'eupago-gateway-for-woocommerce');
                 $quando_order_colocada = __('quando a encomenda é colocada (antes do pagamento)', 'eupago-gateway-for-woocommerce');
-
+                $payment_on_hold = esc_html__('Confirmação SMS dos detalhes de Pagamento:', 'eupago-gateway-for-woocommerce');
+                $sms_order_confirmation = esc_html__('Confirmação de Pedido por SMS:', 'eupago-gateway-for-woocommerce');
             } elseif ($admin_language === 'es_ES') {
                 $enable_disable_title = __('Activar/Desactivar', 'eupago-gateway-for-woocommerce');
                 //Início de Adição
@@ -215,6 +239,10 @@ if (!class_exists('WC_Eupago_CC')) {
                 $escolher_reduzir_stock = __('Elegir cuándo reducir el stock.', 'eupago-gateway-for-woocommerce');
                 $quando_order_paga = __('cuando el pedido se paga (requiere callback activo)', 'eupago-gateway-for-woocommerce');
                 $quando_order_colocada = __('cuando el pedido se realiza (antes del pago)', 'eupago-gateway-for-woocommerce');
+                $payment_on_hold = esc_html__('Pago SMS en espera:', 'eupago-gateway-for-woocommerce');
+                $texto_enable = 'Habilitar';
+                $payment_confirmation = esc_html__('Confirmación de pago SMS:', 'eupago-gateway-for-woocommerce');
+                $sms_order_confirmation = esc_html__('Confirmación de pedido SMS:', 'eupago-gateway-for-woocommerce');
             }
 
 
@@ -274,7 +302,19 @@ if (!class_exists('WC_Eupago_CC')) {
                       '' => esc_html($quando_order_paga),
                       'order' => esc_html($quando_order_colocada),
                     ],
-                ]
+                ],
+                'sms_payment_hold_cc' => [
+                    'title' => esc_html($payment_on_hold),
+                    'type' => 'checkbox',
+                    'label' => esc_html($texto_enable),
+                    'default' => 'no',
+                  ],
+                'sms_payment_confirmation_cc' => [
+                    'title' => esc_html($payment_confirmation),
+                    'type' => 'checkbox',
+                    'label' => esc_html($texto_enable),
+                    'default' => 'no',
+                ],
             ];
         }
 
@@ -398,7 +438,7 @@ if (!class_exists('WC_Eupago_CC')) {
             $order = wc_get_order($order_id);
             $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;
             $payment_method = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_payment_method() : $order->payment_method;
-
+            
             if ($error_message = $this->check_order_errors($order_id)) {
                 wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error');
                 return;
@@ -430,6 +470,7 @@ if (!class_exists('WC_Eupago_CC')) {
             $order->update_meta_data('_eupago_cc_referencia', $eupagoCC->referencia);
             $order->save();
 
+        
             // Mark as on-hold
             $order->update_status('pending', __('Awaiting Credit Card payment.', 'eupago-gateway-for-woocommerce'));
 
@@ -439,6 +480,16 @@ if (!class_exists('WC_Eupago_CC')) {
             // Empty cart and session
             $this->clear_cart_and_session();
 
+            
+            if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php') && $this->get_option('sms_payment_hold_cc') === 'yes') {
+                include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
+                if (function_exists('send_sms_cc')) {
+                    send_sms_cc($order_id);
+                } else {
+                    $this->callback_log('Função send_sms_prossessing não encontrada.');
+                }
+            }
+            
             // Return thankyou redirect
             return [
                 'result' => 'success',

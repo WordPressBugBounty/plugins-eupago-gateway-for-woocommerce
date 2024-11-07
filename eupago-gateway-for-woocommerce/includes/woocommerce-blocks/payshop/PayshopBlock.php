@@ -34,7 +34,13 @@ final class PayshopBlock extends AbstractPaymentMethodType
     {
         $this->settings = get_option('woocommerce_eupago_payshop_settings');
         $gateways = WC()->payment_gateways->payment_gateways();
-        $this->gateway = $gateways[ $this->name ];
+        if (array_key_exists($this->name, $gateways)) {
+            $this->gateway = $gateways[$this->name];
+        } else {
+            // Log a message if the gateway is not found
+            error_log("Payment gateway '{$this->name}' is not registered.");
+            $this->gateway = null; // Handle accordingly
+        }
     }
 
     /**
