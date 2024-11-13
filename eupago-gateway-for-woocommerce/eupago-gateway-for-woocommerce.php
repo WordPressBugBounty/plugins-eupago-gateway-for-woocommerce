@@ -3,7 +3,7 @@
 * Plugin Name: Eupago Gateway For Woocommerce
 * Plugin URI:
 * Description: This plugin allows customers to pay their orders with Multibanco, MB WAY, Payshop, Credit Card and CofidisPay with Eupago’s gateway.
-* Version: 4.2.2
+* Version: 4.2.3
 * Author: Eupago
 * Author URI: https://www.eupago.pt/
 * Text Domain: eupago-gateway-for-woocommerce
@@ -25,7 +25,7 @@ if (!class_exists('WC_Eupago')) :
          *
          * @var string
          */
-        public const VERSION = '4.2.2';
+        public const VERSION = '4.2.3';
 
         /**
          * Instance of this class.

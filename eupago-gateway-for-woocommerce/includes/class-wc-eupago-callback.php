@@ -11,27 +11,6 @@ class WC_Eupago_Callback {
   */
   protected static $instance = null;
 
-  /**
-  * ID for the callback.
-  *
-  * @var string
-  */
-  protected $id;
-
-  /**
-  * Integration instance.
-  *
-  * @var WC_Eupago_Integration
-  */
-  protected $integration;
-
-  /**
-  * Log instance for debugging.
-  *
-  * @var WC_Logger
-  */
-  protected $log;
-
 
   /**
   * Constructor.
@@ -42,10 +21,7 @@ class WC_Eupago_Callback {
     $this->id = 'eupago-gateway-for-woocommerce';
 
     $this->integration = new WC_Eupago_Integration();
-   
-    if ($this->integration->is_debug()) {
-      $this->log = new WC_Logger();
-    }
+    if ($this->integration->debug) $this->log = new WC_Logger();
 
     // Callback for old version of plugin
     add_action( 'woocommerce_api_wc_eupago_webatual', array($this, 'callback_handler') );

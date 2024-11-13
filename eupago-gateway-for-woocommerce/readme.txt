@@ -6,7 +6,7 @@ Plugin URI:
 Requires at least: 4.4
 Tested up to: 6.4.2
 Requires PHP: 7.0
-Stable tag: 4.2.2
+Stable tag: 4.2.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -42,6 +42,9 @@ Para começar a receber pagamentos deve primeiro aderir aos serviços da Eupago.
 O cliente dispõe de cerca de 4 minutos para realizar o pagamento após a finalização da compra. Este tempo é definido pela própria MB WAY.
 
 == Changelog ==
+
+= 4.2.3(13/11/2024) =
+* Debug the method that calls to WC_EUPAGO_INTEGRATION 
 
 = 4.2.2(07/11/2024) =
 * Debug on variables that aren't created on constructor of payment method classes
