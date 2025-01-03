@@ -4,9 +4,9 @@ Tags: woocommerce, payment, gateway, multibanco, atm, debit card, credit card, b
 Author URI: https://www.eupago.pt/
 Plugin URI: 
 Requires at least: 4.4
-Tested up to: 6.4.2
+Tested up to: 6.7.1
 Requires PHP: 7.0
-Stable tag: 4.2.3
+Stable tag: 4.3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -27,6 +27,7 @@ Este plugin permite disponibilizar aos clientes finais novos meios de pagamento 
 * geração de um pedido de pagamento MB WAY. O pagamento é realizado na aplicação da MB WAY;
 * geração de pedido de pagamentos via Cartão de Crédito;
 * geração de pedido de pagamentos via CofidisPay (para valores estipulados pela Cofidis);
+* geração de pedido de pagamentos via Bizum;
 * possibilita de fazer reembolsos directamente através da plataforma e-commerce;
 * alteração automática do estado das encomendas para "Em Processamento" após o pagamento do cliente e informa o cliente final e o administrador da loja.
 
@@ -42,6 +43,9 @@ Para começar a receber pagamentos deve primeiro aderir aos serviços da Eupago.
 O cliente dispõe de cerca de 4 minutos para realizar o pagamento após a finalização da compra. Este tempo é definido pela própria MB WAY.
 
 == Changelog ==
+
+= 4.3.0(17/12/2024) =
+* Added Bizum payment method.
 
 = 4.2.3(13/11/2024) =
 * Debug the method that calls to WC_EUPAGO_INTEGRATION 

@@ -125,6 +125,21 @@ switch ($payment_method) {
   echo '<b>'.__('Value', 'eupago-gateway-for-woocommerce').'</b>: '.wc_price( $order_total );
   break;
 
+  case 'eupago_bizum':
+    if (trim(get_post_meta($post->ID, $payment_method_ref, true)) == 0) {
+        $pedido = $client->getReferenciaBizum($post->ID, $order_total, $order->get_checkout_order_received_url(), $order->get_checkout_payment_url());
+        $pedido_data = json_decode($pedido, true);
+        if (isset($pedido_data['estado']) && $pedido_data['estado'] == 0) {
+            update_post_meta($post->ID, '_eupago_bizum_referencia', $pedido_data['referencia']);
+            update_post_meta($post->ID, '_eupago_bizum_redirectUrl', $pedido_data['redirectUrl']);
+        }
+    }
+    echo '<img src="' . plugins_url('assets/images/bizum_icon.png', dirname(dirname(__FILE__))) . '" alt="' . esc_attr($payment_method_title) . '" title="' . esc_attr($payment_method_title) . '" /><br />';
+    echo '<b>' . __('Reference', 'eupago-gateway-for-woocommerce') . '</b>: ' . chunk_split(trim(get_post_meta($post->ID, '_eupago_bizum_referencia', true)), 3, ' ') . '<br/>';
+    echo '<b>' . __('Value', 'eupago-gateway-for-woocommerce') . '</b>: ' . wc_price($order_total) . '<br/>';
+    echo !empty(get_post_meta($post->ID, "_eupago_bizum_redirectUrl", true)) ? '<b>' . __('Payment Link', 'eupago-gateway-for-woocommerce') . '</b>: <a href=' . get_post_meta($post->ID, "_eupago_bizum_redirectUrl", true) . ' target="_black">Click here</a>' : '';
+    break;
+
   default:
   echo __('No details available', 'eupago-gateway-for-woocommerce');
   break;

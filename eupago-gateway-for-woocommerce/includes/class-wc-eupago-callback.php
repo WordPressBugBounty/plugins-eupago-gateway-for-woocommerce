@@ -103,9 +103,9 @@ class WC_Eupago_Callback {
       include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
     }
     $payment_method = $order->get_payment_method();
-    $payment_gateway =WC()->payment_gateways->payment_gateways; 
-    
-      switch ($payment_method) {
+    $payment_gateway = WC()->payment_gateways->payment_gateways;
+
+    switch ($payment_method) {
           case 'eupago_multibanco':
               $payment_method = $payment_gateway[4];//eupago_multibanco
               $option_key = $payment_method->settings['sms_payment_confirmation_multibanco'];//yes
@@ -131,6 +131,11 @@ class WC_Eupago_Callback {
               $option_key = $payment_method->settings['sms_payment_confirmation_cofidis'];//yes
               $option_text = 'sms_payment_confirmation_cofidis'; //sms_payment_confirmation_cofidis
               break;
+          case 'eupago_bizum':
+              $payment_method = $payment_gateway[999];//eupago_bizum
+              $option_key = $payment_method->settings['sms_payment_confirmation_bizum'];//yes
+              $option_text = 'sms_payment_confirmation_bizum'; //sms_payment_confirmation_bizum
+              break;
           default:
               $option_key = null;
               break;
@@ -146,7 +151,6 @@ class WC_Eupago_Callback {
       } else {
           $this->callback_log('Opção do método de pagamento não é igual a "yes" ou não está definida.');
       }
-
       $this->callback_log( 'Pagamento com Sucesso!' );
   }
 
@@ -161,6 +165,7 @@ class WC_Eupago_Callback {
         'PSC:PT' => ['eupago_psc'],
         'PF:PT' => ['eupago_pf'],
         'CP:PT' => ['eupago_cofidispay'],
+        'BZ:PT' => ['eupago_bizum']
       );
       $eupago_gateways = apply_filters( 'eupago_for_woocommerce_callback_gateways', $eupago_gateways );
 
@@ -180,7 +185,8 @@ class WC_Eupago_Callback {
         'eupago_cc' => 'WC_Eupago_CC',
         'eupago_psc' => 'WC_Eupago_PSC',
         'eupago_pf' => 'WC_Eupago_PF',
-        'eupago_codifispay' => 'WC_Eupago_CofidisPay'
+        'eupago_codifispay' => 'WC_Eupago_CofidisPay',
+        'eupago_bizum' => 'WC_Eupago_Bizum'
       );
       return $eupago_gateways[$gateway];
     } else {

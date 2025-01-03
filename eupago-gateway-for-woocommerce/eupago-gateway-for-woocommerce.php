@@ -2,12 +2,13 @@
 /**
 * Plugin Name: Eupago Gateway For Woocommerce
 * Plugin URI:
-* Description: This plugin allows customers to pay their orders with Multibanco, MB WAY, Payshop, Credit Card and CofidisPay with Eupago’s gateway.
-* Version: 4.2.3
+* Description: This plugin allows customers to pay their orders with Multibanco, MB WAY, Payshop, Credit Card, CofidisPay and Bizum with Eupago’s gateway.
+* Version: 4.3.0
 * Author: Eupago
 * Author URI: https://www.eupago.pt/
 * Text Domain: eupago-gateway-for-woocommerce
 * WC tested up to: 6.4.2
+* Tested up to: 6.4.2
 **/
 
 use Automattic\WooCommerce\Internal\Admin\Orders\CustomOrdersTableController;
@@ -25,7 +26,7 @@ if (!class_exists('WC_Eupago')) :
          *
          * @var string
          */
-        public const VERSION = '4.2.3';
+        public const VERSION = '4.3.0';
 
         /**
          * Instance of this class.
@@ -397,6 +398,7 @@ if (!class_exists('WC_Eupago')) :
             $cc_text_en = __('Credit Card', 'eupago-gateway-for-woocommerce');
             $payshop_text_en = __('Payshop', 'eupago-gateway-for-woocommerce');
             $cofidispay_text_en = __('CofidisPay', 'eupago-gateway-for-woocommerce');
+            $bizum_text_en = __('Bizum', 'eupago-gateway-for-woocommerce');
 
             // Textos em português
             $api_settings_text_pt = __('Configurações API', 'eupago-gateway-for-woocommerce-pt');
@@ -405,6 +407,7 @@ if (!class_exists('WC_Eupago')) :
             $cc_text_pt = __('Cartão de Crédito', 'eupago-gateway-for-woocommerce-pt');
             $payshop_text_pt = __('Payshop', 'eupago-gateway-for-woocommerce-pt');
             $cofidispay_text_pt = __('CofidisPay', 'eupago-gateway-for-woocommerce-pt');
+            $bizum_text_pt = __('Bizum', 'eupago-gateway-for-woocommerce-pt');
 
             // Textos em espanhol
             $api_settings_text_es = __('Configuracions API', 'eupago-gateway-for-woocommerce-es');
@@ -413,6 +416,7 @@ if (!class_exists('WC_Eupago')) :
             $cc_text_es = __('Tarjeta de Crédito', 'eupago-gateway-for-woocommerce-es');
             $payshop_text_es = __('Payshop', 'eupago-gateway-for-woocommerce-es');
             $cofidispay_text_es = __('CofidisPay', 'eupago-gateway-for-woocommerce-es');
+            $bizum_text_es = __('Bizum', 'eupago-gateway-for-woocommerce-es');
 
             // Determinar os textos com base no idioma atual
             switch ($current_language) {
@@ -423,6 +427,7 @@ if (!class_exists('WC_Eupago')) :
                     $cc_text = $cc_text_es;
                     $payshop_text = $payshop_text_es;
                     $cofidispay_text = $cofidispay_text_es;
+                    $bizum_text = $bizum_text_es;
                     break;
                 case 'pt_PT':
                     $api_settings_text = $api_settings_text_pt;
@@ -431,6 +436,7 @@ if (!class_exists('WC_Eupago')) :
                     $cc_text = $cc_text_pt;
                     $payshop_text = $payshop_text_pt;
                     $cofidispay_text = $cofidispay_text_pt;
+                    $bizum_text = $bizum_text_pt;
                     break;
                 default:
                     $api_settings_text = $api_settings_text_en;
@@ -439,6 +445,7 @@ if (!class_exists('WC_Eupago')) :
                     $cc_text = $cc_text_en;
                     $payshop_text = $payshop_text_en;
                     $cofidispay_text = $cofidispay_text_en;
+                    $bizum_text = $bizum_text_en;
                     break;
             }
 
@@ -449,6 +456,7 @@ if (!class_exists('WC_Eupago')) :
             $cc_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_cc'));
             $payshop_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_payshop'));
             $cofidispay_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_cofidispay'));
+            $bizum_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_bizum'));
 
             $plugin_links = [];
 
@@ -462,6 +470,7 @@ if (!class_exists('WC_Eupago')) :
             $plugin_links[] = '<a href="' . $cc_url . '">' . $cc_text . '</a>';
             $plugin_links[] = '<a href="' . $payshop_url . '">' . $payshop_text . '</a>';
             $plugin_links[] = '<a href="' . $cofidispay_url . '">' . $cofidispay_text . '</a>';
+            $plugin_links[] = '<a href="' . $bizum_url . '">' . $bizum_text . '</a>';
 
             foreach ($plugin_links as $link) {
                 if (!in_array($link, $links)) {
@@ -485,6 +494,8 @@ if (!class_exists('WC_Eupago')) :
             include_once 'includes/class-wc-eupago-payshop.php';
 
             include_once 'includes/class-wc-eupago-mbway.php';
+
+            include_once 'includes/class-wc-eupago-bizum.php';
 
             include_once 'includes/class-wc-eupago-cofidispay.php';
 
@@ -519,6 +530,7 @@ if (!class_exists('WC_Eupago')) :
                 $methods[] = 'WC_Eupago_CofidisPay';
                 $methods[] = 'WC_Eupago_CC';
                 $methods[] = 'WC_Eupago_PF';
+                $methods[] = 'WC_Eupago_Bizum';
             }else{
                 $this->show_error_message = true;
             }
@@ -727,7 +739,18 @@ if (!class_exists('WC_Eupago')) :
             $file_path_cc = __DIR__ . '/includes/woocommerce-blocks/cc/CcBlock.php';
             $file_path_payshop = __DIR__ . '/includes/woocommerce-blocks/payshop/PayshopBlock.php';
             $file_path_cofidispay = __DIR__ . '/includes/woocommerce-blocks/cofidispay/CofidisPayBlock.php';
+            $file_path_bizum = __DIR__ . '/includes/woocommerce-blocks/bizum/BizumBlock.php';
 
+            if (file_exists($file_path_bizum)) {
+                require_once $file_path_bizum;
+            
+                add_action(
+                    'woocommerce_blocks_payment_method_type_registration',
+                    function (Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry) {
+                        $payment_method_registry->register(new \Automattic\WooCommerce\Blocks\Payments\Integrations\BizumBlock());
+                    }
+                );
+            }
 
             if (file_exists($file_path_mb)) {
                 require_once $file_path_mb;

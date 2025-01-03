@@ -46,7 +46,13 @@ function send_sms_pending($order_id) {
          case 'eupago_cofidispay': //cofidispay
                $reference     = $order->get_meta( '_eupago_cofidispay_referencia', true);
                $amount        = $total_amount . $order->get_meta( '_order_currency', true);
-               $payment_data  =  __( 'Reference:', 'eupago-gateway-for-woocommerce' ) . ' ' . $reference . ' ' . __( 'Value:', 'eupago-gateway-for-woocommerce' ) . ' ' . $amount;  
+               $payment_data  =  __( 'Reference:', 'eupago-gateway-for-woocommerce' ) . ' ' . $reference . ' ' . __( 'Value:', 'eupago-gateway-for-woocommerce' ) . ' ' . $amount;
+            break;
+
+         case 'eupago_bizum': //bizum
+               $reference     = $order->get_meta( '_eupago_bizum_referencia', true);
+               $amount        = $total_amount . $order->get_meta( '_order_currency', true);
+               $payment_data  =  __( 'Reference:', 'eupago-gateway-for-woocommerce' ) . ' ' . $reference . ' ' . __( 'Value:', 'eupago-gateway-for-woocommerce' ) . ' ' . $amount;
             break;
 
          default:

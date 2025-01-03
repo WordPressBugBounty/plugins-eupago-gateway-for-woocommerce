@@ -195,8 +195,51 @@ class WC_Eupago_API {
       return $response;
     }
 
+  public function getReferenciaBizum($order_id, $valor, $successUrl, $failUrl)
+  {
+    $order = wc_get_order($order_id);
+    $url = 'https://' . get_option('eupago_endpoint') . '.eupago.pt/api/v1.02/bizum/create';
+    $data = array(
+      'payment' => array(
+        'amount' => array(
+          'currency' => 'EUR',
+          'value' => $valor
+        ),
+        'identifier' => (string) $order_id,
+        'successUrl' => $successUrl,
+        'failUrl' => $failUrl
+      ),
+      'customer' => array(
+        'notify' => true,
+        'name' => $order->get_formatted_billing_full_name(),
+        'email' => $order->get_billing_email()
+      )
+    );
 
-  
+    $headers = array(
+      'Authorization: ApiKey ' . $this->get_api_key(),
+      'Accept: application/json',
+      'Content-Type: application/json'
+    );
+
+    $curl = curl_init();
+
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+
+    $response = curl_exec($curl);
+
+    if (curl_errno($curl)) {
+      echo 'cURL Error: ' . curl_error($curl);
+    }
+
+    curl_close($curl);
+    return $response;
+  }
 
   public function pedidoCC($order, $valor, $logo_url, $return_url, $lang, $comment) {
     if (extension_loaded('soap')) {
