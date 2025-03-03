@@ -45,7 +45,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     </tr>
   </table>
 <?php elseif ($method == 'eupago_payshop') : ?>
-  <?php echo esc_html(wpautop( wptexturize( $instructions ) ) . PHP_EOL); ?>
+  <?php echo wp_kses_post(wpautop(wptexturize($instructions)) . PHP_EOL); ?>
   <table cellpadding="10" cellspacing="0" align="center" border="0" style="margin: auto; margin-top: 10px; margin-bottom: 10px; border-collapse: collapse; border: 1px solid #1465AA; border-radius: 4px !important; background-color: #FFFFFF;">
     <tr>
       <td style="border: 1px solid #1465AA; border-top-right-radius: 4px !important; border-top-left-radius: 4px !important; text-align: center; color: #000000; font-weight: bold;" colspan="2">
@@ -60,7 +60,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     </tr>
     <tr>
       <td style="border: 1px solid #1465AA; color: #000000;"><?php _e('Value', 'eupago-gateway-for-woocommerce'); ?>:</td>
-      <td style="border: 1px solid #1465AA; color: #000000; white-space: nowrap;"><?php echo esc_html($order_total); ?>€;</td>
+      <td style="border: 1px solid #1465AA; color: #000000; white-space: nowrap;"><?php echo esc_html($order_total); ?>€</td>
     </tr>
     <tr>
       <td style="font-size: x-small; border: 1px solid #1465AA; border-bottom-right-radius: 4px !important; border-bottom-left-radius: 4px !important; color: #000000; text-align: center;" colspan="2"><?php _e('The receipt issued by the ATM machine is a proof of payment. Keep it.', 'eupago-gateway-for-woocommerce'); ?></td>
@@ -81,7 +81,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     </tr>
     <tr>
       <td style="border: 1px solid #1465AA; color: #000000;"><?php _e('Value', 'eupago-gateway-for-woocommerce'); ?>:</td>
-      <td style="border: 1px solid #1465AA; color: #000000; white-space: nowrap;"><?php echo esc_html($order_total); ?>€;</td>
+      <td style="border: 1px solid #1465AA; color: #000000; white-space: nowrap;"><?php echo esc_html($order_total); ?>€</td>
     </tr>
     <tr>
       <td style="font-size: x-small; border: 1px solid #1465AA; border-bottom-right-radius: 4px !important; border-bottom-left-radius: 4px !important; color: #000000; text-align: center;" colspan="2"><?php _e('The receipt issued by the ATM machine is a proof of payment. Keep it.', 'eupago-gateway-for-woocommerce'); ?></td>
@@ -106,10 +106,58 @@ if ( ! defined( 'ABSPATH' ) ) {
     </tr>
     <tr>
       <td style="border: 1px solid #1465AA; color: #000000;"><?php _e('Value', 'eupago-gateway-for-woocommerce'); ?>:</td>
-      <td style="border: 1px solid #1465AA; color: #000000; white-space: nowrap;"><?php echo esc_html($order_total); ?>€;</td>
+      <td style="border: 1px solid #1465AA; color: #000000; white-space: nowrap;"><?php echo esc_html($order_total); ?>€</td>
     </tr>
     <tr>
       <td style="font-size: x-small; border: 1px solid #1465AA; border-bottom-right-radius: 4px !important; border-bottom-left-radius: 4px !important; color: #000000; text-align: center;" colspan="2"><?php _e('Accept this payment at your MBWAY mobile app.', 'eupago-gateway-for-woocommerce'); ?></td>
+    </tr>
+  </table>
+  <?php elseif ($method == 'eupago_pix') : ?>
+  <table cellpadding="10" cellspacing="0" align="center" border="0" style="margin: auto; margin-top: 10px; margin-bottom: 10px; border-collapse: collapse; border: 2px solid #e5e5e5; border-radius: 4px !important;">
+    <tr>
+      <td style="border: 2px solid #e5e5e5; border-top-right-radius: 4px !important; border-top-left-radius: 4px !important; text-align: center; font-weight: bold;" colspan="2">
+        <?php _e('Payment instructions', 'eupago-gateway-for-woocommerce'); ?>
+        <br/>
+        <img src="<?php echo plugins_url('assets/images/pix_icon.png', dirname(dirname(__FILE__))); ?>" alt="<?php echo esc_attr($payment_name); ?>" title="<?php echo esc_attr($payment_name); ?>" style="margin-top: 10px;"/>
+      </td>
+    </tr>
+    <tr>
+      <td style="border: 2px solid #e5e5e5;"><?php _e('Reference', 'eupago-gateway-for-woocommerce'); ?>:</td>
+      <td style="border: 2px solid #e5e5e5;"><?php echo esc_html($referencia); ?></td>
+    </tr>
+    <tr>
+      <td style="border: 2px solid #e5e5e5;"><?php _e('Value', 'eupago-gateway-for-woocommerce'); ?>:</td>
+      <td style="border: 2px solid #e5e5e5;"><?php echo esc_html($order_total); ?>€</td>
+    </tr>
+    <tr>
+      <td style="border: 2px solid #e5e5e5;"><?php _e('QR Code', 'eupago-gateway-for-woocommerce'); ?>:</td>
+      <td style="border: 2px solid #e5e5e5;"><img src="<?php echo esc_url($pixImage); ?>" alt="<?php echo esc_attr($payment_name); ?>" title="<?php echo esc_attr($payment_name); ?>"/></td>
+    </tr>
+    <tr>
+      <td style="border: 2px solid #e5e5e5;"><?php _e('EuroPix Code', 'eupago-gateway-for-woocommerce'); ?>:</td>
+      <td style="border: 2px solid #e5e5e5;"><?php echo esc_html($pixCode); ?></td>
+    </tr>
+  </table>
+<?php elseif ($method == 'eupago_bizum') : ?>
+  <table cellpadding="10" cellspacing="0" align="center" border="0" style="margin: auto; margin-top: 10px; margin-bottom: 10px; border-collapse: collapse; border: 2px solid #e5e5e5; border-radius: 4px !important;">
+    <tr>
+      <td style="border: 2px solid #e5e5e5; border-top-right-radius: 4px !important; border-top-left-radius: 4px !important; text-align: center; font-weight: bold;" colspan="2">
+        <?php _e('Payment instructions', 'eupago-gateway-for-woocommerce'); ?>
+        <br/>
+        <img src="<?php echo plugins_url('assets/images/bizum_icon.png', dirname(dirname(__FILE__))); ?>" alt="<?php echo esc_attr($payment_name); ?>" title="<?php echo esc_attr($payment_name); ?>" style="margin-top: 10px;"/>
+      </td>
+    </tr>
+    <tr>
+      <td style="border: 2px solid #e5e5e5;"><?php _e('Reference', 'eupago-gateway-for-woocommerce'); ?>:</td>
+      <td style="border: 2px solid #e5e5e5;"><?php echo esc_html($referencia); ?></td>
+    </tr>
+    <tr>
+      <td style="border: 2px solid #e5e5e5;"><?php _e('Value', 'eupago-gateway-for-woocommerce'); ?>:</td>
+      <td style="border: 2px solid #e5e5e5;"><?php echo esc_html($order_total); ?>€</td>
+    </tr>
+    <tr>
+      <td style="border: 2px solid #e5e5e5;"><?php _e('URL', 'eupago-gateway-for-woocommerce'); ?>:</td>
+      <td style="border: 2px solid #e5e5e5;"><?php echo esc_url($redirect_url); ?></td>
     </tr>
   </table>
 <?php else :

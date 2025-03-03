@@ -1,17 +1,17 @@
 === Eupago Gateway For Woocommerce ===
 Contributors: eupagoip
-Tags: woocommerce, payment, gateway, multibanco, atm, debit card, credit card, bank, ecommerce, e-commerce, eupago, mb way, payshop, cofidispay, pagamento, refund, reembolso
+Tags: woocommerce, payment, gateway, multibanco, atm, debit card, credit card, bank, ecommerce, e-commerce, eupago, mb way, payshop, cofidispay, bizum, europix, pagamento, refund, reembolso
 Author URI: https://www.eupago.pt/
 Plugin URI: 
 Requires at least: 4.4
 Tested up to: 6.7.2
 Requires PHP: 7.0
-Stable tag: 4.3.1
+Stable tag: 4.4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 
-Plugin para recebimento de pagamentos via Multibanco, PayShop, MB WAY, Cartão de Crédito, Paysafecard e CofidisPay. O plugin permite ainda fazer reembolsos directamente pela plataforma do WooCommerce.
+Plugin para recebimento de pagamentos via Multibanco, PayShop, MB WAY, Cartão de Crédito, Paysafecard, CofidisPay, Bizum e EuroPix. O plugin permite ainda fazer reembolsos directamente pela plataforma do WooCommerce.
 
 == Description ==
 
@@ -28,6 +28,7 @@ Este plugin permite disponibilizar aos clientes finais novos meios de pagamento 
 * geração de pedido de pagamentos via Cartão de Crédito;
 * geração de pedido de pagamentos via CofidisPay (para valores estipulados pela Cofidis);
 * geração de pedido de pagamentos via Bizum;
+* geração de pedido de pagamentos via EuroPix;
 * possibilita de fazer reembolsos directamente através da plataforma e-commerce;
 * alteração automática do estado das encomendas para "Em Processamento" após o pagamento do cliente e informa o cliente final e o administrador da loja.
 
@@ -43,6 +44,12 @@ Para começar a receber pagamentos deve primeiro aderir aos serviços da Eupago.
 O cliente dispõe de cerca de 4 minutos para realizar o pagamento após a finalização da compra. Este tempo é definido pela própria MB WAY.
 
 == Changelog ==
+= 4.4.0(03/03/2025) =
+* Added EuroPix payment method.
+* Included Bizum payment URL in SMS, e-mail, and admin order details page (order meta box).
+* Minor bug fixes in admin page.
+* Updated translations in admin page.
+
 = 4.3.1(24/02/2025) =
 * Changed compatibility version.
 

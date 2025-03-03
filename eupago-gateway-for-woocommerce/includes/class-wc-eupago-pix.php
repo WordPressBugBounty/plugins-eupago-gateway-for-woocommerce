@@ -3,27 +3,27 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-if (!class_exists('WC_Eupago_Bizum')) {
+if (!class_exists('WC_Eupago_Pix')) {
 
-    class WC_Eupago_Bizum extends WC_Payment_Gateway {
+    class WC_Eupago_Pix extends WC_Payment_Gateway {
 
         protected $instructions;
-        //protected $only_portugal; only spain?
+        //protected $only_portugal; Brazil?
         protected $only_above;
         protected $only_below;
         protected $stock_when;
-        protected $sms_payment_hold_bizum;
-        protected $sms_payment_confirmation_bizum;
-        protected $sms_order_confirmation_bizum;
+        protected $sms_payment_hold_pix;
+        protected $sms_payment_confirmation_pix;
+        protected $sms_order_confirmation_pix;
         protected $client;
 
         public function __construct() {
 
             global $woocommerce;
-            $this->id = 'eupago_bizum';
-            $this->icon = plugins_url('assets/images/bizum_icon.png', dirname(__FILE__));
+            $this->id = 'eupago_pix';
+            $this->icon = plugins_url('assets/images/pix_icon.png', dirname(__FILE__));
             $this->has_fields = false;
-            $this->method_title = __('Bizum (Eupago)', 'eupago-gateway-for-woocommerce');
+            $this->method_title = __('EuroPix (Eupago)', 'eupago-gateway-for-woocommerce');
 
             // Plugin options and settings
             $this->init_form_fields();
@@ -37,19 +37,19 @@ if (!class_exists('WC_Eupago_Bizum')) {
             $this->only_above = $this->get_option('only_above');
             $this->only_below = $this->get_option('only_below');
             $this->stock_when = $this->get_option('stock_when');
-            $this->sms_payment_hold_bizum = $this->get_option('sms_payment_hold_bizum');
-            $this->sms_payment_confirmation_bizum = $this->get_option('sms_payment_confirmation_bizum');
-            $this->sms_order_confirmation_bizum = $this->get_option('sms_order_confirmation_bizum');
+            $this->sms_payment_hold_pix = $this->get_option('sms_payment_hold_pix');
+            $this->sms_payment_confirmation_pix = $this->get_option('sms_payment_confirmation_pix');
+            $this->sms_order_confirmation_pix = $this->get_option('sms_order_confirmation_pix');
 
             // Set the API
             $this->client = new WC_Eupago_API($this);
 
             // Actions and filters
             add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
-            //add_action('woocommerce_order_status_pending', array($this, 'send_sms_pending_bizum'));
-            //add_action('woocommerce_order_status_on-hold', array($this, 'send_sms_pending_bizum'));
-            //add_action('woocommerce_order_status_processing' , array($this, 'send_sms_processing_bizum'));
-            //add_action('woocommerce_order_status_completed', array($this, 'send_sms_completed_bizum'));
+            //add_action('woocommerce_order_status_pending', array($this, 'send_sms_pending_pix'));
+            //add_action('woocommerce_order_status_on-hold', array($this, 'send_sms_pending_pix'));
+            //add_action('woocommerce_order_status_processing' , array($this, 'send_sms_processing_pix'));
+            //add_action('woocommerce_order_status_completed', array($this, 'send_sms_completed_pix'));
 
             if (function_exists('icl_object_id') && function_exists('icl_register_string')) {
                 add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'register_wpml_strings']);
@@ -120,8 +120,8 @@ if (!class_exists('WC_Eupago_Bizum')) {
             $enable_text = esc_html__('Enable', 'eupago-gateway-for-woocommerce');
             $sms_order_confirmation = esc_html('SMS Order Confirmation:', 'eupago-gateway-for-woocommerce');
             $enable_disable_title = __('Enable/Disable', 'eupago-gateway-for-woocommerce');
-            $title_bizum = __('Title', 'eupago-gateway-for-woocommerce');
-            $bizum = __('Bizum', 'eupago-gateway-for-woocommerce');
+            $title_pix = __('Title', 'eupago-gateway-for-woocommerce');
+            $pix = __('EuroPix', 'eupago-gateway-for-woocommerce');
             $instructions_text = __('Instructions', 'eupago-gateway-for-woocommerce');
             $description_instructions_text = __('Instructions that will be added to the thank you page and email sent to customer.', 'eupago-gateway-for-woocommerce');
             $duplicate_payments_text = __('Duplicate payments', 'eupago-gateway-for-woocommerce');
@@ -133,27 +133,27 @@ if (!class_exists('WC_Eupago_Bizum')) {
             $description_checkout = __('This controls the description the user sees during checkout.', 'eupago-gateway-for-woocommerce');
             $expire_date_text = __('Expire Date', 'eupago-gateway-for-woocommerce');
             $number_days_expire = __('Number of days to payment expire.', 'eupago-gateway-for-woocommerce');
-            $only_portuguese_customers = __('Only for Portuguese customers?', 'eupago-gateway-for-woocommerce');
+            /* $only_portuguese_customers = __('Only for Portuguese customers?', 'eupago-gateway-for-woocommerce'); */
             /* $enable_only_portugal = __('Enable only for customers whose address is in Portugal', 'eupago-gateway-for-woocommerce'); */
             $orders_above = __('Only for orders above', 'eupago-gateway-for-woocommerce');
-            $orders_description = __('Enable only for orders above x &euro; (exclusive). Leave blank (or zero) to allow for any order value.', 'eupago-gateway-for-woocommerce') . '  ' . __('Typically, Bizum payments are limited to a range of €0.50 to €1,000 per transaction, though specific limits may vary depending on the payment provider or bank. You can use this option to further restrict this range.', 'eupago-gateway-for-woocommerce');
+            $orders_description = __('Enable only for orders above x &euro; (exclusive). Leave blank (or zero) to allow for any order value.', 'eupago-gateway-for-woocommerce') . '  ' . __('Eupago allows Pix payments starting from 0.50 € (exclusive). You can use this option to set a minimum value.', 'eupago-gateway-for-woocommerce');
             $orders_below = __('Only for orders below', 'eupago-gateway-for-woocommerce');
-            $orders_below_description = __('Enable only for orders below x &euro; (exclusive). Leave blank (or zero) to allow for any order value.', 'eupago-gateway-for-woocommerce') . '  ' . __('Typically, Bizum payments are limited to a range of €0.50 to €1,000 per transaction, though specific limits may vary depending on the payment provider or bank. You can use this option to further restrict this range.', 'eupago-gateway-for-woocommerce');
+            $orders_below_description = __('Enable only for orders above x &euro; (exclusive). Leave blank (or zero) to allow for any order value.', 'eupago-gateway-for-woocommerce') . '  ' . __('Typically, Pix payments do not have a fixed universal limit. You can use this option to set a maximum value.', 'eupago-gateway-for-woocommerce');
             $reduce_stock = __('Reduce stock', 'eupago-gateway-for-woocommerce');
             $choose_reduce_stock = __('Choose when to reduce stock.', 'eupago-gateway-for-woocommerce');
             $when_order_paid = __('when order is paid (requires active callback)', 'eupago-gateway-for-woocommerce');
             $when_order_placed = __('when order is placed (before payment)', 'eupago-gateway-for-woocommerce');
-            $enable_bizum = __('Enable Bizum (using Eupago)', 'eupago-gateway-for-woocommerce');
+            $enable_pix = __('Enable EuroPix (using Eupago)', 'eupago-gateway-for-woocommerce');
             $payment_confirmation = esc_html__('SMS Payment Confirmation:', 'eupago-gateway-for-woocommerce');
 
             // Translate title based on the selected language
             if ($admin_language === 'pt_PT' || $admin_language === 'pt_BR') {
                 $enable_disable_title = __('Ativar/Desativar', 'eupago-gateway-for-woocommerce');
-                $enable_bizum = __('Ativar Bizum (usando Eupago)', 'eupago-gateway-for-woocommerce');
-                $bizum = __('Bizum', 'eupago-gateway-for-woocommerce');
+                $enable_pix = __('Ativar EuroPix (usando Eupago)', 'eupago-gateway-for-woocommerce');
+                $pix = __('EuroPix', 'eupago-gateway-for-woocommerce');
                 $description = __('Descrição', 'eupago-gateway-for-woocommerce');
                 $controls_checkout = __('Isto controla o título que o utilizador vê durante o processo de pagamento', 'eupago-gateway-for-woocommerce');
-                $title_bizum = __('Título', 'eupago-gateway-for-woocommerce');
+                $title_pix = __('Título', 'eupago-gateway-for-woocommerce');
                 $description_checkout = __('Isto controla a descrição que o utilizador vê durante o pagamento.', 'eupago-gateway-for-woocommerce');
                 $instructions_text = __('Instruções', 'eupago-gateway-for-woocommerce');
                 $description_instructions_text = __('Instruções que serão adicionadas à página de agradecimento e ao e-mail enviado ao cliente.', 'eupago-gateway-for-woocommerce');
@@ -163,12 +163,13 @@ if (!class_exists('WC_Eupago_Bizum')) {
                 $yes_text = __('Sim', 'eupago-gateway-for-woocommerce');
                 $expire_date_text = __('Data de expiração', 'eupago-gateway-for-woocommerce');
                 $number_days_expire = __('Número de dias para expiração do pagamento.', 'eupago-gateway-for-woocommerce');
-                $only_portuguese_customers = __('Apenas para clientes portugueses?', 'eupago-gateway-for-woocommerce');
+                /* $only_portuguese_customers = __('Apenas para clientes portugueses?', 'eupago-gateway-for-woocommerce'); */
                 /* $enable_only_portugal = __('Ativar apenas para clientes cujo endereço está em Portugal', 'eupago-gateway-for-woocommerce'); */
                 $orders_above = __('Apenas para pedidos acima de', 'eupago-gateway-for-woocommerce');
-                $orders_description = __('Ativar apenas para pedidos acima de x &euro; (exclusivo). Deixe em branco (ou zero) para permitir qualquer valor de pedido.', 'eupago-gateway-for-woocommerce') . '  ' . __('Normalmente, os pagamentos por Bizum estão limitados a um intervalo de 0,50 € a 1.000 € por transação, embora os limites específicos possam variar dependendo do provedor de pagamento ou do banco. Pode usar esta opção para restringir ainda mais este intervalo.', 'eupago-gateway-for-woocommerce');
+                $orders_description = __('Ativar apenas para pedidos acima de x &euro; (exclusivo). Deixe em branco (ou zero) para permitir qualquer valor de pedido.', 'eupago-gateway-for-woocommerce') . '  ' . __('A Eupago permite pagamentos por EuroPix a partir de 0,50 € (exclusivo). Pode usar esta opção para definir um valor mínimo.', 'eupago-gateway-for-woocommerce');
                 $orders_below = __('Apenas para pedidos abaixo de', 'eupago-gateway-for-woocommerce');
-                $orders_below_description = __('Ativar apenas para pedidos abaixo de x &euro; (exclusivo). Deixe em branco (ou zero) para permitir qualquer valor de pedido.', 'eupago-gateway-for-woocommerce') . '  ' . __('Normalmente, os pagamentos por Bizum estão limitados a um intervalo de 0,50 € a 1.000 € por transação, embora os limites específicos possam variar dependendo do provedor de pagamento ou do banco. Pode usar esta opção para restringir ainda mais este intervalo.', 'eupago-gateway-for-woocommerce');
+                $orders_below_description = __('Ativar apenas para pedidos acima de x &euro; (exclusivo). Deixe em branco (ou zero) para permitir qualquer valor de pedido.', 'eupago-gateway-for-woocommerce') . '  ' . __('Normalmente, os pagamentos por EuroPix não têm limite fixo universal. Pode usar esta opção para definir um valor máximo.', 'eupago-gateway-for-woocommerce');
+
                 $reduce_stock = __('Reduzir stock', 'eupago-gateway-for-woocommerce');
                 $choose_reduce_stock = __('Escolha quando reduzir o stock.', 'eupago-gateway-for-woocommerce');
                 $when_order_paid = __('quando o pedido é pago (requer callback ativo)', 'eupago-gateway-for-woocommerce');
@@ -179,9 +180,9 @@ if (!class_exists('WC_Eupago_Bizum')) {
                 $sms_order_confirmation = esc_html__('Confirmação de pedido por SMS:', 'eupago-gateway-for-woocommerce');
             } elseif ($admin_language === 'es_ES') {
                 $enable_disable_title = __('Activar/Desactivar', 'eupago-gateway-for-woocommerce');
-                $title_bizum = __('Título', 'eupago-gateway-for-woocommerce');
-                $enable_bizum = __('Activar Bizum (usando Eupago)', 'eupago-gateway-for-woocommerce');
-                $bizum = __('Bizum', 'eupago-gateway-for-woocommerce');
+                $title_pix = __('Título', 'eupago-gateway-for-woocommerce');
+                $enable_pix = __('Activar EuroPix (usando Eupago)', 'eupago-gateway-for-woocommerce');
+                $pix = __('EuroPix', 'eupago-gateway-for-woocommerce');
                 $description = __('Descripción', 'eupago-gateway-for-woocommerce');
                 $controls_checkout = __('Esto controla el título que el usuario ve durante el proceso de pago', 'eupago-gateway-for-woocommerce');
                 $instructions_text = __('Instrucciones', 'eupago-gateway-for-woocommerce');
@@ -193,12 +194,12 @@ if (!class_exists('WC_Eupago_Bizum')) {
                 $yes_text = __('Sí', 'eupago-gateway-for-woocommerce');
                 $expire_date_text = __('Fecha de vencimiento', 'eupago-gateway-for-woocommerce');
                 $number_days_expire = __('Número de días para que caduque el pago.', 'eupago-gateway-for-woocommerce');
-                $only_portuguese_customers = __('¿Solo para clientes portugueses?', 'eupago-gateway-for-woocommerce');
+                /* $only_portuguese_customers = __('¿Solo para clientes portugueses?', 'eupago-gateway-for-woocommerce'); */
                 /* $enable_only_portugal = __('Habilitar solo para clientes cuya dirección esté en Portugal', 'eupago-gateway-for-woocommerce'); */
                 $orders_above = __('Solo para pedidos superiores a', 'eupago-gateway-for-woocommerce');
-                $orders_description = __('Normalmente, los pagos con Bizum están limitados a un rango de 0,50 € a 1.000 € por transacción, aunque los límites específicos pueden variar según el proveedor de pagos o el banco. Puedes usar esta opción para restringir aún más este rango.', 'eupago-gateway-for-woocommerce');
+                $orders_description = __('Activar solo para pedidos superiores a x &euro; (exclusivo). Deje en blanco (o cero) para permitir cualquier valor de pedido.', 'eupago-gateway-for-woocommerce') . '  ' . __('Eupago permite pagos por EuroPix a partir de 0,50 € (exclusivo). Puede usar esta opción para definir un valor mínimo.', 'eupago-gateway-for-woocommerce');
                 $orders_below = __('Solo para pedidos inferiores a', 'eupago-gateway-for-woocommerce');
-                $orders_below_description = __('Normalmente, los pagos con Bizum están limitados a un rango de 0,50 € a 1.000 € por transacción, aunque los límites específicos pueden variar según el proveedor de pagos o el banco. Puedes usar esta opción para restringir aún más este rango.', 'eupago-gateway-for-woocommerce');
+                $orders_below_description = __('Activar solo para pedidos superiores a x &euro; (exclusivo). Deje en blanco (o cero) para permitir cualquier valor de pedido.', 'eupago-gateway-for-woocommerce') . '  ' . __('Normalmente, los pagos por EuroPix no tienen un límite fijo universal. Puede usar esta opción para definir un valor máximo.', 'eupago-gateway-for-woocommerce');
                 $reduce_stock = __('Reducir el stock', 'eupago-gateway-for-woocommerce');
                 $choose_reduce_stock = __('Elegir cuándo reducir el stock.', 'eupago-gateway-for-woocommerce');
                 $when_order_paid = __('cuando el pedido se paga (requiere callback activo)', 'eupago-gateway-for-woocommerce');
@@ -214,13 +215,13 @@ if (!class_exists('WC_Eupago_Bizum')) {
                     'title' => esc_html($enable_disable_title),
                     'type' => 'checkbox',
                     'default' => 'no',
-                    'label' => esc_html($enable_bizum),
+                    'label' => esc_html($enable_pix),
                 ],
                 'title' => [
-                    'title' => esc_html($title_bizum),
+                    'title' => esc_html($title_pix),
                     'type' => 'text',
                     'description' => esc_html($controls_checkout),
-                    'default' => esc_html__($bizum),
+                    'default' => esc_html__($pix),
                 ],
                 'description' => [
                     'title' => esc_html($description),
@@ -260,13 +261,13 @@ if (!class_exists('WC_Eupago_Bizum')) {
                         'order' => esc_html($when_order_placed),
                     ],
                 ],
-                'sms_payment_hold_bizum' => [
+                'sms_payment_hold_pix' => [
                     'title' => esc_html($payment_on_hold),
                     'type' => 'checkbox',
                     'label' => esc_html($enable_text),
                     'default' => 'no',
                 ],
-                'sms_payment_confirmation_bizum' => [
+                'sms_payment_confirmation_pix' => [
                     'title' => esc_html($payment_confirmation),
                     'type' => 'checkbox',
                     'label' => esc_html($enable_text),
@@ -299,10 +300,10 @@ if (!class_exists('WC_Eupago_Bizum')) {
                 return __('Configuration error. This store currency is not Euros (&euro;).', 'eupago-gateway-for-woocommerce');
             }
 
-            // Invalid value for Bizum
-            /* if (($order_total < 0.5 || $order_total > 1000)) {
-                return __('It\'s not possible to use Bizum for this order value.', 'eupago-gateway-for-woocommerce');
-            } */
+            // Invalid value for pix
+            if (($order_total <= 0.5 || $order_total > 99999)) {
+                return __('It\'s not possible to use EuroPix for this order value.', 'eupago-gateway-for-woocommerce');
+            }
 
             return false;
         }
@@ -321,8 +322,10 @@ if (!class_exists('WC_Eupago_Bizum')) {
                     'method' => $payment_method,
                     'payment_name' => (function_exists('icl_object_id') ? icl_t($this->id, $this->id . '_title', $this->title) : $this->title),
                     'instructions' => isset($this->instructions) && !empty($this->instructions) ? $this->instructions : '',
-                    'referencia' => $order->get_meta('_eupago_bizum_referencia', true),
+                    'referencia' => $order->get_meta('_eupago_pix_referencia', true),
                     'order_total' => $order_total,
+                    'pixImage' => $order->get_meta('_eupago_pix_pixImage', true),
+                    'pixCode' => $order->get_meta('_eupago_pix_pixCode', true),
                 ], 'woocommerce/eupago/', (new WC_Eupago())->get_templates_path());
             }
         }
@@ -355,18 +358,20 @@ if (!class_exists('WC_Eupago_Bizum')) {
                     'method' => $payment_method,
                     'payment_name' => (function_exists('icl_object_id') ? icl_t($this->id, $this->id . '_title', $this->title) : $this->title),
                     'instructions' => isset($this->instructions) && !empty($this->instructions) ? $this->instructions : '',
-                    'referencia' => $order->get_meta('_eupago_bizum_referencia', true),
+                    'referencia' => $order->get_meta('_eupago_pix_referencia', true),
+                    'pixImage' => $order->get_meta('_eupago_pix_pixImage', true),
+                    'pixCode' => $order->get_meta('_eupago_pix_pixCode', true),
                     'order_total' => $order_total,
-                    'redirect_url' => $order->get_meta('_eupago_bizum_redirect_rl', true),
                 ], 'woocommerce/eupago/', (new WC_Eupago())->get_templates_path());
             } else {
                 wc_get_template('emails/html-instructions.php', [
                     'method' => $payment_method,
                     'payment_name' => (function_exists('icl_object_id') ? icl_t($this->id, $this->id . '_title', $this->title) : $this->title),
                     'instructions' => isset($this->instructions) && !empty($this->instructions) ? $this->instructions : '',
-                    'referencia' => $order->get_meta('_eupago_bizum_referencia', true),
+                    'referencia' => $order->get_meta('_eupago_pix_referencia', true),
+                    'pixImage' => $order->get_meta('_eupago_pix_pixImage', true),
+                    'pixCode' => $order->get_meta('_eupago_pix_pixCode', true),
                     'order_total' => $order_total,
-                    'redirect_url' => $order->get_meta('_eupago_bizum_redirect_url', true),
                 ], 'woocommerce/eupago/', (new WC_Eupago())->get_templates_path());
             }
         }
@@ -389,9 +394,9 @@ if (!class_exists('WC_Eupago_Bizum')) {
             // Determine language
             $lang = $this->determine_language($order);
         
-            // Make Eupago Bizum request
-            $eupagoBizum = $this->client->getReferenciaBizum($order_id, $order_total, $order->get_checkout_order_received_url(), $order->get_checkout_payment_url());
-            $data = json_decode($eupagoBizum, true);
+            // Make Eupago pix request
+            $eupagopix = $this->client->getReferencePix($order_id, $order_total);
+            $data = json_decode($eupagopix, true);
         
             if ($data['transactionStatus'] !== 'Success') {
                 $error_message = __('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $data['transactionStatus'];
@@ -402,16 +407,15 @@ if (!class_exists('WC_Eupago_Bizum')) {
                 ];
             }
         
-            $redirect_url = $data['redirectUrl'];
-        
             // Update order meta data
-            $order->update_meta_data('_eupago_bizum_referencia', $data['reference']);
-            $order->update_meta_data('_eupago_bizum_transactionID', $data['transactionID']);
-            $order->update_meta_data('_eupago_bizum_redirect_url', $redirect_url);
+            $order->update_meta_data('_eupago_pix_referencia', $data['reference']);
+            $order->update_meta_data('_eupago_pix_transactionID', $data['transactionID']);
+            $order->update_meta_data('_eupago_pix_pixCode', $data['pixCode']);
+            $order->update_meta_data('_eupago_pix_pixImage', $data['pixImage']);
             $order->save();
         
             // Mark as on-hold
-            $order->update_status('on-hold', __('Awaiting Bizum payment.', 'eupago-gateway-for-woocommerce'));
+            $order->update_status('on-hold', __('Awaiting EuroPix payment.', 'eupago-gateway-for-woocommerce'));
         
             // Reduce stock levels
             $this->reduce_stock_levels($order);
@@ -419,7 +423,7 @@ if (!class_exists('WC_Eupago_Bizum')) {
             // Empty cart and session
             $this->clear_cart_and_session();
         
-            if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php') && $this->get_option('sms_payment_hold_bizum') === 'yes') {
+            if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php') && $this->get_option('sms_payment_hold_pix') === 'yes') {
                 include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
                 if (function_exists('send_sms')) {
                     send_sms($order_id);
@@ -431,7 +435,7 @@ if (!class_exists('WC_Eupago_Bizum')) {
             // Return thankyou redirect
             return [
                 'result' => 'success',
-                'redirect' => $redirect_url,
+                'redirect' => $this->get_return_url($order),
             ];
         }
 
@@ -506,9 +510,6 @@ if (!class_exists('WC_Eupago_Bizum')) {
             }
         }
 
-        /**
-         * Implement a version of this method just for Spain?
-         */
         /* public function disable_unless_portugal($available_gateways)
         {
             if (!is_admin()) {
@@ -526,5 +527,5 @@ if (!class_exists('WC_Eupago_Bizum')) {
             return $available_gateways;
         } */
 
-    } // WC_Eupago_Bizum
+    } // WC_Eupago_Pix
 } // class_exists()

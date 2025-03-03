@@ -52,7 +52,16 @@ function send_sms_pending($order_id) {
          case 'eupago_bizum': //bizum
                $reference     = $order->get_meta( '_eupago_bizum_referencia', true);
                $amount        = $total_amount . $order->get_meta( '_order_currency', true);
-               $payment_data  =  __( 'Reference:', 'eupago-gateway-for-woocommerce' ) . ' ' . $reference . ' ' . __( 'Value:', 'eupago-gateway-for-woocommerce' ) . ' ' . $amount;
+               $redirect_url  = esc_url($order->get_meta('_eupago_bizum_redirect_url', true));
+               $payment_data  =  __( 'Reference:', 'eupago-gateway-for-woocommerce' ) . ' ' . $reference . ' ' . __( 'Value:', 'eupago-gateway-for-woocommerce' ) . ' ' . $amount . ' ' . __( 'URL:', 'eupago-gateway-for-woocommerce' ) . ' ' . $redirect_url;
+            break;
+
+         case 'eupago_pix': //pix
+               $reference     = $order->get_meta( '_eupago_pix_referencia', true);
+               $amount        = $total_amount . $order->get_meta( '_order_currency', true);
+               $pixImage      = esc_url($order->get_meta('_eupago_pix_pixImage', true));
+               $pixCode       = $order->get_meta('_eupago_pix_pixCode', true);
+               $payment_data  =  __( 'Reference:', 'eupago-gateway-for-woocommerce' ) . ' ' . $reference . ' ' . __( 'Value:', 'eupago-gateway-for-woocommerce' ) . ' ' . $amount . ' ' . __( 'QR Code:', 'eupago-gateway-for-woocommerce' ) . ' ' . $pixImage . ' ' . __( 'EuroPix Code:', 'eupago-gateway-for-woocommerce' ) . ' ' . $pixCode;
             break;
 
          default:

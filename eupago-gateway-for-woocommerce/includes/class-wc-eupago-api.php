@@ -241,6 +241,58 @@ class WC_Eupago_API {
     return $response;
   }
 
+  public function getReferencePix($order_id, $valor) {
+    $order = wc_get_order($order_id);
+    $url = 'https://' . get_option('eupago_endpoint') . '.eupago.pt/api/v1.02/pix/create';
+    
+    $data = array(
+      'payment' => array(
+        'amount' => array(
+          'currency' => 'EUR',
+          'value' => $valor
+        ),
+        'identifier' => (string) $order_id
+      ),
+      'customer' => array(
+        'notify' => true,
+        //'countryCode' => '+351',
+        'phoneNumber' => $order->get_billing_phone(),
+        'email' => $order->get_billing_email(),
+        // 'vat' => $order->get_meta('_billing_vat'),
+        'name' => $order->get_formatted_billing_full_name(),
+        'address' => array(
+          'zipCode' => $order->get_billing_postcode(),
+          'city' => $order->get_billing_city(),
+          'state' => $order->get_billing_state(),
+          'street' => $order->get_billing_address_1() . ' ' . $order->get_billing_address_2()
+        )
+      )
+    );
+
+    $headers = array(
+      'Authorization: ApiKey ' . $this->get_api_key(),
+      'Content-Type: application/json'
+    );
+
+    $curl = curl_init();
+
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+
+    $response = curl_exec($curl);
+
+    if (curl_errno($curl)) {
+      echo 'cURL Error: ' . curl_error($curl);
+    }
+
+    curl_close($curl);
+    return $response;
+  }
+
   public function pedidoCC($order, $valor, $logo_url, $return_url, $lang, $comment) {
     if (extension_loaded('soap')) {
       $client = @new SoapClient($this->get_url(), array('cache_wsdl' => WSDL_CACHE_NONE));

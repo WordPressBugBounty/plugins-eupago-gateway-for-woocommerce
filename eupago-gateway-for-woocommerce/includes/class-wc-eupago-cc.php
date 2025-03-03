@@ -140,7 +140,7 @@ if (!class_exists('WC_Eupago_CC')) {
 
 
             $texto_enable = esc_html__('Enable', 'eupago-gateway-for-woocommerce');
-            $payment_on_hold = __('SMS Payment On Hold:', 'eupago-gateway-for-woocommerce');
+            $payment_on_hold = __('Send SMS with payment details:', 'eupago-gateway-for-woocommerce');
             $enable_disable_title = __('Enable/Disable', 'eupago-gateway-for-woocommerce');
             $title_credit_card = __('Title','eupago-gateway-for-woocommerce');
             $enable_credit_card = __('Enable Credit Card (using Eupago)','eupago-gateway-for-woocommerce');
@@ -207,7 +207,7 @@ if (!class_exists('WC_Eupago_CC')) {
                 $escolher_reduzir_stock = __('Escolher quando reduzir o stock.', 'eupago-gateway-for-woocommerce');
                 $quando_order_paga = __('quando a encomenda é paga (requer callback ativo)', 'eupago-gateway-for-woocommerce');
                 $quando_order_colocada = __('quando a encomenda é colocada (antes do pagamento)', 'eupago-gateway-for-woocommerce');
-                $payment_on_hold = esc_html__('Confirmação SMS dos detalhes de Pagamento:', 'eupago-gateway-for-woocommerce');
+                $payment_on_hold = esc_html__('Envio de SMS dos detalhes de pagamento:', 'eupago-gateway-for-woocommerce');
                 $sms_order_confirmation = esc_html__('Confirmação de Pedido por SMS:', 'eupago-gateway-for-woocommerce');
             } elseif ($admin_language === 'es_ES') {
                 $enable_disable_title = __('Activar/Desactivar', 'eupago-gateway-for-woocommerce');
@@ -239,7 +239,7 @@ if (!class_exists('WC_Eupago_CC')) {
                 $escolher_reduzir_stock = __('Elegir cuándo reducir el stock.', 'eupago-gateway-for-woocommerce');
                 $quando_order_paga = __('cuando el pedido se paga (requiere callback activo)', 'eupago-gateway-for-woocommerce');
                 $quando_order_colocada = __('cuando el pedido se realiza (antes del pago)', 'eupago-gateway-for-woocommerce');
-                $payment_on_hold = esc_html__('Pago SMS en espera:', 'eupago-gateway-for-woocommerce');
+                $payment_on_hold = esc_html__('Envío de SMS con los detalles de pago:', 'eupago-gateway-for-woocommerce');
                 $texto_enable = 'Habilitar';
                 $payment_confirmation = esc_html__('Confirmación de pago SMS:', 'eupago-gateway-for-woocommerce');
                 $sms_order_confirmation = esc_html__('Confirmación de pedido SMS:', 'eupago-gateway-for-woocommerce');
@@ -602,13 +602,13 @@ if (!class_exists('WC_Eupago_CC')) {
 
             if (isset($available_gateways[$this->id])) {
                 if (@floatval($available_gateways[$this->id]->only_above) > 0) {
-                    if ($woocommerce->cart->total < floatval($available_gateways[$this->id]->only_above)) {
+                    if ($woocommerce->cart && $woocommerce->cart->total < floatval($available_gateways[$this->id]->only_above)) {
                         unset($available_gateways[$this->id]);
                     }
                 }
 
                 if (@floatval($available_gateways[$this->id]->only_below) > 0) {
-                    if ($woocommerce->cart->total > floatval($available_gateways[$this->id]->only_below)) {
+                    if ($woocommerce->cart && $woocommerce->cart->total > floatval($available_gateways[$this->id]->only_below)) {
                         unset($available_gateways[$this->id]);
                     }
                 }

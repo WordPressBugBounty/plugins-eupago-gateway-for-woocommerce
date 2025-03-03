@@ -31,7 +31,6 @@ class WC_Eupago_Callback {
   }
 
 
-
   function callback_log($message, $error = false) {
 
     if ( $error == true ) {
@@ -75,7 +74,6 @@ class WC_Eupago_Callback {
     /*if ( !$order->has_status( array('on-hold', 'pending') ) ) {
       $this->callback_log('A encomenda poderá já ter sido paga.', true);
     }*/
-   
 
     
     $order_total = version_compare( WC_VERSION, '3.0', '>=' ) ? $order->get_total() : $order->order_total;
@@ -93,10 +91,6 @@ class WC_Eupago_Callback {
     if ( sanitize_text_field(isset( $_GET['transacao'] )) ) $note.= '<br />Transação: ' . sanitize_text_field($_GET['transacao']);
     $order->add_order_note( $note );
     $order->payment_complete( sanitize_text_field($_GET['transacao'] ));
-
-
-
-
 
 
     if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php')) {
@@ -136,6 +130,11 @@ class WC_Eupago_Callback {
               $option_key = $payment_method->settings['sms_payment_confirmation_bizum'];//yes
               $option_text = 'sms_payment_confirmation_bizum'; //sms_payment_confirmation_bizum
               break;
+          case 'eupago_pix':
+              $payment_method = $payment_gateway[1000];//eupago_pix
+              $option_key = $payment_method->settings['sms_payment_confirmation_pix'];//yes
+              $option_text = 'sms_payment_confirmation_pix'; //sms_payment_confirmation_pix
+              break;
           default:
               $option_key = null;
               break;
@@ -148,9 +147,10 @@ class WC_Eupago_Callback {
           } else {
               $this->callback_log('Função send_sms_prossessing não encontrada.');
           }
-      } else {
-          $this->callback_log('Opção do método de pagamento não é igual a "yes" ou não está definida.');
-      }
+      } 
+      // else {
+      //     $this->callback_log('Opção do método de pagamento não é igual a "yes" ou não está definida.');
+      // }
       $this->callback_log( 'Pagamento com Sucesso!' );
   }
 
@@ -165,7 +165,8 @@ class WC_Eupago_Callback {
         'PSC:PT' => ['eupago_psc'],
         'PF:PT' => ['eupago_pf'],
         'CP:PT' => ['eupago_cofidispay'],
-        'BZ:PT' => ['eupago_bizum']
+        'BZ:PT' => ['eupago_bizum'],
+        'PX:PT' => ['eupago_pix']
       );
       $eupago_gateways = apply_filters( 'eupago_for_woocommerce_callback_gateways', $eupago_gateways );
 
@@ -186,7 +187,8 @@ class WC_Eupago_Callback {
         'eupago_psc' => 'WC_Eupago_PSC',
         'eupago_pf' => 'WC_Eupago_PF',
         'eupago_codifispay' => 'WC_Eupago_CofidisPay',
-        'eupago_bizum' => 'WC_Eupago_Bizum'
+        'eupago_bizum' => 'WC_Eupago_Bizum',
+        'eupago_pix' => 'WC_Eupago_Pix'
       );
       return $eupago_gateways[$gateway];
     } else {

@@ -131,7 +131,7 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
 
             $texts = [
                 'enable_disable' => __('Enable/Disable', 'woocommerce'),
-                'payment_hold' => __('SMS Payment On Hold:', 'eupago-gateway-for-woocommerce'),
+                'payment_hold' => __('Send SMS with payment details:', 'eupago-gateway-for-woocommerce'),
                 'payment_confirmation' => __('SMS Payment Confirmation:', 'eupago-gateway-for-woocommerce'),
                 'enable_label' => __('Enable CofidisPay (using Eupago)', 'eupago-for-woocommerce'),
                 'sms_order_confirmation' => __('SMS Order Confirmation:', 'eupago-gateway-for-woocommerce'),
@@ -208,7 +208,7 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
                 $texts = [
                     'enable_disable' => 'Ativar/Desativar',
                     'enable_label2' => 'Ativar',
-                    'payment_hold' => __('Confirmação SMS dos detalhes de Pagamento:', 'eupago-gateway-for-woocommerce'),
+                    'payment_hold' => __('Envio de SMS dos detalhes de pagamento:', 'eupago-gateway-for-woocommerce'),
                     'payment_confirmation' => __('SMS Confirmação do Pagamento:', 'eupago-gateway-for-woocommerce'),
                     'enable_label' => 'Ativar CofidisPay (usando Eupago)',
                     'payment_confirmation' => __('Confirmação do pagamento por SMS:', 'eupago-gateway-for-woocommerce'),
@@ -290,7 +290,7 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
                     'enable_label2' => 'Activar',
                     'payment_confirmation' => __('Confirmación de pago SMS:', 'eupago-gateway-for-woocommerce'),
                     'sms_order_confirmation' => __('Confirmación del Pedido SMS:', 'eupago-gateway-for-woocommerce'),
-                    'payment_hold' => __('Pago SMS en espera:', 'eupago-gateway-for-woocommerce'),
+                    'payment_hold' => __('Envío de SMS con los detalles de pago:', 'eupago-gateway-for-woocommerce'),
                     'title' => 'Título',
                     'title_description' => 'Controla el título que el usuario ve durante el proceso de pago.',
                     'title_default' => 'Cofidis Pay',

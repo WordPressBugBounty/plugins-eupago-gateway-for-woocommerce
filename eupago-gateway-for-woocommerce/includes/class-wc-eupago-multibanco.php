@@ -144,7 +144,7 @@ if (!class_exists('WC_Eupago_Multibanco')) {
                 $language_description = esc_html(__('Seleccione el idioma para el proceso de pago.', 'eupago-gateway-for-woocommerce'));
             }
 
-            $payment_on_hold = __('SMS Payment On Hold:', 'eupago-gateway-for-woocommerce');
+            $payment_on_hold = __('Send SMS with payment details:', 'eupago-gateway-for-woocommerce');
             $texto_enable = esc_html__('Enable', 'eupago-gateway-for-woocommerce');
             $payment_confirmation = esc_html__('SMS Payment Confirmation:', 'eupago-gateway-for-woocommerce');
             $sms_order_confirmation = esc_html('SMS Order Confirmation:', 'eupago-gateway-for-woocommerce');
@@ -182,7 +182,7 @@ if (!class_exists('WC_Eupago_Multibanco')) {
                 $description_checkout = __('Isto controla a descrição que o utilizador vê durante o pagamento.','eupago-gateway-for-woocommerce');
                 $multibanco = __('Multibanco','eupago-gateway-for-woocommerce');
                 $description = __('Descrição','eupago-gateway-for-woocommerce');
-                $payment_on_hold = esc_html__('Confirmação SMS dos detalhes de Pagamento:', 'eupago-gateway-for-woocommerce');
+                $payment_on_hold = esc_html__('Envio de SMS dos detalhes de pagamento:', 'eupago-gateway-for-woocommerce');
                 $texto_enable = 'Ativar';
                 $payment_confirmation = esc_html__('Confirmação do pagamento por SMS:', 'eupago-gateway-for-woocommerce');
                 $sms_order_confirmation = esc_html__('Confirmação de Pedido por SMS:', 'eupago-gateway-for-woocommerce');
@@ -212,7 +212,7 @@ if (!class_exists('WC_Eupago_Multibanco')) {
                 $escolher_reduzir_stock = __('Elegir cuándo reducir el stock.', 'eupago-gateway-for-woocommerce');
                 $quando_order_paga = __('cuando el pedido se paga (requiere callback activo)', 'eupago-gateway-for-woocommerce');
                 $quando_order_colocada = __('cuando el pedido se realiza (antes del pago)', 'eupago-gateway-for-woocommerce');
-                $payment_on_hold = esc_html__('Pago SMS en espera:', 'eupago-gateway-for-woocommerce');
+                $payment_on_hold = esc_html__('Envío de SMS con los detalles de pago:', 'eupago-gateway-for-woocommerce');
                 $texto_enable = 'Habilitar';
                 $payment_confirmation = esc_html__('Confirmación de pago SMS:', 'eupago-gateway-for-woocommerce');
                 $sms_order_confirmation = esc_html__('Confirmación de pedido SMS:', 'eupago-gateway-for-woocommerce');

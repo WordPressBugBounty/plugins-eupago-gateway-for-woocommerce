@@ -129,16 +129,33 @@ switch ($payment_method) {
     if (trim(get_post_meta($post->ID, $payment_method_ref, true)) == 0) {
         $pedido = $client->getReferenciaBizum($post->ID, $order_total, $order->get_checkout_order_received_url(), $order->get_checkout_payment_url());
         $pedido_data = json_decode($pedido, true);
-        if (isset($pedido_data['estado']) && $pedido_data['estado'] == 0) {
+        if (isset($pedido_data['transactionStatus']) && $pedido_data['transactionStatus'] === 'Success') {
             update_post_meta($post->ID, '_eupago_bizum_referencia', $pedido_data['referencia']);
-            update_post_meta($post->ID, '_eupago_bizum_redirectUrl', $pedido_data['redirectUrl']);
+            update_post_meta($post->ID, '_eupago_bizum_redirect_url', $pedido_data['redirectUrl']);
         }
     }
     echo '<img src="' . plugins_url('assets/images/bizum_icon.png', dirname(dirname(__FILE__))) . '" alt="' . esc_attr($payment_method_title) . '" title="' . esc_attr($payment_method_title) . '" /><br />';
-    echo '<b>' . __('Reference', 'eupago-gateway-for-woocommerce') . '</b>: ' . chunk_split(trim(get_post_meta($post->ID, '_eupago_bizum_referencia', true)), 3, ' ') . '<br/>';
+    echo '<b>' . __('Reference', 'eupago-gateway-for-woocommerce') . '</b>: ' . esc_html(get_post_meta($post->ID, '_eupago_bizum_referencia', true)) . '<br/>';
     echo '<b>' . __('Value', 'eupago-gateway-for-woocommerce') . '</b>: ' . wc_price($order_total) . '<br/>';
-    echo !empty(get_post_meta($post->ID, "_eupago_bizum_redirectUrl", true)) ? '<b>' . __('Payment Link', 'eupago-gateway-for-woocommerce') . '</b>: <a href=' . get_post_meta($post->ID, "_eupago_bizum_redirectUrl", true) . ' target="_black">Click here</a>' : '';
+    echo !empty(get_post_meta($post->ID, "_eupago_bizum_redirect_url", true)) ? '<b>' . __('Payment Link', 'eupago-gateway-for-woocommerce') . '</b>: <a href=' . get_post_meta($post->ID, "_eupago_bizum_redirect_url", true) . ' target="_black">Click here</a>' : '';
     break;
+
+    case 'eupago_pix':
+      if (trim(get_post_meta($post->ID, $payment_method_ref, true)) == 0) {
+          $pedido = $client->getReferencePix($post->ID, $order_total);
+          $pedido_data = json_decode($pedido, true);
+          if (isset($pedido_data['transactionStatus']) && $pedido_data['transactionStatus'] === 'Success') {
+              update_post_meta($post->ID, '_eupago_pix_referencia', $pedido_data['reference']);
+              update_post_meta($post->ID, '_eupago_pix_pixCode', $pedido_data['pixCode']);
+              update_post_meta($post->ID, '_eupago_pix_pixImage', $pedido_data['pixImage']);
+          }
+      }
+      echo '<img src="' . plugins_url('assets/images/pix_icon.png', dirname(dirname(__FILE__))) . '" alt="' . esc_attr($payment_method_title) . '" title="' . esc_attr($payment_method_title) . '" /><br />';
+      echo '<b>' . __('Reference', 'eupago-gateway-for-woocommerce') . '</b>: ' . esc_html(get_post_meta($post->ID, '_eupago_pix_referencia', true)) . '<br/>';
+      echo '<b>' . __('Value', 'eupago-gateway-for-woocommerce') . '</b>: ' . wc_price($order_total) . '<br/>';
+      echo '<b>' . __('EuroPix Code', 'eupago-gateway-for-woocommerce') . '</b>: ' . esc_html(get_post_meta($post->ID, '_eupago_pix_pixCode', true)) . '<br/>';
+      echo !empty(get_post_meta($post->ID, "_eupago_pix_pixImage", true)) ? '<b>' . __('QR Code', 'eupago-gateway-for-woocommerce') . '</b>: <img src="' . esc_url(get_post_meta($post->ID, "_eupago_pix_pixImage", true)) . '" alt="' . esc_attr($payment_method_title) . '" /><br/>' : '';
+      break;
 
   default:
   echo __('No details available', 'eupago-gateway-for-woocommerce');

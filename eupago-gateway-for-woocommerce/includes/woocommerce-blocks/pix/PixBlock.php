@@ -4,12 +4,12 @@ namespace Automattic\WooCommerce\Blocks\Payments\Integrations;
 
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
 
-final class BizumBlock extends AbstractPaymentMethodType {
+final class PixBlock extends AbstractPaymentMethodType {
 
-    protected $name = 'eupago_bizum';
+    protected $name = 'eupago_pix';
 
     public function initialize() {
-        $this->settings = get_option('woocommerce_eupago_bizum_settings');
+        $this->settings = get_option('woocommerce_eupago_pix_settings');
         $gateways = WC()->payment_gateways->payment_gateways();
         if (array_key_exists($this->name, $gateways)) {
             $this->gateway = $gateways[$this->name];
@@ -25,7 +25,7 @@ final class BizumBlock extends AbstractPaymentMethodType {
 
     public function get_payment_method_script_handles() {
         wp_register_script(
-            'wc-eupago-bizum',
+            'wc-eupago-pix',
             plugins_url('src/index.js', __FILE__),
             [
                 'wc-blocks-registry',
@@ -37,7 +37,7 @@ final class BizumBlock extends AbstractPaymentMethodType {
             false,
             true
         );
-        return ['wc-eupago-bizum'];
+        return ['wc-eupago-pix'];
     }
 
     public function get_payment_method_data() {

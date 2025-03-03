@@ -129,7 +129,7 @@ if ( !class_exists( 'WC_Eupago_PayShop' ) ) {
         $language_description = esc_html(__('Seleccione el idioma para el proceso de pago.', 'eupago-gateway-for-woocommerce'));
     }
 
-    $payment_on_hold = __('SMS Payment On Hold:', 'eupago-gateway-for-woocommerce');
+    $payment_on_hold = __('Send SMS with payment details:', 'eupago-gateway-for-woocommerce');
     $enable_disable_title = __('Enable/Disable', 'eupago-gateway-for-woocommerce');
     $texto_enable = esc_html__('Enable', 'eupago-gateway-for-woocommerce');
     $title_payshop = __('Title','eupago-gateway-for-woocommerce');
@@ -168,7 +168,7 @@ if ( !class_exists( 'WC_Eupago_PayShop' ) ) {
         $payshop = __('Payshop','eupago-gateway-for-woocommerce');
         $description = __('Descrição','eupago-gateway-for-woocommerce');
         $texto_enable = 'Ativar';
-        $payment_on_hold = esc_html__('Confirmação SMS dos detalhes de Pagamento:', 'eupago-gateway-for-woocommerce');
+        $payment_on_hold = esc_html__('Envio de SMS dos detalhes de pagamento:', 'eupago-gateway-for-woocommerce');
         $payment_confirmation = esc_html__('Confirmação do pagamento por SMS:', 'eupago-gateway-for-woocommerce');
         $sms_order_confirmation = esc_html__('Confirmação de Pedido por SMS:', 'eupago-gateway-for-woocommerce');
     } elseif ($admin_language === 'es_ES') {
@@ -198,7 +198,7 @@ if ( !class_exists( 'WC_Eupago_PayShop' ) ) {
         $quando_order_paga = __('cuando el pedido se paga (requiere callback activo)', 'eupago-gateway-for-woocommerce');
         $quando_order_colocada = __('cuando el pedido se realiza (antes del pago)', 'eupago-gateway-for-woocommerce');
         $payment_confirmation = esc_html__('Confirmación de pago SMS:', 'eupago-gateway-for-woocommerce');
-        $payment_on_hold = esc_html__('Pago SMS en espera:', 'eupago-gateway-for-woocommerce');
+        $payment_on_hold = esc_html__('Envío de SMS con los detalles de pago:', 'eupago-gateway-for-woocommerce');
         $texto_enable = 'Habilitar';
         $sms_order_confirmation = esc_html__('Confirmación de pedido SMS:', 'eupago-gateway-for-woocommerce');
 
@@ -302,6 +302,7 @@ if ( !class_exists( 'WC_Eupago_PayShop' ) ) {
           'payment_name' => (function_exists('icl_object_id') ? icl_t($this->id, $this->id.'_title', $this->title) : $this->title),
           'referencia' => $order->get_meta( '_eupago_payshop_referencia', true),
           'order_total' => $order_total,
+          'instructions' => $this->instructions,
         ), 'woocommerce/eupago/', (new WC_Eupago())->get_templates_path() );
 
       }

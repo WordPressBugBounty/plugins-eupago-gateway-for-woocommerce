@@ -251,7 +251,7 @@ function eupago_page_content()
                 $texto_callback = esc_html__('Please activate callback to this url on Eupago dashboard: <code>%s</code>', 'eupago-gateway-for-woocommerce');
                 $texto_enable = esc_html__('Enable', 'eupago-gateway-for-woocommerce');
                 $texto_enable_login = esc_html__('Enable loggin', 'eupago-gateway-for-woocommerce');
-                $texto_antepenultimo = esc_html__('Please make sure that the field with Client ID and Client Secret is properly filled above to update the callback successfully.','eupago-gateway-for-woocommerce');
+                $texto_antepenultimo = esc_html__('Please make sure that the fields with the Client ID and Client Secret are properly filled above to update the callback successfully.','eupago-gateway-for-woocommerce');
                 $texto_ultimo = esc_html__('The generated URL is the default callback for a Woocommece store. If your store has a different file path please use the Eupago Backoffice.', 'eupago-gateway-for-woocommerce'); 
                 $callback = esc_html__('Update Callback','eupago-gateway-for-woocommerce');
                 $order = esc_html__('In order to use Eupago plugin for WooCommerce you must have an Eupago account.', 'eupago-gateway-for-woocommerce');
@@ -261,7 +261,7 @@ function eupago_page_content()
                 $order_api = esc_html__('In order to find your API Key and channel name please follow this guide on our', 'eupago-gateway-for-woocommerce');
                 $help_center = esc_html__('Help Center','eupago-gateway-for-woocommerce');
                 $api_key_text = esc_html__('Api Key: ', 'eupago-gateway-for-woocommerce');
-                $end_point_text = esc_html__('Enpoint: ','eupago-gateway-for-woocommerce');
+                $end_point_text = esc_html__('Endpoint: ','eupago-gateway-for-woocommerce');
                 $live_text = esc_html__('Live','eupago-gateway-for-woocommerce');
                 $sandbox_text = esc_html__('Sandbox', 'eupago-gateway-for-woocommerce');
                 $reminder_faiolver = esc_html__('Reminder(FailOver):', 'eupago-gateway-for-woocommerce');
@@ -273,7 +273,7 @@ function eupago_page_content()
                 $user_text = esc_html__('User: ','eupago-gateway-for-woocommerce');
                 $password_text = esc_html__('Password','eupagp-gateway-for-woocommerce');
                 $notificacoes_sms = esc_html__('Nofitications Biziq: ','eupago-gateway-for-woocommerce');
-                $payment_on_hold = esc_html__('SMS Payment On Hold:', 'eupago-gateway-for-woocommerce');
+                $payment_on_hold = esc_html__('Send SMS with payment details:', 'eupago-gateway-for-woocommerce');
                 $sms_order_confirmation = esc_html('SMS Order Confirmation:', 'eupago-gateway-for-woocommerce');
                 $payment_confirmation = esc_html__('SMS Payment Confirmation:', 'eupago-gateway-for-woocommerce');
                 $callback_url_text = esc_html__('Callback url: ','eupago-gateway-for-woocommerce');
@@ -285,29 +285,29 @@ function eupago_page_content()
                     $texto_callback = 'Por favor, ative o callback para este URL no painel da Eupago:';
                     $texto_enable = 'Ativar';
                     $texto_enable_login = 'Ativar login';
-                    $texto_antepenultimo = 'Por favor, certifique-se de que o campo com o ID do Cliente e o Segredo do Cliente esteja corretamente preenchido acima para atualizar o callback com sucesso.';
+                    $texto_antepenultimo = 'Por favor, certifique-se de que os campos com o Client ID e o Client Secret estejam corretamente preenchidos acima para atualizar o callback com sucesso.';
                     $texto_ultimo = 'O URL gerado é o callback padrão para uma loja Woocommerce. Se a sua loja tiver um caminho de arquivo diferente, por favor, utilize o Backoffice da Eupago.';
                     $callback = 'Atualizar callback';
                     $order = 'Para usar o plugin da Eupago para WooCommerce, você deve ter uma conta na Eupago.';
                     //Primeira linha do ficheiro para traduzir
                     $channel_name = esc_html__('Nome do Canal:', 'eupago-gateway-for-woocommerce');
                     $channel = esc_html__('O que é um canal?', 'eupago-gateway-for-woocommerce');
-                    $order_api = esc_html__('Para encontrar sua Chave de API e nome do canal, siga este guia em nosso', 'eupago-gateway-for-woocommerce');
+                    $order_api = esc_html__('Para encontrar a sua Chave de API e nome do canal, siga este guia no nosso', 'eupago-gateway-for-woocommerce');
                     $help_center = esc_html__('Centro de Ajuda','eupago-gateway-for-woocommerce');
                     $api_key_text = esc_html__('Chave de API: ', 'eupago-gateway-for-woocommerce');
-                    $end_point_text = esc_html__('Ponto de extremidade: ','eupago-gateway-for-woocommerce');
+                    $end_point_text = esc_html__('Endpoint: ','eupago-gateway-for-woocommerce');
                     $live_text = esc_html__('Produção','eupago-gateway-for-woocommerce');
                     $sandbox_text = esc_html__('Sandbox', 'eupago-gateway-for-woocommerce');
                     $reminder_faiolver = esc_html__('Lembrete (FailOver):', 'eupago-gateway-for-woocommerce');
-                    $see_reminder = esc_html__('Quer enviar um lembrete para seu cliente informando que ele tem um pedido pendente? Ative esta opção. Leia mais sobre este lembrete', 'eupago-gateway-for-woocommerce');
+                    $see_reminder = esc_html__('Quer enviar um lembrete para informar o seu cliente que tem um pedido pendente? Ative esta opção. Leia mais sobre este lembrete', 'eupago-gateway-for-woocommerce');
                     $here = esc_html__('aqui','eupago-gateway-for-woocommerce');
                     $debug_log = esc_html__('Log de Depuração: ' ,'eupago-gateway-for-woocommerce');
-                    $log_plugins = esc_html__('Registre eventos do plugin, como solicitações de retorno, dentro', 'eupago-gateway-for-woocommerce');
+                    $log_plugins = esc_html__('Registe eventos do plugin, como solicitações de retorno, dentro', 'eupago-gateway-for-woocommerce');
                     $refund_text = esc_html__('Reembolso:','eupago-gateway-for-woocommerce');
-                    $user_text = esc_html__('Usuário: ','eupago-gateway-for-woocommerce');
-                    $password_text = esc_html__('Senha','eupagp-gateway-for-woocommerce');
+                    $user_text = esc_html__('Utilizador: ','eupago-gateway-for-woocommerce');
+                    $password_text = esc_html__('Palavra-Passe','eupagp-gateway-for-woocommerce');
                     $notificacoes_sms = esc_html__('Notificações Biziq: ','eupago-gateway-for-woocommerce');
-                    $payment_on_hold = esc_html__('Pagamento SMS em Espera:', 'eupago-gateway-for-woocommerce');
+                    $payment_on_hold = esc_html__('Envio de SMS dos detalhes de pagamento:', 'eupago-gateway-for-woocommerce');
                     $sms_order_confirmation = esc_html__('Confirmação de Pedido por SMS:', 'eupago-gateway-for-woocommerce');
                     $payment_confirmation = esc_html__('Confirmação de Pagamento por SMS:', 'eupago-gateway-for-woocommerce');
                     $callback_url_text = esc_html__('URL de Retorno: ','eupago-gateway-for-woocommerce');
@@ -319,7 +319,7 @@ function eupago_page_content()
                     $texto_callback = 'Por favor, active la devolución de llamada para esta URL en el panel de Eupago:';
                     $texto_enable = 'Habilitar';
                     $texto_enable_login = 'Habilitar inicio de sesión';
-                    $texto_antepenultimo = 'Por favor, asegúrese de que el campo con el ID de Cliente y el Secreto de Cliente estén completados correctamente arriba para actualizar la devolución de llamada correctamente.';
+                    $texto_antepenultimo = 'Por favor, asegúrese de que los campos con el ID de Cliente y el Secreto de Cliente estén completados correctamente arriba para actualizar la devolución de llamada correctamente.';
                     $texto_ultimo = 'La URL generada es la devolución de llamada predeterminada para una tienda Woocommerce. Si su tienda tiene una ruta de archivo diferente, por favor, utilice el Backoffice de Eupago.';
                     $callback = 'Actualizar devolución de llamada';
                     $order = 'Para utilizar el plugin de Eupago para WooCommerce, debe tener una cuenta en Eupago.';
@@ -329,7 +329,7 @@ function eupago_page_content()
                     $order_api = esc_html__('Para encontrar su Clave de API y nombre de canal, siga esta guía en nuestro', 'eupago-gateway-for-woocommerce');
                     $help_center = esc_html__('Centro de ayuda','eupago-gateway-for-woocommerce');
                     $api_key_text = esc_html__('Clave de API: ', 'eupago-gateway-for-woocommerce');
-                    $end_point_text = esc_html__('Punto final: ','eupago-gateway-for-woocommerce');
+                    $end_point_text = esc_html__('Endpoint: ','eupago-gateway-for-woocommerce');
                     $live_text = esc_html__('En vivo','eupago-gateway-for-woocommerce');
                     $sandbox_text = esc_html__('Sandbox', 'eupago-gateway-for-woocommerce');
                     $reminder_faiolver = esc_html__('Recordatorio (FailOver):', 'eupago-gateway-for-woocommerce');
@@ -341,7 +341,7 @@ function eupago_page_content()
                     $user_text = esc_html__('Usuario: ','eupago-gateway-for-woocommerce');
                     $password_text = esc_html__('Contraseña','eupagp-gateway-for-woocommerce');
                     $notificacoes_sms = esc_html__('Notificaciones Biziq: ','eupago-gateway-for-woocommerce');
-                    $payment_on_hold = esc_html__('Pago SMS en espera:', 'eupago-gateway-for-woocommerce');
+                    $payment_on_hold = esc_html__('Envío de SMS con los detalles de pago:', 'eupago-gateway-for-woocommerce');
                     $sms_order_confirmation = esc_html__('Confirmación de pedido SMS:', 'eupago-gateway-for-woocommerce');
                     $payment_confirmation = esc_html__('Confirmación de pago SMS:', 'eupago-gateway-for-woocommerce');
                     $callback_url_text = esc_html__('URL de devolución de llamada: ','eupago-gateway-for-woocommerce');
@@ -372,7 +372,7 @@ function eupago_page_content()
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="endpoint"><?php esc_html_e($endpoint_text); ?></label></th>
+						<th scope="row"><label for="endpoint"><?php esc_html_e($end_point_text); ?></label></th>
 						<td>
 							<select name="endpoint">
 								<?php if (get_option('eupago_endpoint') == 'clientes') { ?>
