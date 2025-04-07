@@ -88,7 +88,7 @@ if ( !class_exists( 'WC_Eupago_PF' ) ) {
         'enabled' => array(
           'title' => __('Enable/Disable', 'eupago-gateway-for-woocommerce'),
           'type' => 'checkbox',
-          'label' => __( 'Enable PaySafeCard (using Eupago)', 'eupago-gateway-for-woocommerce'),
+          'label' => __( 'Enable PaySafeCard', 'eupago-gateway-for-woocommerce'),
           'default' => 'no'
         ),
         'title' => array(
@@ -106,7 +106,7 @@ if ( !class_exists( 'WC_Eupago_PF' ) ) {
         'logo_url' => array(
           'title' => __('Logo', 'eupago-gateway-for-woocommerce'),
           'type' => 'text',
-          'description' => __('Shop Logo for payment page', 'eupago-gateway-for-woocommerce'),
+          'description' => __('Shop Logo for payment page.', 'eupago-gateway-for-woocommerce'),
           'default' => ''
         ),
         'instructions' => array(

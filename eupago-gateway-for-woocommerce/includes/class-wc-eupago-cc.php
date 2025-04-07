@@ -35,7 +35,7 @@ if (!class_exists('WC_Eupago_CC')) {
 
             $this->icon = plugins_url('assets/images/cc_icon.jpg', dirname(__FILE__));
             $this->has_fields = false;
-            $this->method_title = __('Credit Card (Eupago)', 'eupago-gateway-for-woocommerce');
+            $this->method_title = __('Cartão de Crédito (Eupago)', 'eupago-gateway-for-woocommerce');
 
             // Plugin options and settings
             $this->init_form_fields();
@@ -143,105 +143,105 @@ if (!class_exists('WC_Eupago_CC')) {
             $payment_on_hold = __('Send SMS with payment details:', 'eupago-gateway-for-woocommerce');
             $enable_disable_title = __('Enable/Disable', 'eupago-gateway-for-woocommerce');
             $title_credit_card = __('Title','eupago-gateway-for-woocommerce');
-            $enable_credit_card = __('Enable Credit Card (using Eupago)','eupago-gateway-for-woocommerce');
-            $controls_checkout = __('This controls the title the user sees during the checkout process','eupago-gateway-for-woocommerce');
+            $enable_credit_card = __('Enable Credit Card','eupago-gateway-for-woocommerce');
+            $controls_checkout = __('Use this field to define the title that the user sees during the checkout process.','eupago-gateway-for-woocommerce');
             $credit_card = __('Credit Card','eupago-gateway-for-woocommerce');
             $description = __('Description','eupago-gateway-for-woocommerce');
-            $description_checkout = __('This controls the description the user sees during checkout.','eupago-gateway-for-woocommerce');
+            $description_checkout = __('Use this field to define the description that the user sees during the checkout process.','eupago-gateway-for-woocommerce');
             $pay_with_card = __('Pay with Card','eupago-gateway-for-woocommerce');
             $logo = __('Logo','eupago-gateway-for-woocommerce');
-            $shop_logo = __('Store Logo for the checkout page','eupago-gateway-for-woocommerce');
-            $payment_confirmation = esc_html__('SMS Payment Confirmation:', 'eupago-gateway-for-woocommerce');
+            $shop_logo = __('Store Logo for the checkout page.','eupago-gateway-for-woocommerce');
+            $payment_confirmation = esc_html__('Payment Confirmation by SMS', 'eupago-gateway-for-woocommerce');
             $sms_order_confirmation = esc_html('SMS Order Confirmation:', 'eupago-gateway-for-woocommerce');
             //Fim de Adição
             $instructions_text = __('Instructions', 'eupago-gateway-for-woocommerce');
-            $description_instructions_text = __('Instructions to be added to the thank you page and the email sent to the customer.', 'eupago-gateway-for-woocommerce');
+            $description_instructions_text = __('Use this field to enter instructions that will be added to the order confirmation page and in the email sent to the customer.', 'eupago-gateway-for-woocommerce');
             $duplicated_payments_text = __('Duplicated Payments', 'eupago-gateway-for-woocommerce');
             $allow_duplicated_text = __('Allow duplicated payments.', 'eupago-gateway-for-woocommerce');
             $no_text = __('No', 'eupago-gateway-for-woocommerce');
             $yes_text = __('Yes', 'eupago-gateway-for-woocommerce');
-            $data_expirada_text = __('Expiration Date', 'eupago-gateway-for-woocommerce');
-            $numero_dias_expirado = __('Number of days for the payment to expire.', 'eupago-gateway-for-woocommerce');
-            $apenas_portugueses = __('Only for Portuguese customers?', 'eupago-gateway-for-woocommerce');
-            $endereço_português = __('Enable only for customers whose address is in Portugal', 'eupago-gateway-for-woocommerce');
-            $orders_acima = __('Only for orders above', 'eupago-gateway-for-woocommerce');
-            $orders_description = __('Enable only for orders above x &euro; (exclusive). Leave blank (or zero) to allow any order value.', 'eupago-gateway-for-woocommerce') . ' ' . __('By design, Multibanco only allows payments from 1 to 999999 &euro; (inclusive). You can use this option to further limit this range.', 'eupago-gateway-for-woocommerce');
-            $orders_abaixo = __('Only for orders below', 'eupago-gateway-for-woocommerce');
-            $orders_abaixo_description = __('Enable only for orders below x &euro; (exclusive). Leave blank (or zero) to allow any order value.', 'eupago-gateway-for-woocommerce') . '' . __('By design, Multibanco only allows payments from 1 to 999999 &euro; (inclusive). You can use this option to further limit this range.', 'eupago-gateway-for-woocommerce');
-            $reduzir_stock = __('Reduce Stock', 'eupago-gateway-for-woocommerce');
-            $escolher_reduzir_stock = __('Choose when to reduce stock.', 'eupago-gateway-for-woocommerce');
-            $quando_order_paga = __('when the order is paid (requires active callback)', 'eupago-gateway-for-woocommerce');
-            $quando_order_colocada = __('when the order is placed (before payment)', 'eupago-gateway-for-woocommerce');
+            $expired_date_text = __('Expiration Date', 'eupago-gateway-for-woocommerce');
+            $number_days_expired = __('Number of days for the payment to expire.', 'eupago-gateway-for-woocommerce');
+            $only_portuguese = __('Only for Portuguese customers?', 'eupago-gateway-for-woocommerce');
+            $address_portuguese = __('Enable only for customers whose address is in Portugal', 'eupago-gateway-for-woocommerce');
+            $orders_above = __('Only for orders above', 'eupago-gateway-for-woocommerce');
+            $orders_description = __('Activate only for orders over X € (exclusive). Leave blank or set to zero to allow any order value.The order value must fall within the limits set by the credit card provider.', 'eupago-gateway-for-woocommerce');
+            $orders_below = __('Only for orders below', 'eupago-gateway-for-woocommerce');
+            $orders_below_description = __('Activate only for orders over X € (exclusive). Leave blank or set to zero to allow any order value.The order value must fall within the limits set by the credit card provider.', 'eupago-gateway-for-woocommerce');
+            $reduce_stock = __('Reduce Stock', 'eupago-gateway-for-woocommerce');
+            $choose_reduce_stock = __('Choose when to reduce stock.', 'eupago-gateway-for-woocommerce');
+            $when_order_pays = __('when the order is paid (requires active callback)', 'eupago-gateway-for-woocommerce');
+            $when_order_placed = __('when the order is placed (before payment)', 'eupago-gateway-for-woocommerce');
 
             // Translate title based on the selected language
             if ($admin_language === 'pt_PT' || $admin_language === 'pt_BR') {
                 $enable_disable_title = __('Ativar/Desativar', 'eupago-gateway-for-woocommerce');
                 //Início de Adição
                 $title_credit_card = __('Título','eupago-gateway-for-woocommerce');
-                $enable_credit_card = __('Habilitar Cartão de Crédito (usando Eupago)','eupago-gateway-for-woocommerce');
-                $controls_checkout = __('Isto controla o título que o utilizador vê durante o processo de pagamento','eupago-gateway-for-woocommerce');
+                $enable_credit_card = __('Ativar Cartão de Crédito','eupago-gateway-for-woocommerce');
+                $controls_checkout = __('Utilize este campo para definir o título que o utilizador vê durante o processo de pagamento.','eupago-gateway-for-woocommerce');
                 $credit_card = __('Cartão de Crédito','eupago-gateway-for-woocommerce');
                 $description = __('Descrição','eupago-gateway-for-woocommerce');
-                $description_checkout = __('Isto controla a descrição que o utilizador vê durante o pagamento.','eupago-gateway-for-woocommerce');
+                $description_checkout = __('Utilize este campo para definir a descrição que o utilizador vê durante o processo de pagamento.','eupago-gateway-for-woocommerce');
                 $pay_with_card = __('Pagar com Cartão','eupago-gateway-for-woocommerce');
                 $logo = __('Logo','eupago-gateway-for-woocommerce');
-                $shop_logo = __('Logotipo da loja para a página de pagamento','eupago-gateway-for-woocommerce');
+                $shop_logo = __('Logotipo da loja para a página de pagamento.','eupago-gateway-for-woocommerce');
                 $texto_enable = 'Ativar';
                 $payment_confirmation = esc_html__('Confirmação do pagamento por SMS:', 'eupago-gateway-for-woocommerce');
                 //Fim de adição
                 $instructions_text = __('Instruções', 'eupago-gateway-for-woocommerce');
-                $description_instructions_text = __('Instruções que serão adicionadas à página de agradecimento e ao e-mail enviado ao cliente.', 'eupago-gateway-for-woocommerce');
+                $description_instructions_text = __('Utilize este campo para inserir as instruções que serão adicionadas na página de confirmação de encomenda e no email enviado ao cliente.', 'eupago-gateway-for-woocommerce');
                 $duplicated_payments_text = __('Pagamentos duplicados', 'eupago-gateway-for-woocommerce');
                 $allow_duplicated_text = __('Permitir pagamentos duplicados.', 'eupago-gateway-for-woocommerce');
                 $no_text = __('Não', 'eupago-gateway-for-woocommerce');
                 $yes_text = __('Sim', 'eupago-gateway-for-woocommerce');
-                $data_expirada_text = __('Data de validade', 'eupago-gateway-for-woocommerce');
-                $numero_dias_expirado = __('Número de dias para que o pagamento expire.', 'eupago-gateway-for-woocommerce');
-                $apenas_portugueses = __('Apenas para clientes portugueses?', 'eupago-gateway-for-woocommerce');
-                $endereço_português = __('Ativar apenas para clientes cuja morada esteja em Portugal', 'eupago-gateway-for-woocommerce');
-                $orders_acima = __('Apenas para encomendas superiores a', 'eupago-gateway-for-woocommerce');
-                $orders_description = __('Ativar apenas para encomendas superiores a x &euro; (exclusivo). Deixe em branco (ou zero) para permitir qualquer valor de encomenda.', 'eupago-gateway-for-woocommerce') . ' ' . __('Por design, Multibanco só permite pagamentos de 1 a 999999 &euro; (inclusive). Pode usar esta opção para limitar ainda mais este intervalo.', 'eupago-gateway-for-woocommerce');
-                $orders_abaixo = __('Apenas para encomendas inferiores a', 'eupago-gateway-for-woocommerce');
-                $orders_abaixo_description = __('Ativar apenas para encomendas inferiores a x &euro; (exclusivo). Deixe em branco (ou zero) para permitir qualquer valor de encomenda.', 'eupago-gateway-for-woocommerce') . '  ' . __('Por design, Multibanco só permite pagamentos de 1 a 999999 &euro; (inclusive). Pode usar esta opção para limitar ainda mais este intervalo.', 'eupago-gateway-for-woocommerce');
-                $reduzir_stock = __('Reduzir o stock', 'eupago-gateway-for-woocommerce');
-                $escolher_reduzir_stock = __('Escolher quando reduzir o stock.', 'eupago-gateway-for-woocommerce');
-                $quando_order_paga = __('quando a encomenda é paga (requer callback ativo)', 'eupago-gateway-for-woocommerce');
-                $quando_order_colocada = __('quando a encomenda é colocada (antes do pagamento)', 'eupago-gateway-for-woocommerce');
+                $expired_date_text = __('Data de validade', 'eupago-gateway-for-woocommerce');
+                $number_days_expired = __('Número de dias para que o pagamento expire.', 'eupago-gateway-for-woocommerce');
+                $only_portuguese = __('Apenas para clientes portugueses?', 'eupago-gateway-for-woocommerce');
+                $address_portuguese = __('Ativar apenas para os clientes cujo endereço é em Portugal', 'eupago-gateway-for-woocommerce');
+                $orders_above = __('Apenas para encomendas acima de', 'eupago-gateway-for-woocommerce');
+                $orders_description = __('Ative apenas para pedidos superiores a X € (exclusivo). Deixe em branco ou zero para permitir qualquer valor. O valor da encomenda deve estar dentro dos limites definidos pelo provedor do cartão de crédito.', 'eupago-gateway-for-woocommerce');
+                $orders_below = __('Apenas para encomendas abaixo de', 'eupago-gateway-for-woocommerce');
+                $orders_below_description = __('Ative apenas para pedidos superiores a X € (exclusivo). Deixe em branco ou zero para permitir qualquer valor. O valor da encomenda deve estar dentro dos limites definidos pelo provedor do cartão de crédito.', 'eupago-gateway-for-woocommerce');
+                $reduce_stock = __('Reduzir o stock', 'eupago-gateway-for-woocommerce');
+                $choose_reduce_stock = __('Escolher quando reduzir o stock.', 'eupago-gateway-for-woocommerce');
+                $when_order_pays = __('quando a encomenda é paga (requer callback ativo)', 'eupago-gateway-for-woocommerce');
+                $when_order_placed = __('quando a encomenda é registada (antes do pagamento)', 'eupago-gateway-for-woocommerce');
                 $payment_on_hold = esc_html__('Envio de SMS dos detalhes de pagamento:', 'eupago-gateway-for-woocommerce');
                 $sms_order_confirmation = esc_html__('Confirmação de Pedido por SMS:', 'eupago-gateway-for-woocommerce');
             } elseif ($admin_language === 'es_ES') {
                 $enable_disable_title = __('Activar/Desactivar', 'eupago-gateway-for-woocommerce');
                 //Início de Adição
                 $title_credit_card = __('Título','eupago-gateway-for-woocommerce');
-                $enable_credit_card = __('Habilitar Tarjeta de Crédito (usando Eupago)','eupago-gateway-for-woocommerce');
-                $controls_checkout = __('Esto controla el título que el usuario ve durante el proceso de pago','eupago-gateway-for-woocommerce');
+                $enable_credit_card = __('Activar tarjeta de crédito','eupago-gateway-for-woocommerce');
+                $controls_checkout = __('Utilice este campo para definir el título que ve el usuario durante el proceso de pago.','eupago-gateway-for-woocommerce');
                 $credit_card = __('Tarjeta de Crédito','eupago-gateway-for-woocommerce');
                 $description = __('Descripción','eupago-gateway-for-woocommerce');
-                $description_checkout = __('Esto controla la descripción que ve el usuario durante el pago.','eupago-gateway-for-woocommerce');
+                $description_checkout = __('Utilice este campo para definir la descripción que el usuario ve durante el proceso de pago.','eupago-gateway-for-woocommerce');
                 $logo = __('Logo','eupago-gateway-for-woocommerce');
-                $shop_logo = __('Logotipo de la tienda para la página de pago','eupago-gateway-for-woocommerce');
+                $shop_logo = __('Logotipo de la tienda para la página de pago.','eupago-gateway-for-woocommerce');
                 //Fim de adição
                 $instructions_text = __('Instrucciones', 'eupago-gateway-for-woocommerce');
-                $description_instructions_text = __('Instrucciones que se añadirán a la página de agradecimiento y al correo electrónico enviado al cliente.', 'eupago-gateway-for-woocommerce');
+                $description_instructions_text = __('Utilice este campo para ingresar instrucciones que se agregarán a la página de confirmación del pedido y al correo electrónico enviado al cliente.', 'eupago-gateway-for-woocommerce');
                 $duplicated_payments_text = __('Pagos duplicados', 'eupago-gateway-for-woocommerce');
                 $allow_duplicated_text = __('Permitir pagos duplicados.', 'eupago-gateway-for-woocommerce');
                 $no_text = __('No', 'eupago-gateway-for-woocommerce');
                 $yes_text = __('Sí', 'eupago-gateway-for-woocommerce');
-                $data_expirada_text = __('Fecha de vencimiento', 'eupago-gateway-for-woocommerce');
-                $numero_dias_expirado = __('Número de días para que caduque el pago.', 'eupago-gateway-for-woocommerce');
-                $apenas_portugueses = __('¿Solo para clientes portugueses?', 'eupago-gateway-for-woocommerce');
-                $endereço_português = __('Habilitar solo para clientes cuya dirección esté en Portugal', 'eupago-gateway-for-woocommerce');
-                $orders_acima = __('Solo para pedidos superiores a', 'eupago-gateway-for-woocommerce');
-                $orders_description = __('Activar solo para pedidos superiores a x &euro; (exclusivo). Deje en blanco (o cero) para permitir cualquier valor de pedido.', 'eupago-gateway-for-woocommerce') . ' <br/> ' . __('Por diseño, Multibanco solo permite pagos de 1 a 999999 &euro; (inclusive). Puede usar esta opción para limitar aún más este rango.', 'eupago-gateway-for-woocommerce');
-                $orders_abaixo = __('Solo para pedidos inferiores a', 'eupago-gateway-for-woocommerce');
-                $orders_abaixo_description = __('Activar solo para pedidos inferiores a x &euro; (exclusivo). Deje en blanco (o cero) para permitir cualquier valor de pedido.', 'eupago-gateway-for-woocommerce') . ' <br/> ' . __('Por diseño, Multibanco solo permite pagos de 1 a 999999 &euro; (inclusive). Puede usar esta opción para limitar aún más este rango.', 'eupago-gateway-for-woocommerce');
-                $reduzir_stock = __('Reducir el stock', 'eupago-gateway-for-woocommerce');
-                $escolher_reduzir_stock = __('Elegir cuándo reducir el stock.', 'eupago-gateway-for-woocommerce');
-                $quando_order_paga = __('cuando el pedido se paga (requiere callback activo)', 'eupago-gateway-for-woocommerce');
-                $quando_order_colocada = __('cuando el pedido se realiza (antes del pago)', 'eupago-gateway-for-woocommerce');
+                $expired_date_text = __('Fecha de vencimiento', 'eupago-gateway-for-woocommerce');
+                $number_days_expired = __('Número de días para que caduque el pago.', 'eupago-gateway-for-woocommerce');
+                $only_portuguese = __('¿Solo para clientes portugueses?', 'eupago-gateway-for-woocommerce');
+                $address_portuguese = __('Activar sólo para clientes cuya dirección esté en Portugal.', 'eupago-gateway-for-woocommerce');
+                $orders_above = __('Solo para pedidos superiores a', 'eupago-gateway-for-woocommerce');
+                $orders_description = __('Activar solo para pedidos superiores a x &euro; (exclusivo). Deje en blanco (o cero) para permitir cualquier valor de pedido.', 'eupago-gateway-for-woocommerce') . ' <br/> ' . __('El valor del pedido debe estar dentro de los límites establecidos por el proveedor de la tarjeta de crédito.', 'eupago-gateway-for-woocommerce');
+                $orders_below = __('Solo para pedidos inferiores a', 'eupago-gateway-for-woocommerce');
+                $orders_below_description = __('Activar solo para pedidos inferiores a x &euro; (exclusivo). Deje en blanco (o cero) para permitir cualquier valor de pedido.', 'eupago-gateway-for-woocommerce') . ' <br/> ' . __('El valor del pedido debe estar dentro de los límites establecidos por el proveedor de la tarjeta de crédito.', 'eupago-gateway-for-woocommerce');
+                $reduce_stock = __('Reducir el stock', 'eupago-gateway-for-woocommerce');
+                $choose_reduce_stock = __('Elegir cuándo reducir el stock.', 'eupago-gateway-for-woocommerce');
+                $when_order_pays = __('cuando el pedido se paga (requiere callback activo)', 'eupago-gateway-for-woocommerce');
+                $when_order_placed = __('cuando el pedido se realiza (antes del pago)', 'eupago-gateway-for-woocommerce');
                 $payment_on_hold = esc_html__('Envío de SMS con los detalles de pago:', 'eupago-gateway-for-woocommerce');
                 $texto_enable = 'Habilitar';
-                $payment_confirmation = esc_html__('Confirmación de pago SMS:', 'eupago-gateway-for-woocommerce');
+                $payment_confirmation = esc_html__('Confirmación de pago por SMS', 'eupago-gateway-for-woocommerce');
                 $sms_order_confirmation = esc_html__('Confirmación de pedido SMS:', 'eupago-gateway-for-woocommerce');
             }
 
@@ -276,31 +276,31 @@ if (!class_exists('WC_Eupago_CC')) {
                     'description' => esc_html($description_instructions_text),
                 ],
                 'only_portugal' => [
-                    'title' => esc_html($apenas_portugueses),
+                    'title' => esc_html($only_portuguese),
                     'type' => 'checkbox',
-                    'label' => esc_html($endereço_português),
+                    'label' => esc_html($address_portuguese),
                     'default' => 'no',
                 ],
                 'only_above' => [
-                    'title' => esc_html($orders_acima),
+                    'title' => esc_html($orders_above),
                     'type' => 'number',
-                    'description' => esc_html($orders_description),
+                    'description' => wp_kses_post($orders_description),
                     'default' => 0,
                 ],
                 'only_below' => [
-                    'title' => esc_html($orders_abaixo),
+                    'title' => esc_html($orders_below),
                     'type' => 'number',
-                    'description' => esc_html($orders_abaixo_description),
+                    'description' => wp_kses_post($orders_below_description),
                     'default' => 0,
                 ],
                 'stock_when' => [
-                    'title' => esc_html ($reduzir_stock),
+                    'title' => esc_html ($reduce_stock),
                     'type' => 'select',
-                    'description' =>esc_html ($escolher_reduzir_stock),
+                    'description' =>esc_html ($choose_reduce_stock),
                     'default' => '',
                     'options' => [
-                      '' => esc_html($quando_order_paga),
-                      'order' => esc_html($quando_order_colocada),
+                      '' => esc_html($when_order_pays),
+                      'order' => esc_html($when_order_placed),
                     ],
                 ],
                 'sms_payment_hold_cc' => [

@@ -36,7 +36,7 @@ if (!class_exists('WC_Eupago_MBWAY')) {
 
             $this->icon = plugins_url('assets/images/mbway_icon.png', dirname(__FILE__));
             $this->has_fields = true;
-            $this->method_title = __('MBWAY (Eupago)', 'eupago-gateway-for-woocommerce');
+            $this->method_title = __('MB WAY (Eupago)', 'eupago-gateway-for-woocommerce');
 
             // Plugin options and settings
             $this->init_form_fields();
@@ -143,70 +143,84 @@ if (!class_exists('WC_Eupago_MBWAY')) {
             $title_mbway = __('Title','eupago-gateway-for-woocommerce');
             $mbway = __('MBWAY','eupago-gateway-for-woocommerce');
             $instructions_text = __('Instructions', 'eupago-gateway-for-woocommerce');
-            $description_instructions_text = __('Instructions that will be added to the thank you page and email sent to customer.','eupago-gateway-for-woocommerce');
+            $description_instructions_text = __('Use this field to enter instructions that will be added to the order confirmation page and in the email sent to the customer.','eupago-gateway-for-woocommerce');
             $duplicated_payments_text = __('Duplicate payments', 'eupago-gateway-for-woocommerce');
-            $controls_checkout = __('This controls the title the user sees during the checkout process','eupago-gateway-for-woocommerce');
+            $controls_checkout = __('Use this field to define the title that the user sees during the checkout process.','eupago-gateway-for-woocommerce');
             $allow_duplicated_text = __('Allow duplicate payments.', 'eupago-gateway-for-woocommerce');
             $no_text = __('No', 'eupago-gateway-for-woocommerce');
             $yes_text = __('Yes', 'eupago-gateway-for-woocommerce');
             $description = __('Description','eupago-gateway-for-woocommerce');
-            $description_checkout = __('This controls the description the user sees during checkout.','eupago-gateway-for-woocommerce');
-            $data_expirada_text = __('Expire Date', 'eupago-gateway-for-woocommerce');
-            $numero_dias_expirado = __('Number of days to payment expire.', 'eupago-gateway-for-woocommerce');
-            $apenas_portugueses = __('Only for Portuguese customers?', 'eupago-gateway-for-woocommerce');
-            $endereço_português = __('Enable only for customers whose address is in Portugal', 'eupago-gateway-for-woocommerce');
-            $orders_acima = __('Only for orders above', 'eupago-gateway-for-woocommerce');
-            $orders_description = __('Enable only for orders above x &euro; (exclusive). Leave blank (or zero) to allow for any order value.', 'eupago-gateway-for-woocommerce') . '  ' . __('By design, Mulitibanco only allows payments from 1 to 999999 &euro; (inclusive). You can use this option to further limit this range.', 'eupago-gateway-for-woocommerce');
-            $orders_abaixo = __('Only for orders below', 'eupago-gateway-for-woocommerce');
-            $orders_abaixo_description = __('Enable only for orders below x &euro; (exclusive). Leave blank (or zero) to allow for any order value.', 'eupago-gateway-for-woocommerce') . '  ' . __('By design, Mulitibanco only allows payments from 1 to 999999 &euro; (inclusive). You can use this option to further limit this range.', 'eupago-gateway-for-woocommerce');
-            $reduzir_stock = __('Reduce stock', 'eupago-gateway-for-woocommerce');
-            $escolher_reduzir_stock = __('Choose when to reduce stock.', 'eupago-gateway-for-woocommerce');
-            $quando_order_paga = __('when order is paid (requires active callback)', 'eupago-gateway-for-woocommerce');
-            $quando_order_colocada =  __('when order is placed (before payment)', 'eupago-gateway-for-woocommerce');
-            $enable_mbway = __('Enable MBWAY (using Eupago)', 'eupago-gateway-for-woocommerce');
-            $payment_confirmation = esc_html__('SMS Payment Confirmation:', 'eupago-gateway-for-woocommerce');
+            $description_checkout = __('Use this field to define the description that the user sees during the checkout process.','eupago-gateway-for-woocommerce');
+            $expired_date_text = __('Expire Date', 'eupago-gateway-for-woocommerce');
+            $number_days_expired = __('Number of days to payment expire.', 'eupago-gateway-for-woocommerce');
+            $only_portuguese = __('Only for Portuguese customers?', 'eupago-gateway-for-woocommerce');
+            $address_portuguese = __('Enable only for customers whose address is in Portugal', 'eupago-gateway-for-woocommerce');
+            $orders_above = __('Only for orders above', 'eupago-gateway-for-woocommerce');
+            $orders_description = __('Activate only for orders over X € (exclusive). Leave blank (or zero) to allow any order value The order value must fall within the limits set by MBWay.', 'eupago-gateway-for-woocommerce');
+            $orders_below = __('Only for orders below', 'eupago-gateway-for-woocommerce');
+            $orders_below_description = __('Activate only for orders over X € (exclusive). Leave blank (or zero) to allow any order value The order value must fall within the limits set by MBWay.', 'eupago-gateway-for-woocommerce');
+            $reduce_stock = __('Reduce stock', 'eupago-gateway-for-woocommerce');
+            $choose_reduce_stock = __('Choose when to reduce stock.', 'eupago-gateway-for-woocommerce');
+            $when_order_pays = __('when order is paid (requires active callback)', 'eupago-gateway-for-woocommerce');
+            $when_order_placed =  __('when order is placed (before payment)', 'eupago-gateway-for-woocommerce');
+            $enable_mbway = __('Enable MBWAY', 'eupago-gateway-for-woocommerce');
+            $payment_confirmation = esc_html__('Payment Confirmation by SMS', 'eupago-gateway-for-woocommerce');
             // Translate title based on the selected language
             if ($admin_language === 'pt_PT' || $admin_language === 'pt_BR') {
                 $enable_disable_title = __('Ativar/Desativar', 'eupago-gateway-for-woocommerce');
-                $enable_mbway = __('Ativar MBWAY (usando Eupago)', 'eupago-gateway-for-woocommerce');
+                $enable_mbway = __('Ativar MBWAY', 'eupago-gateway-for-woocommerce');
                 $mbway = __('MBWAY','eupago-gateway-for-woocommerce');
-                $controls_checkout = __('Isto controla o título que o utilizador vê durante o processo de pagamento','eupago-gateway-for-woocommerce');
+                $controls_checkout = __('Utilize este campo para definir o título que o utilizador vê durante o processo de pagamento.','eupago-gateway-for-woocommerce');
                 $title_mbway = __('Título','eupago-gateway-for-woocommerce');
-                $description_checkout = __('Isto controla a descrição que o utilizador vê durante o pagamento.','eupago-gateway-for-woocommerce');
-                $description = __('Descrição','eupago-gateway-for-woocommerce');
-                $payment_on_hold = esc_html__('Envio de SMS dos detalhes de pagamento:', 'eupago-gateway-for-woocommerce');
-                $texto_enable = 'Ativar';
-                $payment_confirmation = esc_html__('Confirmação do pagamento por SMS:', 'eupago-gateway-for-woocommerce');
-                $sms_order_confirmation = esc_html__('Confirmação de Pedido por SMS:', 'eupago-gateway-for-woocommerce');
+	            $description_checkout = __('Utilize este campo para definir a descrição que o utilizador vê durante o processo de pagamento.', 'eupago-gateway-for-woocommerce');
+	            $description_instructions_text = __('Utilize este campo para inserir as instruções que serão adicionadas na página de confirmação de encomenda e no email enviado ao cliente.', 'eupago-gateway-for-woocommerce');
+	            $description = __('Descrição', 'eupago-gateway-for-woocommerce');
+	            $payment_on_hold = esc_html__('Envio de SMS dos detalhes de pagamento:', 'eupago-gateway-for-woocommerce');
+	            $texto_enable = 'Ativar';
+	            $payment_confirmation = esc_html__('Confirmação do pagamento por SMS:', 'eupago-gateway-for-woocommerce');
+
+                $only_portuguese = __('Apenas para clientes portugueses?', 'eupago-gateway-for-woocommerce');
+                $orders_above = __('Apenas para encomendas acima de', 'eupago-gateway-for-woocommerce');
+                $orders_below = __('Apenas para encomendas abaixo de', 'eupago-gateway-for-woocommerce');
+
+                $orders_description = __('Ativar apenas para encomendas acima de x € (exclusivo). Deixe em branco (ou zero) para permitir qualquer valor de encomenda.', 'eupago-gateway-for-woocommerce') . ' ' . __('Por definição, o Mbway apenas permite pagamentos de 1 a 999999 € (inclusive). Pode usar esta opção para limitar ainda mais este intervalo.', 'eupago-gateway-for-woocommerce');
+                $orders_below_description = __('Ativar apenas para encomendas abaixo de x € (exclusivo). Deixe em branco (ou zero) para permitir qualquer valor de encomenda.', 'eupago-gateway-for-woocommerce') . '  ' . __('Por definição, o Mbway apenas permite pagamentos de 1 a 999999 € (inclusive). Pode usar esta opção para limitar ainda mais este intervalo.', 'eupago-gateway-for-woocommerce');
+                $instructions_text = __('Instruções', 'eupago-gateway-for-woocommerce');
+                $reduce_stock = __('Reduzir stock', 'eupago-gateway-for-woocommerce');
+
+                $choose_reduce_stock = __('Escolha quando reduzir o stock.', 'eupago-gateway-for-woocommerce');
+
+                $when_order_pays = __('quando a encomenda é paga (requer callback ativo)', 'eupago-gateway-for-woocommerce');
+                $when_order_placed =  __('quando a encomenda é feita (antes do pagamento)', 'eupago-gateway-for-woocommerce');
             } elseif ($admin_language === 'es_ES') {
                 $enable_disable_title = __('Activar/Desactivar', 'eupago-gateway-for-woocommerce');
                 $title_mbway = __('Título','eupago-gateway-for-woocommerce');
-                $enable_mbway = __('Activar MBWAY (usando Eupago)', 'eupago-gateway-for-woocommerce');
+                $enable_mbway = __('Activar MBWAY', 'eupago-gateway-for-woocommerce');
                 $mbway = __('MBWAY','eupago-gateway-for-woocommerce');
                 $description = __('Descripción','eupago-gateway-for-woocommerce');
-                $controls_checkout = __('Esto controla el título que el usuario ve durante el proceso de pago','eupago-gateway-for-woocommerce');
+                $controls_checkout = __('Utilice este campo para definir el título que ve el usuario durante el proceso de pago.','eupago-gateway-for-woocommerce');
                 $instructions_text = __('Instrucciones', 'eupago-gateway-for-woocommerce');
-                $description_instructions_text = __('Instrucciones que se añadirán a la página de agradecimiento y al correo electrónico enviado al cliente.', 'eupago-gateway-for-woocommerce');
+                $description_instructions_text = __('Utilice este campo para ingresar instrucciones que se agregarán a la página de confirmación del pedido y al correo electrónico enviado al cliente.', 'eupago-gateway-for-woocommerce');
                 $duplicated_payments_text = __('Pagos duplicados', 'eupago-gateway-for-woocommerce');
-                $description_checkout = __('Esto controla la descripción que ve el usuario durante el pago.','eupago-gateway-for-woocommerce');
+                $description_checkout = __('Utilice este campo para definir la descripción que el usuario ve durante el proceso de pago.','eupago-gateway-for-woocommerce');
                 $allow_duplicated_text = __('Permitir pagos duplicados.', 'eupago-gateway-for-woocommerce');
                 $no_text = __('No', 'eupago-gateway-for-woocommerce');
                 $yes_text = __('Sí', 'eupago-gateway-for-woocommerce');
-                $data_expirada_text = __('Fecha de vencimiento', 'eupago-gateway-for-woocommerce');
-                $numero_dias_expirado = __('Número de días para que caduque el pago.', 'eupago-gateway-for-woocommerce');
-                $apenas_portugueses = __('¿Solo para clientes portugueses?', 'eupago-gateway-for-woocommerce');
-                $endereço_português = __('Habilitar solo para clientes cuya dirección esté en Portugal', 'eupago-gateway-for-woocommerce');
-                $orders_acima = __('Solo para pedidos superiores a', 'eupago-gateway-for-woocommerce');
-                $orders_description = __('Activar solo para pedidos superiores a x &euro; (exclusivo). Deje en blanco (o cero) para permitir cualquier valor de pedido.', 'eupago-gateway-for-woocommerce') . '  ' . __('Por diseño, Multibanco solo permite pagos de 1 a 999999 &euro; (inclusive). Puede usar esta opción para limitar aún más este rango.', 'eupago-gateway-for-woocommerce');
-                $orders_abaixo = __('Solo para pedidos inferiores a', 'eupago-gateway-for-woocommerce');
-                $orders_abaixo_description = __('Activar solo para pedidos inferiores a x &euro; (exclusivo). Deje en blanco (o cero) para permitir cualquier valor de pedido.', 'eupago-gateway-for-woocommerce') . '  ' . __('Por diseño, Multibanco solo permite pagos de 1 a 999999 &euro; (inclusive). Puede usar esta opción para limitar aún más este rango.', 'eupago-gateway-for-woocommerce');
-                $reduzir_stock = __('Reducir el stock', 'eupago-gateway-for-woocommerce');
-                $escolher_reduzir_stock = __('Elegir cuándo reducir el stock.', 'eupago-gateway-for-woocommerce');
-                $quando_order_paga = __('cuando el pedido se paga (requiere callback activo)', 'eupago-gateway-for-woocommerce');
-                $quando_order_colocada = __('cuando el pedido se realiza (antes del pago)', 'eupago-gateway-for-woocommerce');
+                $expired_date_text = __('Fecha de vencimiento', 'eupago-gateway-for-woocommerce');
+                $number_days_expired = __('Número de días para que caduque el pago.', 'eupago-gateway-for-woocommerce');
+                $only_portuguese = __('¿Sólo para clientes portugueses?', 'eupago-gateway-for-woocommerce');
+                $address_portuguese = __('Activar sólo para clientes cuya dirección esté en Portugal.', 'eupago-gateway-for-woocommerce');
+                $orders_above = __('Solo para pedidos superiores a', 'eupago-gateway-for-woocommerce');
+                $orders_description = __('Activar sólo para pedidos superiores a X € (exclusivo). Déjelo en blanco (o cero) para permitir cualquier valor de pedido. El valor del pedido debe estar dentro de los límites establecidos por MBWay.', 'eupago-gateway-for-woocommerce');
+                $orders_below = __('Solo para pedidos inferiores a', 'eupago-gateway-for-woocommerce');
+                $orders_below_description = __('Activar sólo para pedidos superiores a X € (exclusivo). Déjelo en blanco (o cero) para permitir cualquier valor de pedido. El valor del pedido debe estar dentro de los límites establecidos por MBWay.', 'eupago-gateway-for-woocommerce');
+                $reduce_stock = __('Reducir el stock', 'eupago-gateway-for-woocommerce');
+                $choose_reduce_stock = __('Elegir cuándo reducir el stock.', 'eupago-gateway-for-woocommerce');
+                $when_order_pays = __('cuando se paga el pedido (requiere callback activo)', 'eupago-gateway-for-woocommerce');
+                $when_order_placed = __('cuando se registra el pedido (antes del pago)', 'eupago-gateway-for-woocommerce');
                 $payment_on_hold = esc_html__('Envío de SMS con los detalles de pago:', 'eupago-gateway-for-woocommerce');
                 $texto_enable = 'Habilitar';
-                $payment_confirmation = esc_html__('Confirmación de pago SMS:', 'eupago-gateway-for-woocommerce');
+                $payment_confirmation = esc_html__('Confirmación de pago por SMS', 'eupago-gateway-for-woocommerce');
                 $sms_order_confirmation = esc_html__('Confirmación de pedido SMS:', 'eupago-gateway-for-woocommerce');
             }
 
@@ -234,31 +248,31 @@ if (!class_exists('WC_Eupago_MBWAY')) {
                     'description' => esc_html($description_instructions_text),
                 ],
                 'only_portugal' => [
-                    'title' => esc_html($apenas_portugueses),
+                    'title' => esc_html($only_portuguese),
                     'type' => 'checkbox',
-                    'label' => esc_html($endereço_português),
+                    'label' => esc_html($address_portuguese),
                     'default' => 'no',
                 ],
                 'only_above' => [
-                    'title' => esc_html($orders_acima),
+                    'title' => esc_html($orders_above),
                     'type' => 'number',
                     'description' => esc_html($orders_description),
                     'default' => '',
                 ],
                 'only_below' => [
-                    'title' => esc_html($orders_abaixo),
+                    'title' => esc_html($orders_below),
                     'type' => 'number',
-                    'description' => esc_html($orders_abaixo_description),
+                    'description' => esc_html($orders_below_description),
                     'default' => '',
                 ],
                 'stock_when' => [
-                    'title' => esc_html ($reduzir_stock),
+                    'title' => esc_html ($reduce_stock),
                     'type' => 'select',
-                    'description' =>esc_html ($escolher_reduzir_stock),
+                    'description' =>esc_html ($choose_reduce_stock),
                     'default' => '',
                     'options' => [
-                        '' => esc_html($quando_order_paga),
-                        'order' => esc_html($quando_order_colocada),
+                        '' => esc_html($when_order_pays),
+                        'order' => esc_html($when_order_placed),
                     ],
                 ],
                 'sms_payment_hold_mbway' => [
@@ -294,8 +308,8 @@ if (!class_exists('WC_Eupago_MBWAY')) {
 
         public function check_order_errors($order_id)
         {
-          $order = wc_get_order($order_id);
-          $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;
+            $order = wc_get_order($order_id);
+            $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;
 
             // A loja não está em Euros
             if (trim(get_woocommerce_currency()) != 'EUR') {
@@ -414,108 +428,108 @@ if (!class_exists('WC_Eupago_MBWAY')) {
             <fieldset id="wc-<?php echo esc_attr($this->id); ?>-mbway-form" class="wc-mbway-form wc-payment-form" style="background:transparent;">
                 <p class="form-row form-row-wide">
                     <label for="mbway_phone"><?php esc_html_e('Phone number registered on MB WAY', 'eupago-gateway-for-woocommerce'); ?></label>
-                    <div style="display: flex; align-items: center;">
-                        <select name="mbway_country_code" id="mbway_country_code" style="height: 40px; font-size: 16px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px; width: 20%; box-sizing: border-box;">
-                            <option value="+351">Portugal (+351)</option>
-                            <option value="+34">Spain (+34)</option>
-                            <option value="+39">Italy (+39)</option>
-                        </select>
-                        <input type="number" id="mbway_phone" autocorrect="off" spellcheck="false" name="mbway_phone" class="input-text" placeholder="9XXXXXXXX" aria-label="<?php _e('Phone number registered on MB WAY', 'eupago-gateway-for-woocommerce'); ?>" aria-placeholder="" aria-invalid="false" style="height: 40px; font-size: 16px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 80%; box-sizing: border-box;" />
-                    </div>
+                <div style="display: flex; align-items: center;">
+                    <select name="mbway_country_code" id="mbway_country_code" style="height: 40px; font-size: 16px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px; width: 20%; box-sizing: border-box;">
+                        <option value="+351">Portugal (+351)</option>
+                        <option value="+34">Spain (+34)</option>
+                        <option value="+39">Italy (+39)</option>
+                    </select>
+                    <input type="number" id="mbway_phone" autocorrect="off" spellcheck="false" name="mbway_phone" class="input-text" placeholder="9XXXXXXXX" aria-label="<?php _e('Phone number registered on MB WAY', 'eupago-gateway-for-woocommerce'); ?>" aria-placeholder="" aria-invalid="false" style="height: 40px; font-size: 16px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 80%; box-sizing: border-box;" />
+                </div>
                 </p>
                 <div class="clear"></div>
             </fieldset>
             <?php
         }
-        
 
-    /**
-     * Process payment
-     */
-    public function process_payment($order_id)
-    {
-        global $woocommerce;
-        $order = wc_get_order($order_id);
 
-        $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;
-        // $billing_phone = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_billing_phone() : $order->billing_phone;
-        // $trimmed_phone = substr(preg_replace('/\s+/', '', sanitize_text_field($billing_phone)), -9);
+        /**
+         * Process payment
+         */
+        public function process_payment($order_id)
+        {
+            global $woocommerce;
+            $order = wc_get_order($order_id);
 
-        $mbway_phone = sanitize_text_field(isset($_POST['mbway_phone'])) && !empty(sanitize_text_field($_POST['mbway_phone'])) ? sanitize_text_field($_POST['mbway_phone']) : '';
-        $country_code = sanitize_text_field(isset($_POST['mbway_country_code'])) && !empty(sanitize_text_field($_POST['mbway_country_code'])) ? sanitize_text_field($_POST['mbway_country_code']) : '+351';
-        $full_phone_number = $country_code . $mbway_phone;
-        
-        // Validate phone number length
-        if (strlen($full_phone_number) < 8 || strlen($full_phone_number) > 16) {
-            wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' Invalid Phone Number', 'error');
+            $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;
+            // $billing_phone = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_billing_phone() : $order->billing_phone;
+            // $trimmed_phone = substr(preg_replace('/\s+/', '', sanitize_text_field($billing_phone)), -9);
+
+            $mbway_phone = sanitize_text_field(isset($_POST['mbway_phone'])) && !empty(sanitize_text_field($_POST['mbway_phone'])) ? sanitize_text_field($_POST['mbway_phone']) : '';
+            $country_code = sanitize_text_field(isset($_POST['mbway_country_code'])) && !empty(sanitize_text_field($_POST['mbway_country_code'])) ? sanitize_text_field($_POST['mbway_country_code']) : '+351';
+            $full_phone_number = $country_code . $mbway_phone;
+
+            // Validate phone number length
+            if (strlen($full_phone_number) < 8 || strlen($full_phone_number) > 16) {
+                wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' Invalid Phone Number', 'error');
+                return [
+                    'result' => 'failure',
+                    'redirect' => '',
+                ];
+            }
+
+            // Check for any pre-existing order errors
+            if ($error_message = $this->check_order_errors($order_id)) {
+                wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . $error_message, 'error');
+                return [
+                    'result' => 'failure',
+                    'redirect' => '',
+                ];
+            }
+
+            // Attempt to get the MBWAY reference
+            $pedidoMBWAY = $this->client->getReferenciaMBW($order_id, $order_total, $mbway_phone, $country_code);
+
+            if($pedidoMBWAY && isset($pedidoMBWAY)){
+                // Decode the MBWAY response
+                $pedidoMBWAY_decode = json_decode($pedidoMBWAY, true);
+            }
+
+            // Handle null or error response
+            if (!$pedidoMBWAY_decode['reference'] && $pedidoMBWAY_decode['transactionStatus'] != 'Success') {
+                wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' MBWAY request failed. Please try again.', 'error');
+                return [
+                    'result' => 'failure',
+                    'redirect' => '',
+                ];
+            }
+
+            // Save MBWAY reference in order meta
+            $order->update_meta_data('_eupago_mbway_referencia', $pedidoMBWAY_decode['reference']);
+            $order->save();
+
+            // Mark order as on-hold
+            $order->update_status('on-hold', __('Awaiting MBWAY payment.', 'eupago-gateway-for-woocommerce'));
+
+            // Reduce stock levels (if applicable)
+            if ($this->stock_when == 'order') {
+                $order->reduce_order_stock();
+            }
+
+            // Remove cart
+            $woocommerce->cart->empty_cart();
+
+            // Clear awaiting payment session
+            if (isset($_SESSION['order_awaiting_payment'])) {
+                unset($_SESSION['order_awaiting_payment']);
+            }
+
+            if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php') && $this->get_option('sms_payment_hold_mbway') === 'yes') {
+                include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
+                if (function_exists('send_sms')) {
+                    send_sms($order_id);
+                } else {
+                    $this->callback_log('Função send_sms_prossessing não encontrada.');
+                }
+            }
+
+
+            // Return success and redirect to the thank you page
             return [
-                'result' => 'failure',
-                'redirect' => '',
+                'result' => 'success',
+                'redirect' => $this->get_return_url($order),
             ];
         }
-
-        // Check for any pre-existing order errors
-        if ($error_message = $this->check_order_errors($order_id)) {
-            wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . $error_message, 'error');
-            return [
-                'result' => 'failure',
-                'redirect' => '',
-            ];
-        }
-
-        // Attempt to get the MBWAY reference
-        $pedidoMBWAY = $this->client->getReferenciaMBW($order_id, $order_total, $mbway_phone, $country_code);
-
-        if($pedidoMBWAY && isset($pedidoMBWAY)){
-            // Decode the MBWAY response
-            $pedidoMBWAY_decode = json_decode($pedidoMBWAY, true);
-        }
-
-        // Handle null or error response
-        if (!$pedidoMBWAY_decode['reference'] && $pedidoMBWAY_decode['transactionStatus'] != 'Success') {
-            wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' MBWAY request failed. Please try again.', 'error');
-            return [
-                'result' => 'failure',
-                'redirect' => '',
-            ];
-        }
-
-        // Save MBWAY reference in order meta
-        $order->update_meta_data('_eupago_mbway_referencia', $pedidoMBWAY_decode['reference']);
-        $order->save();
-
-        // Mark order as on-hold
-        $order->update_status('on-hold', __('Awaiting MBWAY payment.', 'eupago-gateway-for-woocommerce'));
-
-        // Reduce stock levels (if applicable)
-        if ($this->stock_when == 'order') {
-            $order->reduce_order_stock();
-        }
-
-        // Remove cart
-        $woocommerce->cart->empty_cart();
-
-        // Clear awaiting payment session
-        if (isset($_SESSION['order_awaiting_payment'])) {
-            unset($_SESSION['order_awaiting_payment']);
-        }
-
-        if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php') && $this->get_option('sms_payment_hold_mbway') === 'yes') {
-            include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
-          if (function_exists('send_sms')) {
-            send_sms($order_id);
-          } else {
-            $this->callback_log('Função send_sms_prossessing não encontrada.');
-          }
-        }
-
-
-        // Return success and redirect to the thank you page
-        return [
-            'result' => 'success',
-            'redirect' => $this->get_return_url($order),
-        ];
-    }
 
         /**
          * Just for Portugal

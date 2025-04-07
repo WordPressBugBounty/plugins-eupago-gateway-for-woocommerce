@@ -6,7 +6,7 @@ Plugin URI:
 Requires at least: 4.4
 Tested up to: 6.7.2
 Requires PHP: 7.0
-Stable tag: 4.4.0
+Stable tag: 4.4.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,6 +44,10 @@ Para começar a receber pagamentos deve primeiro aderir aos serviços da Eupago.
 O cliente dispõe de cerca de 4 minutos para realizar o pagamento após a finalização da compra. Este tempo é definido pela própria MB WAY.
 
 == Changelog ==
+= 4.4.1(07/04/2025) =
+* Changed Translations.
+* Variable names changed to English.
+
 = 4.4.0(03/03/2025) =
 * Added EuroPix payment method.
 * Included Bizum payment URL in SMS, e-mail, and admin order details page (order meta box).

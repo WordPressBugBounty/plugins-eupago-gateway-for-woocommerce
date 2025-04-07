@@ -39,7 +39,7 @@ if (!class_exists('WC_Eupago_Multibanco')) {
 
             $this->icon = plugins_url('assets/images/multibanco_icon.png', dirname(__FILE__));
             $this->has_fields = false;
-            $this->method_title = __('Multibanco', 'eupago-gateway-for-woocommerce');
+            $this->method_title = __('Multibanco (Eupago)', 'eupago-gateway-for-woocommerce');
 
             // Plugin options and settings
             $this->init_form_fields();
@@ -66,7 +66,7 @@ if (!class_exists('WC_Eupago_Multibanco')) {
             add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
             //add_action('woocommerce_order_status_on-hold', array($this, 'send_sms_pending_multibanco'));
             //add_action('woocommerce_order_status_processing', array($this, 'send_sms_processing_multibanco'));
-           // add_action('woocommerce_order_status_completed', array($this, 'send_sms_completed_multibanco'));
+            // add_action('woocommerce_order_status_completed', array($this, 'send_sms_completed_multibanco'));
 
 
 
@@ -154,64 +154,86 @@ if (!class_exists('WC_Eupago_Multibanco')) {
             $instructions_text = __('Instructions', 'eupago-gateway-for-woocommerce');
             $description_instructions_text = __('Instructions that will be added to the thank you page and email sent to customer.','eupago-gateway-for-woocommerce');
             $duplicated_payments_text = __('Duplicate payments', 'eupago-gateway-for-woocommerce');
-            $allow_duplicated_text = __('Allow duplicate payments.', 'eupago-gateway-for-woocommerce');
+            $allow_duplicated_text = __('Allow duplicate payments - If enabled, customers may submit multiple payments for the same order.', 'eupago-gateway-for-woocommerce');
             $no_text = __('No', 'eupago-gateway-for-woocommerce');
-            $controls_checkout = __('This controls the title the user sees during the checkout process','eupago-gateway-for-woocommerce');
+            $controls_checkout = __('This controls the title the user sees during the checkout process.','eupago-gateway-for-woocommerce');
             $yes_text = __('Yes', 'eupago-gateway-for-woocommerce');
-            $data_expirada_text = __('Expire Date', 'eupago-gateway-for-woocommerce');
-            $numero_dias_expirado = __('Number of days to payment expire.', 'eupago-gateway-for-woocommerce');
-            $apenas_portugueses = __('Only for Portuguese customers?', 'eupago-gateway-for-woocommerce');
-            $endereço_português = __('Enable only for customers whose address is in Portugal', 'eupago-gateway-for-woocommerce');
-            $orders_acima = __('Only for orders above', 'eupago-gateway-for-woocommerce');
+            $expired_date_text = __('Expire Date', 'eupago-gateway-for-woocommerce');
+            $number_days_expired = __('Number of days to payment expire.  We recommend at least 3 business days to ensure sufficient time for the customer to complete the payment.', 'eupago-gateway-for-woocommerce');
+            $only_portuguese = __('Only for Portuguese customers?', 'eupago-gateway-for-woocommerce');
+            $address_portuguese = __('Enable only for customers whose address is in Portugal', 'eupago-gateway-for-woocommerce');
+            $orders_above = __('Only for orders above', 'eupago-gateway-for-woocommerce');
             $orders_description = __('Enable only for orders above x &euro; (exclusive). Leave blank (or zero) to allow for any order value.', 'eupago-gateway-for-woocommerce') . ' ' . __('By design, Mulitibanco only allows payments from 1 to 999999 &euro; (inclusive). You can use this option to further limit this range.', 'eupago-gateway-for-woocommerce');
-            $orders_abaixo = __('Only for orders below', 'eupago-gateway-for-woocommerce');
-            $orders_abaixo_description = __('Enable only for orders below x &euro; (exclusive). Leave blank (or zero) to allow for any order value.', 'eupago-gateway-for-woocommerce') . '  ' . __('By design, Mulitibanco only allows payments from 1 to 999999 &euro; (inclusive). You can use this option to further limit this range.', 'eupago-gateway-for-woocommerce');
-            $reduzir_stock = __('Reduce stock', 'eupago-gateway-for-woocommerce');
+            $orders_below = __('Only for orders below', 'eupago-gateway-for-woocommerce');
+            $orders_below_description = __('Enable only for orders below x &euro; (exclusive). Leave blank (or zero) to allow for any order value.', 'eupago-gateway-for-woocommerce') . '  ' . __('By design, Mulitibanco only allows payments from 1 to 999999 &euro; (inclusive). You can use this option to further limit this range.', 'eupago-gateway-for-woocommerce');
+            $reduce_stock = __('Reduce stock', 'eupago-gateway-for-woocommerce');
             $description = __('Description','eupago-gateway-for-woocommerce');
             $description_checkout = __('This controls the description the user sees during checkout.','eupago-gateway-for-woocommerce');
-            $escolher_reduzir_stock = __('Choose when to reduce stock.', 'eupago-gateway-for-woocommerce');
-            $quando_order_paga = __('when order is paid (requires active callback)', 'eupago-gateway-for-woocommerce');
-            $quando_order_colocada =  __('when order is placed (before payment)', 'eupago-gateway-for-woocommerce');
-            $enable_multibanco = __('Enable Multibanco (using Eupago)', 'eupago-gateway-for-woocommerce');
+            $choose_reduce_stock = __('Choose when to reduce stock.', 'eupago-gateway-for-woocommerce');
+            $when_order_pays = __('when order is paid (requires active callback)', 'eupago-gateway-for-woocommerce');
+            $when_order_placed =  __('when order is placed (before payment)', 'eupago-gateway-for-woocommerce');
+            $enable_multibanco = __('Enable Multibanco', 'eupago-gateway-for-woocommerce');
             // Translate title based on the selected language
             if ($admin_language === 'pt_PT' || $admin_language === 'pt_BR') {
                 $enable_disable_title = __('Ativar/Desativar', 'eupago-gateway-for-woocommerce');
-                $enable_multibanco = __('Ativar Multibanco (usando Eupago)','eupago-gateway-for-woocommerce');
-                $controls_checkout = __('Isto controla o título que o utilizador vê durante o processo de pagamento','eupago-gateway-for-woocommerce');
+                $enable_multibanco = __('Ativar Multibanco','eupago-gateway-for-woocommerce');
+                $controls_checkout = __('Utilize este campo para definir o título que o utilizador vê durante o processo de pagamento.','eupago-gateway-for-woocommerce');
                 $title_multibanco = __('Título','eupago-gateway-for-woocommerce');
-                $description_checkout = __('Isto controla a descrição que o utilizador vê durante o pagamento.','eupago-gateway-for-woocommerce');
+                $allow_duplicated_text = __('Permitir pagamentos duplicados. Se ativado, os clientes poderão enviar múltiplos pagamentos para o mesmo pedido.', 'eupago-gateway-for-woocommerce');
+                $description_checkout = __('Utilize este campo para definir a descrição que o utilizador vê durante o processo de pagamento.','eupago-gateway-for-woocommerce');
                 $multibanco = __('Multibanco','eupago-gateway-for-woocommerce');
                 $description = __('Descrição','eupago-gateway-for-woocommerce');
+                $description_instructions_text  = __('Utilize este campo para inserir as instruções que serão adicionadas na página de confirmação de encomenda e no email enviado ao cliente.', 'eupago-gateway-for-woocommerce');
                 $payment_on_hold = esc_html__('Envio de SMS dos detalhes de pagamento:', 'eupago-gateway-for-woocommerce');
                 $texto_enable = 'Ativar';
+                $address_portuguese = __('Ativar apenas para os clientes cujo endereço é em Portugal', 'eupago-gateway-for-woocommerce');
                 $payment_confirmation = esc_html__('Confirmação do pagamento por SMS:', 'eupago-gateway-for-woocommerce');
+                $number_days_expired = __('Número de dias até à expiração do pagamento. Recomendamos pelo menos 3 dias úteis para garantir tempo suficiente para o cliente concluir o pagamento.', 'eupago-gateway-for-woocommerce');
                 $sms_order_confirmation = esc_html__('Confirmação de Pedido por SMS:', 'eupago-gateway-for-woocommerce');
+                $duplicated_payments_text = __('Pagamentos duplicados', 'eupago-gateway-for-woocommerce');
+                $expired_date_text = __('Data de Validade', 'eupago-gateway-for-woocommerce');
+                $only_portuguese = __('Apenas para clientes portugueses?', 'eupago-gateway-for-woocommerce');
+                $orders_above = __('Apenas para encomendas acima de', 'eupago-gateway-for-woocommerce');
+                $orders_below = __('Apenas para encomendas abaixo de', 'eupago-gateway-for-woocommerce');
+                $instructions_text = __('Instruções', 'eupago-gateway-for-woocommerce');
+
+                $orders_description = __('Ativar apenas para encomendas acima de x € (exclusivo). Deixe em branco (ou zero) para permitir qualquer valor de encomenda.', 'eupago-gateway-for-woocommerce') . ' ' . __('Por definição, o Multibanco apenas permite pagamentos de 1 a 999999 € (inclusive). Pode usar esta opção para limitar ainda mais este intervalo.', 'eupago-gateway-for-woocommerce');
+
+                $orders_below_description = __('Ativar apenas para encomendas abaixo de x € (exclusivo). Deixe em branco (ou zero) para permitir qualquer valor de encomenda.', 'eupago-gateway-for-woocommerce') . '  ' . __('Por definição, o Multibanco apenas permite pagamentos de 1 a 999999 € (inclusive). Pode usar esta opção para limitar ainda mais este intervalo.', 'eupago-gateway-for-woocommerce');
+
+                $reduce_stock = __('Reduzir stock', 'eupago-gateway-for-woocommerce');
+
+                $choose_reduce_stock = __('Escolha quando reduzir o stock.', 'eupago-gateway-for-woocommerce');
+
+                $when_order_pays = __('quando a encomenda é paga (requer callback ativo)', 'eupago-gateway-for-woocommerce');
+                $when_order_placed =  __('quando a encomenda é feita (antes do pagamento)', 'eupago-gateway-for-woocommerce');
+
             } elseif ($admin_language === 'es_ES') {
                 $enable_disable_title = __('Activar/Desactivar', 'eupago-gateway-for-woocommerce');
                 $title_multibanco = __('Título','eupago-gateway-for-woocommerce');
                 $multibanco = __('Multibanco','eupago-gateway-for-woocommerce');
                 $description_checkout = __('Esto controla la descripción que ve el usuario durante el pago.','eupago-gateway-for-woocommerce');
                 $description = __('Descripción','eupago-gateway-for-woocommerce');
-                $enable_multibanco = __('Activar Multibanco (usando Eupago)', 'eupago-gateway-for-woocommerce');
+                $enable_multibanco = __('Activar Multibanco', 'eupago-gateway-for-woocommerce');
                 $instructions_text = __('Instrucciones', 'eupago-gateway-for-woocommerce');
                 $description_instructions_text = __('Instrucciones que se añadirán a la página de agradecimiento y al correo electrónico enviado al cliente.', 'eupago-gateway-for-woocommerce');
                 $duplicated_payments_text = __('Pagos duplicados', 'eupago-gateway-for-woocommerce');
-                $allow_duplicated_text = __('Permitir pagos duplicados.', 'eupago-gateway-for-woocommerce');
+                $allow_duplicated_text = __('Permitir pagos duplicados. Si está activado, los clientes podrán enviar múltiples pagos para el mismo pedido.', 'eupago-gateway-for-woocommerce');
                 $no_text = __('No', 'eupago-gateway-for-woocommerce');
                 $yes_text = __('Sí', 'eupago-gateway-for-woocommerce');
-                $controls_checkout = __('Esto controla el título que el usuario ve durante el proceso de pago','eupago-gateway-for-woocommerce');
-                $data_expirada_text = __('Fecha de vencimiento', 'eupago-gateway-for-woocommerce');
-                $numero_dias_expirado = __('Número de días para que caduque el pago.', 'eupago-gateway-for-woocommerce');
-                $apenas_portugueses = __('¿Solo para clientes portugueses?', 'eupago-gateway-for-woocommerce');
-                $endereço_português = __('Habilitar solo para clientes cuya dirección esté en Portugal', 'eupago-gateway-for-woocommerce');
-                $orders_acima = __('Solo para pedidos superiores a', 'eupago-gateway-for-woocommerce');
+                $controls_checkout = __('Esto controla el título que el usuario ve durante el proceso de pago.','eupago-gateway-for-woocommerce');
+                $expired_date_text = __('Fecha de vencimiento', 'eupago-gateway-for-woocommerce');
+                $number_days_expired = __('Número de días para que caduque el pago. Recomendamos al menos 3 días hábiles para garantizar suficiente tiempo para que el cliente complete el pago.', 'eupago-gateway-for-woocommerce');
+                $only_portuguese = __('¿Solo para clientes portugueses?', 'eupago-gateway-for-woocommerce');
+                $address_portuguese = __('Habilitar solo para clientes cuya dirección esté en Portugal', 'eupago-gateway-for-woocommerce');
+                $orders_above = __('Solo para pedidos superiores a', 'eupago-gateway-for-woocommerce');
                 $orders_description = __('Activar solo para pedidos superiores a x &euro; (exclusivo). Deje en blanco (o cero) para permitir cualquier valor de pedido.', 'eupago-gateway-for-woocommerce') . ' ' . __('Por diseño, Multibanco solo permite pagos de 1 a 999999 &euro; (inclusive). Puede usar esta opción para limitar aún más este rango.', 'eupago-gateway-for-woocommerce');
-                $orders_abaixo = __('Solo para pedidos inferiores a', 'eupago-gateway-for-woocommerce');
-                $orders_abaixo_description = __('Activar solo para pedidos inferiores a x &euro; (exclusivo). Deje en blanco (o cero) para permitir cualquier valor de pedido.', 'eupago-gateway-for-woocommerce') . '  ' . __('Por diseño, Multibanco solo permite pagos de 1 a 999999 &euro; (inclusive). Puede usar esta opción para limitar aún más este rango.', 'eupago-gateway-for-woocommerce');
-                $reduzir_stock = __('Reducir el stock', 'eupago-gateway-for-woocommerce');
-                $escolher_reduzir_stock = __('Elegir cuándo reducir el stock.', 'eupago-gateway-for-woocommerce');
-                $quando_order_paga = __('cuando el pedido se paga (requiere callback activo)', 'eupago-gateway-for-woocommerce');
-                $quando_order_colocada = __('cuando el pedido se realiza (antes del pago)', 'eupago-gateway-for-woocommerce');
+                $orders_below = __('Solo para pedidos inferiores a', 'eupago-gateway-for-woocommerce');
+                $orders_below_description = __('Activar solo para pedidos inferiores a x &euro; (exclusivo). Deje en blanco (o cero) para permitir cualquier valor de pedido.', 'eupago-gateway-for-woocommerce') . '  ' . __('Por diseño, Multibanco solo permite pagos de 1 a 999999 &euro; (inclusive). Puede usar esta opción para limitar aún más este rango.', 'eupago-gateway-for-woocommerce');
+                $reduce_stock = __('Reducir el stock', 'eupago-gateway-for-woocommerce');
+                $choose_reduce_stock = __('Elegir cuándo reducir el stock.', 'eupago-gateway-for-woocommerce');
+                $when_order_pays = __('cuando el pedido se paga (requiere callback activo)', 'eupago-gateway-for-woocommerce');
+                $when_order_placed = __('cuando el pedido se realiza (antes del pago)', 'eupago-gateway-for-woocommerce');
                 $payment_on_hold = esc_html__('Envío de SMS con los detalles de pago:', 'eupago-gateway-for-woocommerce');
                 $texto_enable = 'Habilitar';
                 $payment_confirmation = esc_html__('Confirmación de pago SMS:', 'eupago-gateway-for-woocommerce');
@@ -219,13 +241,13 @@ if (!class_exists('WC_Eupago_Multibanco')) {
             }
 
             $this->form_fields = [
-              'enabled' => [
-                'title' => esc_html($enable_disable_title),
-                'type' => 'checkbox',
-                'default' => 'no',
-                'label' => esc_html($enable_multibanco),
-              ],
-              'title' => [
+                'enabled' => [
+                    'title' => esc_html($enable_disable_title),
+                    'type' => 'checkbox',
+                    'default' => 'no',
+                    'label' => esc_html($enable_multibanco),
+                ],
+                'title' => [
                     'title' => esc_html($title_multibanco),
                     'type' => 'text',
                     'description' => esc_html($controls_checkout),
@@ -252,45 +274,45 @@ if (!class_exists('WC_Eupago_Multibanco')) {
                 ],
               ],
               'deadline' => [
-                'title' => esc_html($data_expirada_text),
+                'title' => esc_html($expired_date_text),
                 'type' => 'number',
-                'description' => esc_html($numero_dias_expirado),
+                'description' => esc_html($number_days_expired),
                 'default' => 0,
               ],
               'only_portugal' => [
-                'title' => esc_html($apenas_portugueses),
+                'title' => esc_html($only_portuguese),
                 'type' => 'checkbox',
-                'label' => esc_html($endereço_português),
+                'label' => esc_html($address_portuguese),
                 'default' => 'no',
               ],
               'only_above' => [
-                'title' => esc_html($orders_acima),
+                'title' => esc_html($orders_above),
                 'type' => 'number',
                 'description' => esc_html($orders_description),
                 'default' => '',
               ],
               'only_below' => [
-                'title' => esc_html($orders_abaixo),
+                'title' => esc_html($orders_below),
                 'type' => 'number',
-                'description' => esc_html($orders_abaixo_description),
+                'description' => esc_html($orders_below_description),
                 'default' => '',
               ],
               'stock_when' => [
-                'title' => esc_html ($reduzir_stock),
+                'title' => esc_html ($reduce_stock),
                 'type' => 'select',
-                'description' =>esc_html ($escolher_reduzir_stock),
+                'description' =>esc_html ($choose_reduce_stock),
                 'default' => '',
                 'options' => [
-                  '' => esc_html($quando_order_paga),
-                  'order' => esc_html($quando_order_colocada),
+                  '' => esc_html($when_order_pays),
+                  'order' => esc_html($when_order_placed),
                 ],
               ],
                 'sms_payment_hold_multibanco' => [
-                'title' => esc_html($payment_on_hold),
-                'type' => 'checkbox',
-                'label' => esc_html($texto_enable),
-                'default' => 'no',
-              ],
+                    'title' => esc_html($payment_on_hold),
+                    'type' => 'checkbox',
+                    'label' => esc_html($texto_enable),
+                    'default' => 'no',
+                ],
                 'sms_payment_confirmation_multibanco' => [
                     'title' => esc_html($payment_confirmation),
                     'type' => 'checkbox',
@@ -356,14 +378,14 @@ if (!class_exists('WC_Eupago_Multibanco')) {
 
             if ($payment_method == $this->id) {
                 wc_get_template('payment-instructions.php', [
-                  'method' => $payment_method,
-                  'payment_name' => (function_exists('icl_object_id') ? icl_t($this->id, $this->id . '_title', $this->title) : $this->title),
-                  'instructions' => isset($this->instructions) && !empty($this->instructions) ? $this->instructions : '',
-                  'entidade' => $order->get_meta('_eupago_multibanco_entidade', true),
+                    'method' => $payment_method,
+                    'payment_name' => (function_exists('icl_object_id') ? icl_t($this->id, $this->id . '_title', $this->title) : $this->title),
+                    'instructions' => isset($this->instructions) && !empty($this->instructions) ? $this->instructions : '',
+                    'entidade' => $order->get_meta('_eupago_multibanco_entidade', true),
 
-                  'referencia' => $order->get_meta('_eupago_multibanco_referencia', true),
-                  'order_total' => $order_total,
-                  'data_fim' => $order->get_meta('_eupago_multibanco_data_fim', true),
+                    'referencia' => $order->get_meta('_eupago_multibanco_referencia', true),
+                    'order_total' => $order_total,
+                    'data_fim' => $order->get_meta('_eupago_multibanco_data_fim', true),
                 ], 'woocommerce/eupago/', (new WC_Eupago())->get_templates_path());
             }
         }
@@ -394,23 +416,23 @@ if (!class_exists('WC_Eupago_Multibanco')) {
 
             if ($plain_text) {
                 wc_get_template('emails/plain-instructions.php', [
-                  'method' => $payment_method,
-                  'payment_name' => (function_exists('icl_object_id') ? icl_t($this->id, $this->id . '_title', $this->title) : $this->title),
-                  'instructions' => isset($this->instructions) && !empty($this->instructions) ? $this->instructions : '',
-                  'entidade' => $order->get_meta('_eupago_multibanco_entidade', true),
-                  'referencia' => $order->get_meta('_eupago_multibanco_referencia', true),
-                  'order_total' => $order_total,
-                  'data_fim' => $order->get_meta('_eupago_multibanco_data_fim', true),
+                    'method' => $payment_method,
+                    'payment_name' => (function_exists('icl_object_id') ? icl_t($this->id, $this->id . '_title', $this->title) : $this->title),
+                    'instructions' => isset($this->instructions) && !empty($this->instructions) ? $this->instructions : '',
+                    'entidade' => $order->get_meta('_eupago_multibanco_entidade', true),
+                    'referencia' => $order->get_meta('_eupago_multibanco_referencia', true),
+                    'order_total' => $order_total,
+                    'data_fim' => $order->get_meta('_eupago_multibanco_data_fim', true),
                 ], 'woocommerce/eupago/', (new WC_Eupago())->get_templates_path());
             } else {
                 wc_get_template('emails/html-instructions.php', [
-                  'method' => $payment_method,
-                  'payment_name' => (function_exists('icl_object_id') ? icl_t($this->id, $this->id . '_title', $this->title) : $this->title),
-                  'instructions' => isset($this->instructions) && !empty($this->instructions) ? $this->instructions : '',
-                  'entidade' => $order->get_meta('_eupago_multibanco_entidade', true),
-                  'referencia' => $order->get_meta('_eupago_multibanco_referencia', true),
-                  'order_total' => $order_total,
-                  'data_fim' => $order->get_meta('_eupago_multibanco_data_fim', true),
+                    'method' => $payment_method,
+                    'payment_name' => (function_exists('icl_object_id') ? icl_t($this->id, $this->id . '_title', $this->title) : $this->title),
+                    'instructions' => isset($this->instructions) && !empty($this->instructions) ? $this->instructions : '',
+                    'entidade' => $order->get_meta('_eupago_multibanco_entidade', true),
+                    'referencia' => $order->get_meta('_eupago_multibanco_referencia', true),
+                    'order_total' => $order_total,
+                    'data_fim' => $order->get_meta('_eupago_multibanco_data_fim', true),
                 ], 'woocommerce/eupago/', (new WC_Eupago())->get_templates_path());
             }
         }
@@ -500,11 +522,11 @@ if (!class_exists('WC_Eupago_Multibanco')) {
                     $this->callback_log('Função send_sms_prossessing não encontrada.');
                 }
             }
-        
+
             // Return thankyou redirect
             return [
-              'result' => 'success',
-              'redirect' => $this->get_return_url($order),
+                'result' => 'success',
+                'redirect' => $this->get_return_url($order),
             ];
         }
 

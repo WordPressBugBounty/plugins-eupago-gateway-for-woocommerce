@@ -123,40 +123,40 @@ if (!class_exists('WC_Eupago_Pix')) {
             $title_pix = __('Title', 'eupago-gateway-for-woocommerce');
             $pix = __('EuroPix', 'eupago-gateway-for-woocommerce');
             $instructions_text = __('Instructions', 'eupago-gateway-for-woocommerce');
-            $description_instructions_text = __('Instructions that will be added to the thank you page and email sent to customer.', 'eupago-gateway-for-woocommerce');
+            $description_instructions_text = __('Use this field to enter instructions that will be added to the order confirmation page and in the email sent to the customer.', 'eupago-gateway-for-woocommerce');
             $duplicate_payments_text = __('Duplicate payments', 'eupago-gateway-for-woocommerce');
-            $controls_checkout = __('This controls the title the user sees during the checkout process', 'eupago-gateway-for-woocommerce');
+            $controls_checkout = __('Use this field to define the title that the user sees during the checkout process.', 'eupago-gateway-for-woocommerce');
             $allow_duplicate_text = __('Allow duplicate payments.', 'eupago-gateway-for-woocommerce');
             $no_text = __('No', 'eupago-gateway-for-woocommerce');
             $yes_text = __('Yes', 'eupago-gateway-for-woocommerce');
             $description = __('Description', 'eupago-gateway-for-woocommerce');
-            $description_checkout = __('This controls the description the user sees during checkout.', 'eupago-gateway-for-woocommerce');
+            $description_checkout = __('Use this field to define the description that the user sees during the checkout process.', 'eupago-gateway-for-woocommerce');
             $expire_date_text = __('Expire Date', 'eupago-gateway-for-woocommerce');
             $number_days_expire = __('Number of days to payment expire.', 'eupago-gateway-for-woocommerce');
             /* $only_portuguese_customers = __('Only for Portuguese customers?', 'eupago-gateway-for-woocommerce'); */
             /* $enable_only_portugal = __('Enable only for customers whose address is in Portugal', 'eupago-gateway-for-woocommerce'); */
             $orders_above = __('Only for orders above', 'eupago-gateway-for-woocommerce');
-            $orders_description = __('Enable only for orders above x &euro; (exclusive). Leave blank (or zero) to allow for any order value.', 'eupago-gateway-for-woocommerce') . '  ' . __('Eupago allows Pix payments starting from 0.50 € (exclusive). You can use this option to set a minimum value.', 'eupago-gateway-for-woocommerce');
+            $orders_description = __('Activate only for orders over X € (exclusive). Leave blank (or zero) to allow any order value. The order value must fall within the limits set by EuroPix.', 'eupago-gateway-for-woocommerce','eupago-gateway-for-woocommerce');
             $orders_below = __('Only for orders below', 'eupago-gateway-for-woocommerce');
-            $orders_below_description = __('Enable only for orders above x &euro; (exclusive). Leave blank (or zero) to allow for any order value.', 'eupago-gateway-for-woocommerce') . '  ' . __('Typically, Pix payments do not have a fixed universal limit. You can use this option to set a maximum value.', 'eupago-gateway-for-woocommerce');
+            $orders_below_description = __('Activate only for orders over X € (exclusive). Leave blank (or zero) to allow any order value. The order value must fall within the limits set by EuroPix.', 'eupago-gateway-for-woocommerce');
             $reduce_stock = __('Reduce stock', 'eupago-gateway-for-woocommerce');
             $choose_reduce_stock = __('Choose when to reduce stock.', 'eupago-gateway-for-woocommerce');
             $when_order_paid = __('when order is paid (requires active callback)', 'eupago-gateway-for-woocommerce');
             $when_order_placed = __('when order is placed (before payment)', 'eupago-gateway-for-woocommerce');
-            $enable_pix = __('Enable EuroPix (using Eupago)', 'eupago-gateway-for-woocommerce');
-            $payment_confirmation = esc_html__('SMS Payment Confirmation:', 'eupago-gateway-for-woocommerce');
+            $enable_pix = __('Enable EuroPix', 'eupago-gateway-for-woocommerce');
+            $payment_confirmation = esc_html__('Payment Confirmation by SMS', 'eupago-gateway-for-woocommerce');
 
             // Translate title based on the selected language
             if ($admin_language === 'pt_PT' || $admin_language === 'pt_BR') {
                 $enable_disable_title = __('Ativar/Desativar', 'eupago-gateway-for-woocommerce');
-                $enable_pix = __('Ativar EuroPix (usando Eupago)', 'eupago-gateway-for-woocommerce');
+                $enable_pix = __('Ativar EuroPix', 'eupago-gateway-for-woocommerce');
                 $pix = __('EuroPix', 'eupago-gateway-for-woocommerce');
                 $description = __('Descrição', 'eupago-gateway-for-woocommerce');
-                $controls_checkout = __('Isto controla o título que o utilizador vê durante o processo de pagamento', 'eupago-gateway-for-woocommerce');
+                $controls_checkout = __('Utilize este campo para definir o título que o utilizador vê durante o processo de pagamento.', 'eupago-gateway-for-woocommerce');
                 $title_pix = __('Título', 'eupago-gateway-for-woocommerce');
-                $description_checkout = __('Isto controla a descrição que o utilizador vê durante o pagamento.', 'eupago-gateway-for-woocommerce');
+                $description_checkout = __('Utilize este campo para definir a descrição que o utilizador vê durante o processo de pagamento.', 'eupago-gateway-for-woocommerce');
                 $instructions_text = __('Instruções', 'eupago-gateway-for-woocommerce');
-                $description_instructions_text = __('Instruções que serão adicionadas à página de agradecimento e ao e-mail enviado ao cliente.', 'eupago-gateway-for-woocommerce');
+                $description_instructions_text = __('Utilize este campo para inserir as instruções que serão adicionadas na página de confirmação de encomenda e no email enviado ao cliente.', 'eupago-gateway-for-woocommerce');
                 $duplicate_payments_text = __('Pagamentos duplicados', 'eupago-gateway-for-woocommerce');
                 $allow_duplicate_text = __('Permitir pagamentos duplicados.', 'eupago-gateway-for-woocommerce');
                 $no_text = __('Não', 'eupago-gateway-for-woocommerce');
@@ -166,13 +166,13 @@ if (!class_exists('WC_Eupago_Pix')) {
                 /* $only_portuguese_customers = __('Apenas para clientes portugueses?', 'eupago-gateway-for-woocommerce'); */
                 /* $enable_only_portugal = __('Ativar apenas para clientes cujo endereço está em Portugal', 'eupago-gateway-for-woocommerce'); */
                 $orders_above = __('Apenas para pedidos acima de', 'eupago-gateway-for-woocommerce');
-                $orders_description = __('Ativar apenas para pedidos acima de x &euro; (exclusivo). Deixe em branco (ou zero) para permitir qualquer valor de pedido.', 'eupago-gateway-for-woocommerce') . '  ' . __('A Eupago permite pagamentos por EuroPix a partir de 0,50 € (exclusivo). Pode usar esta opção para definir um valor mínimo.', 'eupago-gateway-for-woocommerce');
+                $orders_description = __('Ativar apenas para encomendas acima de X € (exclusivo). Deixe em branco (ou zero) para permitir qualquer valor de encomenda. O valor da encomenda deve estar dentro dos limites definidos pelo EuroPix.', 'eupago-gateway-for-woocommerce');
                 $orders_below = __('Apenas para pedidos abaixo de', 'eupago-gateway-for-woocommerce');
-                $orders_below_description = __('Ativar apenas para pedidos acima de x &euro; (exclusivo). Deixe em branco (ou zero) para permitir qualquer valor de pedido.', 'eupago-gateway-for-woocommerce') . '  ' . __('Normalmente, os pagamentos por EuroPix não têm limite fixo universal. Pode usar esta opção para definir um valor máximo.', 'eupago-gateway-for-woocommerce');
+                $orders_below_description = __('Ativar apenas para encomendas acima de X € (exclusivo). Deixe em branco (ou zero) para permitir qualquer valor de encomenda. O valor da encomenda deve estar dentro dos limites definidos pelo EuroPix.', 'eupago-gateway-for-woocommerce');
 
-                $reduce_stock = __('Reduzir stock', 'eupago-gateway-for-woocommerce');
+                $reduce_stock = __('Reduzir o stock', 'eupago-gateway-for-woocommerce');
                 $choose_reduce_stock = __('Escolha quando reduzir o stock.', 'eupago-gateway-for-woocommerce');
-                $when_order_paid = __('quando o pedido é pago (requer callback ativo)', 'eupago-gateway-for-woocommerce');
+                $when_order_paid = __('quando a encomenda é paga (requer callback activo)', 'eupago-gateway-for-woocommerce');
                 $when_order_placed = __('quando o pedido é feito (antes do pagamento)', 'eupago-gateway-for-woocommerce');
                 $payment_on_hold = esc_html__('Envio de SMS dos detalhes de pagamento:', 'eupago-gateway-for-woocommerce');
                 $enable_text = 'Ativar';
@@ -181,14 +181,14 @@ if (!class_exists('WC_Eupago_Pix')) {
             } elseif ($admin_language === 'es_ES') {
                 $enable_disable_title = __('Activar/Desactivar', 'eupago-gateway-for-woocommerce');
                 $title_pix = __('Título', 'eupago-gateway-for-woocommerce');
-                $enable_pix = __('Activar EuroPix (usando Eupago)', 'eupago-gateway-for-woocommerce');
+                $enable_pix = __('Activar EuroPix', 'eupago-gateway-for-woocommerce');
                 $pix = __('EuroPix', 'eupago-gateway-for-woocommerce');
                 $description = __('Descripción', 'eupago-gateway-for-woocommerce');
-                $controls_checkout = __('Esto controla el título que el usuario ve durante el proceso de pago', 'eupago-gateway-for-woocommerce');
+                $controls_checkout = __('Utilice este campo para definir el título que ve el usuario durante el proceso de pago.', 'eupago-gateway-for-woocommerce');
                 $instructions_text = __('Instrucciones', 'eupago-gateway-for-woocommerce');
-                $description_instructions_text = __('Instrucciones que se añadirán a la página de agradecimiento y al correo electrónico enviado al cliente.', 'eupago-gateway-for-woocommerce');
+                $description_instructions_text = __('Utilice este campo para ingresar instrucciones que se agregarán a la página de confirmación del pedido y al correo electrónico enviado al cliente.', 'eupago-gateway-for-woocommerce');
                 $duplicate_payments_text = __('Pagos duplicados', 'eupago-gateway-for-woocommerce');
-                $description_checkout = __('Esto controla la descripción que ve el usuario durante el pago.', 'eupago-gateway-for-woocommerce');
+                $description_checkout = __('Utilice este campo para definir la descripción que el usuario ve durante el proceso de pago.', 'eupago-gateway-for-woocommerce');
                 $allow_duplicate_text = __('Permitir pagos duplicados.', 'eupago-gateway-for-woocommerce');
                 $no_text = __('No', 'eupago-gateway-for-woocommerce');
                 $yes_text = __('Sí', 'eupago-gateway-for-woocommerce');
@@ -197,16 +197,16 @@ if (!class_exists('WC_Eupago_Pix')) {
                 /* $only_portuguese_customers = __('¿Solo para clientes portugueses?', 'eupago-gateway-for-woocommerce'); */
                 /* $enable_only_portugal = __('Habilitar solo para clientes cuya dirección esté en Portugal', 'eupago-gateway-for-woocommerce'); */
                 $orders_above = __('Solo para pedidos superiores a', 'eupago-gateway-for-woocommerce');
-                $orders_description = __('Activar solo para pedidos superiores a x &euro; (exclusivo). Deje en blanco (o cero) para permitir cualquier valor de pedido.', 'eupago-gateway-for-woocommerce') . '  ' . __('Eupago permite pagos por EuroPix a partir de 0,50 € (exclusivo). Puede usar esta opción para definir un valor mínimo.', 'eupago-gateway-for-woocommerce');
+                $orders_description = __('Activar sólo para pedidos superiores a X € (exclusivo). Déjelo en blanco (o cero) para permitir cualquier valor de pedido. El valor del pedido debe estar dentro de los límites establecidos por EuroPix.', 'eupago-gateway-for-woocommerce');
                 $orders_below = __('Solo para pedidos inferiores a', 'eupago-gateway-for-woocommerce');
-                $orders_below_description = __('Activar solo para pedidos superiores a x &euro; (exclusivo). Deje en blanco (o cero) para permitir cualquier valor de pedido.', 'eupago-gateway-for-woocommerce') . '  ' . __('Normalmente, los pagos por EuroPix no tienen un límite fijo universal. Puede usar esta opción para definir un valor máximo.', 'eupago-gateway-for-woocommerce');
+                $orders_below_description = __('Activar sólo para pedidos superiores a X € (exclusivo). Déjelo en blanco (o cero) para permitir cualquier valor de pedido. El valor del pedido debe estar dentro de los límites establecidos por EuroPix.', 'eupago-gateway-for-woocommerce');
                 $reduce_stock = __('Reducir el stock', 'eupago-gateway-for-woocommerce');
                 $choose_reduce_stock = __('Elegir cuándo reducir el stock.', 'eupago-gateway-for-woocommerce');
-                $when_order_paid = __('cuando el pedido se paga (requiere callback activo)', 'eupago-gateway-for-woocommerce');
-                $when_order_placed = __('cuando el pedido se realiza (antes del pago)', 'eupago-gateway-for-woocommerce');
+                $when_order_paid = __('cuando se paga el pedido (requiere callback activo)', 'eupago-gateway-for-woocommerce');
+                $when_order_placed = __('cuando se registra el pedido (antes del pago)', 'eupago-gateway-for-woocommerce');
                 $payment_on_hold = esc_html__('Envío de SMS con los detalles de pago:', 'eupago-gateway-for-woocommerce');
                 $enable_text = 'Habilitar';
-                $payment_confirmation = esc_html__('Confirmación de pago SMS:', 'eupago-gateway-for-woocommerce');
+                $payment_confirmation = esc_html__('Confirmación de pago por SMS', 'eupago-gateway-for-woocommerce');
                 $sms_order_confirmation = esc_html__('Confirmación de pedido SMS:', 'eupago-gateway-for-woocommerce');
             }
         
