@@ -4,9 +4,9 @@ Tags: woocommerce, payment, gateway, multibanco, atm, debit card, credit card, b
 Author URI: https://www.eupago.pt/
 Plugin URI: 
 Requires at least: 4.4
-Tested up to: 6.7.2
+Tested up to: 6.8.1
 Requires PHP: 7.0
-Stable tag: 4.4.1
+Stable tag: 4.4.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,6 +44,10 @@ Para começar a receber pagamentos deve primeiro aderir aos serviços da Eupago.
 O cliente dispõe de cerca de 4 minutos para realizar o pagamento após a finalização da compra. Este tempo é definido pela própria MB WAY.
 
 == Changelog ==
+
+= 4.4.2(30/06/2025) =
+* Updated code for v9.8.5.
+
 = 4.4.1(07/04/2025) =
 * Changed Translations.
 * Variable names changed to English.

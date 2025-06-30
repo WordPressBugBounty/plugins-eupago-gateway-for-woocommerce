@@ -9,7 +9,10 @@ class WC_Eupago_Callback {
   *
   * @var object
   */
-  protected static $instance = null;
+	protected static $instance = NULL;
+	public           $id;
+	public           $integration;
+	public           $log;
 
 
   /**

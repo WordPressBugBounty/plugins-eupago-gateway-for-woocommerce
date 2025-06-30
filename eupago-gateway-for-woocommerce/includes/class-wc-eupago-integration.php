@@ -10,6 +10,11 @@
 if ( ! class_exists( 'WC_Eupago_Integration' ) ) :
 
 	class WC_Eupago_Integration extends WC_Integration {
+		public $channel;
+		public $api_key;
+		public $debug;
+		public $debug_email;
+		public $notify_url;
 
 		/**
 		* Init and hook in the integration.

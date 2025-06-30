@@ -6,7 +6,8 @@ use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodTyp
 
 final class BizumBlock extends AbstractPaymentMethodType {
 
-    protected $name = 'eupago_bizum';
+	protected $name = 'eupago_bizum';
+	public    $gateway;
 
     public function initialize() {
         $this->settings = get_option('woocommerce_eupago_bizum_settings');

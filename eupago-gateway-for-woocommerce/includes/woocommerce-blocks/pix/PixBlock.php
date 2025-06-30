@@ -6,7 +6,8 @@ use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodTyp
 
 final class PixBlock extends AbstractPaymentMethodType {
 
-    protected $name = 'eupago_pix';
+	protected $name = 'eupago_pix';
+	public $gateway;
 
     public function initialize() {
         $this->settings = get_option('woocommerce_eupago_pix_settings');
