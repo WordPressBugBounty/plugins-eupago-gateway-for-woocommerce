@@ -610,7 +610,7 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
 
             $order->save();
             // Mark as on-hold
-            // $order->update_status('pending', __('Awaiting CofidisPay payment.', 'eupago-for-woocommerce'));
+            $order->update_status('on-hold', __('Awaiting CofidisPay payment.', 'eupago-gateway-for-woocommerce'));  
 
             // Reduce stock levels
             if ($this->stock_when == 'order') {
@@ -701,7 +701,7 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
             return $available_gateways;
         }
 
-        /* Payment complete - Stolen from PayPal method */
+        /* Payment complete */
         public function payment_complete($order, $txn_id = '', $note = '')
         {
             $order->add_order_note($note);

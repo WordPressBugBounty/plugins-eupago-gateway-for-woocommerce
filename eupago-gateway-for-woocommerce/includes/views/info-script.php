@@ -6,22 +6,20 @@ $grantType = $_POST['grant_type'];
 $clientId = $_POST['client_id'];
 $clientSecret = $_POST['client_secret'];
 $callbackApiKey = $_POST['callback_api_key'];
-$callbackURL = $_POST['callback_url'];
-$webhookVersion = $_POST['webhookVersion'];
 
 if (substr($callbackApiKey, 0, 4) === 'demo') {
     $url = 'https://sandbox.eupago.pt/api/auth/token';
-    $newUrl = 'https://sandbox.eupago.pt/api/management/v1.02/channels/configuration/callback';
+    $newUrl = 'https://sandbox.eupago.pt/api/management/v1.02/channels/configuration/info';
 } else {
     $url = 'https://clientes.eupago.pt/api/auth/token';
-    $newUrl = 'https://clientes.eupago.pt/api/management/v1.02/channels/configuration/callback';
+    $newUrl = 'https://clientes.eupago.pt/api/management/v1.02/channels/configuration/info';
 }
 
 // Create the request payload
 $data = [
-    'grant_type' => $grantType,
-    'client_id' => $clientId,
-    'client_secret' => $clientSecret,
+  'grant_type' => $grantType,
+  'client_id' => $clientId,
+  'client_secret' => $clientSecret,
 ];
 
 // Convert the payload to JSON
@@ -60,12 +58,7 @@ if ($response === false) {
 
         // Create the new request payload
         $newData = [
-            'channelApiKey' => $callbackApiKey,
-            'receiveUrlNotifications' => 'Y',
-            'url' => $callbackURL,
-            'webhookVersion' => 'v2.0',
-            'webhookEncrypt' => 'Y',
-            'webhookTypes' => ["PAID","ERROR","CANCELED","EXPIRED"]
+          'channelApiKey' => $callbackApiKey
         ];
 
         // Convert the new payload to JSON

@@ -493,7 +493,7 @@ if ( !class_exists( 'WC_Eupago_PayShop' ) ) {
       return $available_gateways;
     }
 
-    /* Payment complete - Stolen from PayPal method */
+    /* Payment complete */
     function payment_complete( $order, $txn_id = '', $note = '' ) {
       $order->add_order_note( $note );
       $order->payment_complete( $txn_id );

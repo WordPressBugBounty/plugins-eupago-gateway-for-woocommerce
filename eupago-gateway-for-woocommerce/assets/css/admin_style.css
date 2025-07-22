@@ -45,8 +45,8 @@
 /* Admin Page Content */
 .eupago-settings {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    flex-wrap: nowrap;
+    flex-direction: row;
     margin-top: 20px;
 }
 
@@ -55,7 +55,7 @@
 }
 
 .eupago-settings form {
-    width: 68%;
+    width: 80%;
     background: #fff;
     padding: 30px 40px;
 }
@@ -119,16 +119,24 @@
 
 /* Update Callback */
 .eupago-callback {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
     margin-top: 20px;
+}
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 35px;
+}
+/* save button increased size */
+.save-button{
+    width: 200px;
+    height: 50px;
+    font-size: 15px;
 }
 
 /* Media queries */
 @media only screen and (max-width: 1625px) {
     .eupago-settings form {
-        width: 60%;
+        width: 85%;
     }
     .eupago-sidebar {
         width: 20%;
@@ -143,11 +151,14 @@
         margin: 10px 10px 0 0;
     }
     .eupago-settings form {
-        width: 100%;
+        padding: 30px 20px;
         margin: 0 10px 0 0;
     }
+    .eupago-settings {
+        flex-direction: column;
+    }
     .eupago-sidebar {
-        width: 100%;
+        width: 80%;
         margin: 10px 10px 0 0;
     }
 }

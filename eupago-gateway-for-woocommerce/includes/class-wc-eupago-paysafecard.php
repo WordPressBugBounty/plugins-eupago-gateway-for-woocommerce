@@ -291,7 +291,7 @@ if ( !class_exists( 'WC_Eupago_PF' ) ) {
       }
 
       // Mark as on-hold
-      $order->update_status('pending', __('Awaiting PaySafeCard payment.', 'eupago-gateway-for-woocommerce'));
+      $order->update_status('on-hold', __('Awaiting PaySafeCard payment.', 'eupago-gateway-for-woocommerce'));
 
       // Reduce stock levels
       if ($this->stock_when == 'order') $order->reduce_order_stock();

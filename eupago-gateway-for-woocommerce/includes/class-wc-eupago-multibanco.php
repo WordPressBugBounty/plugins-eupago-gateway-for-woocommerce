@@ -574,7 +574,7 @@ if (!class_exists('WC_Eupago_Multibanco')) {
             return $available_gateways;
         }
 
-        /* Payment complete - Stolen from PayPal method */
+        /* Payment complete  */
         public function payment_complete($order, $txn_id = '', $note = '')
         {
             $order->add_order_note($note);

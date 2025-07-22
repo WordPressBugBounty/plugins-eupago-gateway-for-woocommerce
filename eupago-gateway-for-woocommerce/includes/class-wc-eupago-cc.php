@@ -472,7 +472,7 @@ if (!class_exists('WC_Eupago_CC')) {
 
         
             // Mark as on-hold
-            $order->update_status('pending', __('Awaiting Credit Card payment.', 'eupago-gateway-for-woocommerce'));
+            $order->update_status('on-hold', __('Awaiting Credit Card payment.', 'eupago-gateway-for-woocommerce'));
 
             // Reduce stock levels
             $this->reduce_stock_levels($order);

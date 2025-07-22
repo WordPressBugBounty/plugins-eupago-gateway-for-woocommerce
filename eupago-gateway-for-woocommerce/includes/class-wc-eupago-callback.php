@@ -1,201 +1,306 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
+if (!defined('ABSPATH')) exit; // Exit if accessed directly
+
 /**
-* WC Eupago API Class.
-*/
-class WC_Eupago_Callback {
-   /**
-  * Instance of this class.
-  *
-  * @var object
-  */
-	protected static $instance = NULL;
-	public           $id;
-	public           $integration;
-	public           $log;
+ * WC Eupago API Class.
+ */
+class WC_Eupago_Callback
+{
+    protected static $instance = NULL;
+    public $id;
+    public $integration;
+    public $log;
 
+    public function __construct()
+    {
+        $this->id = 'eupago-gateway-for-woocommerce';
+        $this->integration = new WC_Eupago_Integration();
+        if ($this->integration->debug) $this->log = new WC_Logger();
 
-  /**
-  * Constructor.
-  *
-  * @param WC_Eupago_Gateway $gateway
-  */
-  public function __construct() {
-    $this->id = 'eupago-gateway-for-woocommerce';
-
-    $this->integration = new WC_Eupago_Integration();
-    if ($this->integration->debug) $this->log = new WC_Logger();
-
-    // Callback for old version of plugin
-    add_action( 'woocommerce_api_wc_eupago_webatual', array($this, 'callback_handler') );
-
-    // Callback for new versions of plugin
-    add_action( 'woocommerce_api_wc_eupago', array($this, 'callback_handler') );
-  }
-
-
-  function callback_log($message, $error = false) {
-
-    if ( $error == true ) {
-      $title = __('Error', 'eupago-gateway-for-woocommerce');
-      $response = 500;
-    } else {
-      $title = __('Success', 'eupago-gateway-for-woocommerce');
-      $response = 200;
+        add_action('woocommerce_api_wc_eupago_webatual', array($this, 'callback_handler'));
+        add_action('woocommerce_api_wc_eupago', array($this, 'callback_handler'));
     }
 
-    if ($this->integration->debug) {
-      $this->log->add($this->id, '- Callback ('.$_SERVER['REQUEST_URI'].') '.$_SERVER['REMOTE_ADDR'] . ' - ' . $message);
-    }
-    if ($this->integration->debug_email != '') {
-      wp_mail($this->integration->debug_email, $this->id.' - Error: Callback with missing arguments', 'Callback ( '.$_SERVER['HTTP_HOST'].' '.$_SERVER['REQUEST_URI'].' ) with missing arguments from '.$_SERVER['REMOTE_ADDR'] . $message);
-    }
+    function callback_log($message, $error = false)
+    {
+        $title = $error ? __('Error', 'eupago-gateway-for-woocommerce') : __('Success', 'eupago-gateway-for-woocommerce');
+        $response = $error ? 500 : 200;
 
-    wp_die($message, $title, array('response' => $response));
+        if ($this->integration->debug) {
+            $this->log->add($this->id, '- Callback (' . $_SERVER['REQUEST_URI'] . ') ' . $_SERVER['REMOTE_ADDR'] . ' - ' . $message);
+        }
+        if ($this->integration->debug_email != '') {
+            wp_mail($this->integration->debug_email, $this->id . ' - Error: Callback with missing arguments', 'Callback ( ' . $_SERVER['HTTP_HOST'] . ' ' . $_SERVER['REQUEST_URI'] . ' ) with missing arguments from ' . $_SERVER['REMOTE_ADDR'] . $message);
+        }
 
-  }
-
-  public function callback_handler() {
-    $errors = array();
-
-    // Verificar CHAVE API
-    if ( sanitize_text_field(!isset( $_GET['chave_api'] )) || empty( sanitize_text_field($_GET['chave_api']) ) || sanitize_text_field($_GET['chave_api']) != $this->integration->get_api() ) {
-      $this->callback_log('erro na chave api', true);
+        wp_die($message, $title, array('response' => $response));
     }
 
-    //Confirmar Identificador
-    if ( sanitize_text_field(!isset( $_GET['identificador'] )) || empty( sanitize_text_field($_GET['identificador']) ) ) {
-      $this->callback_log('Identificador Vazio', true);
-    } elseif ( 'shop_order' != get_post_type( sanitize_text_field($_GET['identificador']) ) ) { // verifica se pertence a uma encomenda
-      $this->callback_log('O ID não pertence a uma encomenda', true);
+    public function callback_handler()
+    {
+        $this->log->add($this->id, 'Callback handler triggered.');
+
+        $request_method = $_SERVER['REQUEST_METHOD'];
+        $order = null;
+        $transacao = null;
+        $data = null;
+        $local = null;
+        $identificador = null;
+        $valor = null;
+
+        if ($request_method === 'POST') {
+            $this->log->add($this->id, 'Processing POST request...');
+            $headers = function_exists('getallheaders') ? getallheaders() : [];
+
+            $iv = $headers['X-Initialization-Vector'] ?? '';
+            $signature = $headers['X-Signature'] ?? '';
+            $key = get_option('eupago_webhook_encrypt_key');
+
+            if (empty($key)) {
+                $this->callback_log('Chave criptográfica não configurada.', true);
+                return;
+            }else{
+	            $post_body = json_decode(file_get_contents('php://input'), true);
+				if($key == 'NA'){
+					$response_data = $post_body;
+				}else{
+					$encrypted_data = $post_body['data'] ?? '';
+					$response_data = json_decode($this->decryptData($encrypted_data, $iv, $key), true);
+					$isSignatureVerified = $this->verifySignature($encrypted_data, $signature, $key);
+
+					if (!$isSignatureVerified || empty($response_data)) {
+						$this->callback_log('Assinatura inválida ou dados desencriptados inválidos', true);
+						return;
+					}
+				}
+            }
+
+            $identificador = $response_data['transaction']['identifier'] ?? '';
+            $valor = $response_data['transaction']['amount']['value'] ?? '';
+            $data = $response_data['transaction']['date'] ?? '';
+            $local = $response_data['transaction']['local'] ?? '';
+            $transacao = $response_data['transaction']['trid'] ?? '';
+            $status = strtoupper($response_data['transaction']['status'] ?? '');
+
+        } elseif ($request_method === 'GET') {
+            $this->log->add($this->id, 'Processing GET request...');
+
+            $api_key = sanitize_text_field($_GET['chave_api'] ?? '');
+            if (!$api_key || $api_key !== $this->integration->get_api()) {
+                $this->callback_log('Erro na chave API', true);
+                return;
+            }
+
+            $identificador = sanitize_text_field($_GET['identificador'] ?? '');
+            if (!$identificador || get_post_type($identificador) !== 'shop_order') {
+                $this->callback_log('Identificador inválido ou não pertence a uma encomenda.', true);
+                return;
+            }
+
+            $valor = sanitize_text_field($_GET['valor'] ?? '');
+            $data = sanitize_text_field($_GET['data'] ?? '');
+            $local = sanitize_text_field($_GET['local'] ?? '');
+            $transacao = sanitize_text_field($_GET['transacao'] ?? '');
+            $status = "PAID"; // Default status for GET requests
+
+        } else {
+            $this->callback_log('Método HTTP não suportado.', true);
+            return;
+        }
+
+        $order = wc_get_order($identificador);
+        if (!$order) {
+            $this->callback_log('Pedido não encontrado.', true);
+            return;
+        }
+
+        if (!$order->has_status(['on-hold', 'pending'])) {
+            $this->callback_log('Pedido já não se encontra pendente.', true);
+            return;
+        }
+
+        $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;
+
+        if (!$valor || floatval($valor) != floatval($order_total)) {
+            $this->callback_log('Valor do pagamento não corresponde ao total do pedido.', true);
+            return;
+        }
+
+        switch ($status) {
+            case 'PAID':
+                $note = 'Pagamento efetuado ';
+                if ($data) $note .= '<br />Data/Hora: ' . $data;
+                if ($local) $note .= '<br />Local: ' . $local;
+                if ($transacao) $note .= '<br />Transação: ' . $transacao;
+                $order->add_order_note($note);
+
+                $order->payment_complete($transacao);
+                $this->process_sms_if_enabled($order);
+                $this->callback_log('Pagamento com Sucesso!');
+                break;
+
+            case 'CANCELED':
+                $order->update_status('cancelled', 'Pagamento cancelado pelo utilizador.');
+                $this->restore_stock_if_reduced($order);
+                $this->callback_log('Pagamento cancelado.', false);
+                break;
+
+            case 'ERROR':
+            case 'EXPIRED':
+                $order->update_status('failed', 'Pagamento com erro ou expirado.');
+                $this->restore_stock_if_reduced($order);
+                $this->callback_log('Pagamento com erro ou expirado.', false);
+                break;
+
+            default:
+                $this->callback_log('Estado da transação desconhecido ou não tratado: ' . $status, true);
+                break;
+        }
     }
 
-    // object da encomenda
-    $order = new WC_Order( sanitize_text_field($_GET['identificador'] ));
+    private function process_sms_if_enabled($order)
+    {
+        if (!file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php')) return;
+        include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
 
-    // Verificar se encomenda ainda não está paga!!
-    /*if ( !$order->has_status( array('on-hold', 'pending') ) ) {
-      $this->callback_log('A encomenda poderá já ter sido paga.', true);
-    }*/
+        $payment_method = $order->get_payment_method();
+        $payment_gateway = WC()->payment_gateways->payment_gateways;
 
-    
-    $order_total = version_compare( WC_VERSION, '3.0', '>=' ) ? $order->get_total() : $order->order_total;
-    if ( sanitize_text_field(!isset( $_GET['valor'] )) || empty( sanitize_text_field($_GET['valor']) ) ) {
-      $this->callback_log( 'Erro no valor', true );
-    } else {
-      if ( !($order_total == sanitize_text_field($_GET['valor'])) && !apply_filters( 'eupago_for_woocommerce_callback_value_check', false, $order, sanitize_text_field($_GET['valor']) ) ) {
-        $this->callback_log('Erro no Valor', true);
-      }
+        $map = [
+            'eupago_multibanco' => 4,
+            'eupago_mbway' => 6,
+            'eupago_payshop' => 5,
+            'eupago_cc' => 8,
+            'eupago_cofidispay' => 7,
+            'eupago_bizum' => 999,
+            'eupago_pix' => 1000,
+        ];
+
+        if (isset($map[$payment_method])) {
+            $gateway = $payment_gateway[$map[$payment_method]];
+            $option_key = $gateway->settings["sms_payment_confirmation_{$payment_method}"] ?? null;
+
+            if ($option_key === 'yes' && function_exists('send_sms_processing')) {
+                send_sms_processing($order->get_id());
+            } else {
+                $this->callback_log("Função ou opção SMS não disponível para {$payment_method}.");
+            }
+        }
     }
 
-    $note = 'Pagamento Efectuado ';
-    if ( sanitize_text_field(isset( $_GET['data'] ) )) $note.= '<br />Data/Hora: ' . sanitize_text_field($_GET['data']);
-    if ( sanitize_text_field(isset( $_GET['local'] ) )) $note.= '<br />Local: ' . sanitize_text_field($_GET['local']);
-    if ( sanitize_text_field(isset( $_GET['transacao'] )) ) $note.= '<br />Transação: ' . sanitize_text_field($_GET['transacao']);
-    $order->add_order_note( $note );
-    $order->payment_complete( sanitize_text_field($_GET['transacao'] ));
+    public function decryptData($encrypted_data, $iv, $key)
+    {
+        $this->log->add($this->id, 'Decrypting data...');
+        $cipher = 'aes-256-cbc';
+        $options = OPENSSL_RAW_DATA;
+        $response_data = openssl_decrypt(base64_decode($encrypted_data), $cipher, $key, $options, base64_decode($iv));
 
+        if ($response_data) {
+            $this->log->add($this->id, 'Data decrypted successfully.');
+        } else {
+            $this->log->add($this->id, 'Failed to decrypt data.', true);
+        }
 
-    if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php')) {
-      include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
+        return $response_data;
     }
-    $payment_method = $order->get_payment_method();
-    $payment_gateway = WC()->payment_gateways->payment_gateways;
 
-    switch ($payment_method) {
-          case 'eupago_multibanco':
-              $payment_method = $payment_gateway[4];//eupago_multibanco
-              $option_key = $payment_method->settings['sms_payment_confirmation_multibanco'];//yes
-              $option_text = 'sms_payment_confirmation_multibanco'; //sms_payment_confirmation_multibanco
-              break;
-          case 'eupago_mbway':
-              $payment_method = $payment_gateway[6];//eupago_mbway
-              $option_key = $payment_method->settings['sms_payment_confirmation_mbway'];//yes
-              $option_text = 'sms_payment_confirmation_mbway'; //sms_payment_confirmation_mbway
-              break;
-          case 'eupago_payshop':
-              $payment_method = $payment_gateway[5];//eupago_payshop
-              $option_key = $payment_method->settings['sms_payment_confirmation_payshop'];//yes
-              $option_text = 'sms_payment_confirmation_payshop'; //sms_payment_confirmation_payshop
-              break;
-          case 'eupago_cc':
-              $payment_method = $payment_gateway[8];//eupago_cc
-              $option_key = $payment_method->settings['sms_payment_confirmation_cc'];//yes
-              $option_text = 'sms_payment_confirmation_cc'; //sms_payment_confirmation_cc
-              break;
-          case 'eupago_cofidispay':
-              $payment_method = $payment_gateway[7];//eupago_cofidis
-              $option_key = $payment_method->settings['sms_payment_confirmation_cofidis'];//yes
-              $option_text = 'sms_payment_confirmation_cofidis'; //sms_payment_confirmation_cofidis
-              break;
-          case 'eupago_bizum':
-              $payment_method = $payment_gateway[999];//eupago_bizum
-              $option_key = $payment_method->settings['sms_payment_confirmation_bizum'];//yes
-              $option_text = 'sms_payment_confirmation_bizum'; //sms_payment_confirmation_bizum
-              break;
-          case 'eupago_pix':
-              $payment_method = $payment_gateway[1000];//eupago_pix
-              $option_key = $payment_method->settings['sms_payment_confirmation_pix'];//yes
-              $option_text = 'sms_payment_confirmation_pix'; //sms_payment_confirmation_pix
-              break;
-          default:
-              $option_key = null;
-              break;
-      }
-    
-      if ($option_text && $option_key === 'yes') {
-          if (function_exists('send_sms_processing')) {
-              $order_id = isset($_GET['identificador']) ? sanitize_text_field($_GET['identificador']) : null;
-              send_sms_processing($order_id);
-          } else {
-              $this->callback_log('Função send_sms_prossessing não encontrada.');
-          }
-      } 
-      // else {
-      //     $this->callback_log('Opção do método de pagamento não é igual a "yes" ou não está definida.');
-      // }
-      $this->callback_log( 'Pagamento com Sucesso!' );
-  }
+    public function verifySignature($encrypted_data, $signature, $key)
+    {
+        $this->log->add($this->id, 'Verifying signature...');
+        $generated_signature = hash_hmac('sha256', $encrypted_data, $key, true);
 
-  function get_gateway($gateway = null) {
-    if ( isset( $gateway ) && !empty( $gateway ) ) {
-      $eupago_gateways = array(
-        'PC:PT' => ['eupago_multibanco'],
-        'PS:PT' => ['eupago_payshop'],
-        'MW:PT' => ['eupago_mbway'],
-        'PQ:PT' => ['eupago_pagaqui'],
-        'CC:PT' => ['eupago_cc'],
-        'PSC:PT' => ['eupago_psc'],
-        'PF:PT' => ['eupago_pf'],
-        'CP:PT' => ['eupago_cofidispay'],
-        'BZ:PT' => ['eupago_bizum'],
-        'PX:PT' => ['eupago_pix']
-      );
-      $eupago_gateways = apply_filters( 'eupago_for_woocommerce_callback_gateways', $eupago_gateways );
+        if ($generated_signature) {
+            $this->log->add($this->id, 'Signature verified successfully.');
+        } else {
+            $this->log->add($this->id, 'Failed to verify signature.', true);
+        }
 
-      return $eupago_gateways[$gateway];
-    } else {
-      return false;
+        return hash_equals($generated_signature, base64_decode($signature));
     }
-  }
+    function get_gateway($gateway = null)
+    {
+        if (isset($gateway) && !empty($gateway)) {
+            $eupago_gateways = array(
+                'PC:PT' => ['eupago_multibanco'],
+                'PS:PT' => ['eupago_payshop'],
+                'MW:PT' => ['eupago_mbway'],
+                'PQ:PT' => ['eupago_pagaqui'],
+                'CC:PT' => ['eupago_cc'],
+                'PSC:PT' => ['eupago_psc'],
+                'PF:PT' => ['eupago_pf'],
+                'CP:PT' => ['eupago_cofidispay'],
+                'BZ:PT' => ['eupago_bizum'],
+                'PX:PT' => ['eupago_pix']
+            );
+            $eupago_gateways = apply_filters('eupago_for_woocommerce_callback_gateways', $eupago_gateways);
 
-  function get_gateway_class($gateway = null) {
-    if ($gateway) {
-      $eupago_gateways = array(
-        'eupago_multibanco' => 'WC_Eupago_Multibanco',
-        'eupago_payshop' => 'WC_Eupago_PayShop',
-        'eupago_mbway' => 'WC_Eupago_MBWAY',
-        'eupago_pagaqui' => 'WC_Eupago_Pagaqui',
-        'eupago_cc' => 'WC_Eupago_CC',
-        'eupago_psc' => 'WC_Eupago_PSC',
-        'eupago_pf' => 'WC_Eupago_PF',
-        'eupago_codifispay' => 'WC_Eupago_CofidisPay',
-        'eupago_bizum' => 'WC_Eupago_Bizum',
-        'eupago_pix' => 'WC_Eupago_Pix'
-      );
-      return $eupago_gateways[$gateway];
-    } else {
-      return false;
+            return $eupago_gateways[$gateway];
+        } else {
+            return false;
+        }
     }
-  }
+
+    function get_gateway_class($gateway = null)
+    {
+        if ($gateway) {
+            $eupago_gateways = array(
+                'eupago_multibanco' => 'WC_Eupago_Multibanco',
+                'eupago_payshop' => 'WC_Eupago_PayShop',
+                'eupago_mbway' => 'WC_Eupago_MBWAY',
+                'eupago_pagaqui' => 'WC_Eupago_Pagaqui',
+                'eupago_cc' => 'WC_Eupago_CC',
+                'eupago_psc' => 'WC_Eupago_PSC',
+                'eupago_pf' => 'WC_Eupago_PF',
+                'eupago_codifispay' => 'WC_Eupago_CofidisPay',
+                'eupago_bizum' => 'WC_Eupago_Bizum',
+                'eupago_pix' => 'WC_Eupago_Pix'
+            );
+            return $eupago_gateways[$gateway];
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Restore stock for an order if it was previously reduced and the order is not paid.
+     *
+     * @param WC_Order $order The WooCommerce order object.
+     */
+    public function restore_stock_if_reduced( $order ) {
+        if ( ! $order instanceof WC_Order ) {
+            return;
+        }
+
+        // Only restore stock if the order was cancelled or failed
+        if ( $order->has_status( [ 'cancelled', 'failed' ] ) ) {
+            foreach ( $order->get_items() as $item_id => $item ) {
+                $product = $item->get_product();
+
+                if ( ! $product || ! $product->managing_stock() ) {
+                    continue;
+                }
+
+                // Check if stock was reduced previously
+                $stock_reduced = wc_get_order_item_meta( $item_id, '_reduced_stock', true );
+
+                if ( $stock_reduced ) {
+                    $qty = $item->get_quantity();
+
+                    // WooCommerce 6.3+ helper function
+                    if ( function_exists( 'wc_increase_stock_level_for_order_item' ) ) {
+                        wc_increase_stock_level_for_order_item( $item, $qty );
+                    } else {
+                        // Fallback for older versions
+                        $product->increase_stock( $qty );
+                    }
+
+                    // Remove the _reduced_stock flag
+                    wc_delete_order_item_meta( $item_id, '_reduced_stock' );
+                }
+            }
+
+            // Add a note to the order
+            $order->add_order_note( 'Stock restored due to payment failure or cancellation.' );
+        }
+    }
 }
