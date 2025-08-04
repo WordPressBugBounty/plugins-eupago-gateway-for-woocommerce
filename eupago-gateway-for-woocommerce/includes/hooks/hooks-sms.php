@@ -62,8 +62,22 @@ function send_sms_pending($order_id) {
                $pixImage      = esc_url($order->get_meta('_eupago_pix_pixImage', true));
                $pixCode       = $order->get_meta('_eupago_pix_pixCode', true);
                $payment_data  =  __( 'Reference:', 'eupago-gateway-for-woocommerce' ) . ' ' . $reference . ' ' . __( 'Value:', 'eupago-gateway-for-woocommerce' ) . ' ' . $amount . ' ' . __( 'QR Code:', 'eupago-gateway-for-woocommerce' ) . ' ' . $pixImage . ' ' . __( 'EuroPix Code:', 'eupago-gateway-for-woocommerce' ) . ' ' . $pixCode;
+          case 'eupago_googlepay': // google pay
+            $reference     = $order->get_meta( '_eupago_googlepay_reference', true );
+            $transactionID = $order->get_meta( '_eupago_googlepay_tid', true );
+            $amount        = $total_amount . $order->get_meta( '_order_currency', true );
+            $payment_data  = __( 'Reference:', 'eupago-gateway-for-woocommerce' ) . ' ' . $reference . ' ' .
+                              __( 'Transaction ID:', 'eupago-gateway-for-woocommerce' ) . ' ' . $transactionID . ' ' .
+                              __( 'Value:', 'eupago-gateway-for-woocommerce' ) . ' ' . $amount;
             break;
-
+         case 'eupago_applepay': // apple pay
+            $reference     = $order->get_meta( '_eupago_applepay_reference', true );
+            $transactionID = $order->get_meta( '_eupago_applepay_tid', true );
+            $amount        = $total_amount . $order->get_meta( '_order_currency', true );
+            $payment_data  = __( 'Reference:', 'eupago-gateway-for-woocommerce' ) . ' ' . $reference . ' ' .
+                              __( 'Transaction ID:', 'eupago-gateway-for-woocommerce' ) . ' ' . $transactionID . ' ' .
+                              __( 'Value:', 'eupago-gateway-for-woocommerce' ) . ' ' . $amount;
+            break;
          default:
                #Exit Switch
             break;

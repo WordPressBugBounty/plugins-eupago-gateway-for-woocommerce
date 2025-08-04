@@ -6,7 +6,7 @@ Plugin URI:
 Requires at least: 4.4
 Tested up to: 6.8.1
 Requires PHP: 7.0
-Stable tag: 4.5.0
+Stable tag: 4.5.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,6 +44,8 @@ Para começar a receber pagamentos deve primeiro aderir aos serviços da Eupago.
 O cliente dispõe de cerca de 4 minutos para realizar o pagamento após a finalização da compra. Este tempo é definido pela própria MB WAY.
 
 == Changelog ==
+= 4.5.1(01/08/2025) =
+* Feature: Added Google Pay and Apple Pay payment method.
 
 = 4.5.0(22/07/2025) =
 * Feature: Added compatibility for Eupago Webhook 2.0

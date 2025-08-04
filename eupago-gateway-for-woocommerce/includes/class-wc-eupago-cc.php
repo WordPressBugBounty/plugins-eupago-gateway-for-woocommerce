@@ -5,20 +5,20 @@ if (!defined('ABSPATH')) {
 } // Exit if accessed directly
 
 /*
- * Eupago - Credit Card
- *
- * @since 1.1
- */
+* Eupago - Credit Card
+*
+* @since 1.1
+*/
 if (!class_exists('WC_Eupago_CC')) {
     class WC_Eupago_CC extends WC_Payment_Gateway
     {
         /**
-         * Constructor for your payment class
-         *
-         * @access public
-         *
-         * @return void
-         */
+        * Constructor for your payment class
+        *
+        * @access public
+        *
+        * @return void
+        */
         protected $instructions;
         protected $only_portugal;
         protected $only_above;
@@ -32,15 +32,15 @@ if (!class_exists('WC_Eupago_CC')) {
         {
             global $woocommerce;
             $this->id = 'eupago_cc';
-
+            
             $this->icon = plugins_url('assets/images/cc_icon.jpg', dirname(__FILE__));
             $this->has_fields = false;
             $this->method_title = __('Cartão de Crédito (Eupago)', 'eupago-gateway-for-woocommerce');
-
+            
             // Plugin options and settings
             $this->init_form_fields();
             $this->init_settings();
-
+            
             // User settings
             $this->title = $this->get_option('title');
             $this->description = $this->get_option('description');
@@ -52,55 +52,55 @@ if (!class_exists('WC_Eupago_CC')) {
             $this->sms_payment_hold_cc = $this->get_option('sms_payment_hold_cc');
             $this->sms_payment_confirmation_cc = $this->get_option('sms_payment_confirmation_cc');
             $this->sms_order_confirmation_cc = $this->get_option('sms_order_confirmation_cc');
-
+            
             // Set the API.
             $this->client = new WC_Eupago_API($this);
-
+            
             // Actions and filters
             add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'process_admin_options']);
             //add_action('woocommerce_order_status_pending', array($this, 'send_sms_pending_cc'));
             //add_action('woocommerce_order_status_on-hold', array($this, 'send_sms_pending_cc'));
             //add_action('woocommerce_order_status_processing' , array($this, 'send_sms_processing_cc'));
             //add_action('woocommerce_order_status_completed', array($this, 'send_sms_completed_cc'));
-
+            
             if (function_exists('icl_object_id') && function_exists('icl_register_string')) {
                 add_action('woocommerce_update_options_payment_gateways_' . $this->id, [$this, 'register_wpml_strings']);
             }
             add_action('woocommerce_thankyou_' . $this->id, [$this, 'thankyou_page']);
             add_action('woocommerce_order_details_after_order_table', [$this, 'order_details_after_order_table'], 20);
-
+            
             add_filter('woocommerce_available_payment_gateways', [$this, 'disable_unless_portugal']);
             add_filter('woocommerce_available_payment_gateways', [$this, 'disable_only_above_or_below']);
-
+            
             // Customer Emails
             add_action('woocommerce_email_before_order_table', [$this, 'email_instructions'], 10, 2);
-
+            
             // Filter to decide if payment_complete reduces stock, or not
             add_filter('woocommerce_payment_complete_reduce_order_stock', [$this, 'woocommerce_payment_complete_reduce_order_stock'], 10, 2);
         }
-
+        
         /**
-         * WPML compatibility
-         */
+        * WPML compatibility
+        */
         public function register_wpml_strings()
         {
             // These are already registered by WooCommerce Multilingual
             /* $to_register=array('title','description',); */
             $to_register = [];
-
+            
             foreach ($to_register as $string) {
                 icl_register_string($this->id, $this->id . '_' . $string, $this->settings[$string]);
             }
         }
-
-
+        
+        
         /**
-         * Initialize form fields for the Eupago Gateway - Credit Card settings in WooCommerce.
-         *
-         * This method sets up the form fields that will be displayed in the WooCommerce admin settings of Credit Card page
-         * for the Eupago Gateway plugin.
-         *
-         */
+        * Initialize form fields for the Eupago Gateway - Credit Card settings in WooCommerce.
+        *
+        * This method sets up the form fields that will be displayed in the WooCommerce admin settings of Credit Card page
+        * for the Eupago Gateway plugin.
+        *
+        */
         public function init_form_fields()
         {
             // Get the current language of the WooCommerce admin page
@@ -112,7 +112,7 @@ if (!class_exists('WC_Eupago_CC')) {
                 'en' => __('English', 'eupago-gateway-for-woocommerce'),
                 'es' => __('Spanish', 'eupago-gateway-for-woocommerce'),
             ];
-
+            
             // Translate language options if the admin language is not English
             if ($admin_language === 'pt_PT' || $admin_language === 'pt_BR') {
                 $language_options['default'] = __('Por padrão', 'eupago-gateway-for-woocommerce');
@@ -125,11 +125,11 @@ if (!class_exists('WC_Eupago_CC')) {
                 $language_options['en'] = __('English', 'eupago-gateway-for-woocommerce');
                 $language_options['es'] = __('Spanish', 'eupago-gateway-for-woocommerce');
             }
-
+            
             // Translate title based on the selected language
             $language_title = esc_html(__('Language', 'eupago-gateway-for-woocommerce'));
             $language_description = esc_html(__('Select the language for the payment process.', 'eupago-gateway-for-woocommerce'));
-
+            
             if ($admin_language === 'pt_PT' || $admin_language === 'pt_BR') {
                 $language_title = esc_html(__('Idioma', 'eupago-gateway-for-woocommerce'));
                 $language_description = esc_html(__('Selecione o idioma para o processo de pagamento.', 'eupago-gateway-for-woocommerce'));
@@ -137,8 +137,8 @@ if (!class_exists('WC_Eupago_CC')) {
                 $language_title = esc_html(__('Idioma', 'eupago-gateway-for-woocommerce'));
                 $language_description = esc_html(__('Seleccione el idioma para el proceso de pago.', 'eupago-gateway-for-woocommerce'));
             }
-
-
+            
+            
             $texto_enable = esc_html__('Enable', 'eupago-gateway-for-woocommerce');
             $payment_on_hold = __('Send SMS with payment details:', 'eupago-gateway-for-woocommerce');
             $enable_disable_title = __('Enable/Disable', 'eupago-gateway-for-woocommerce');
@@ -172,7 +172,7 @@ if (!class_exists('WC_Eupago_CC')) {
             $choose_reduce_stock = __('Choose when to reduce stock.', 'eupago-gateway-for-woocommerce');
             $when_order_pays = __('when the order is paid (requires active callback)', 'eupago-gateway-for-woocommerce');
             $when_order_placed = __('when the order is placed (before payment)', 'eupago-gateway-for-woocommerce');
-
+            
             // Translate title based on the selected language
             if ($admin_language === 'pt_PT' || $admin_language === 'pt_BR') {
                 $enable_disable_title = __('Ativar/Desativar', 'eupago-gateway-for-woocommerce');
@@ -244,8 +244,8 @@ if (!class_exists('WC_Eupago_CC')) {
                 $payment_confirmation = esc_html__('Confirmación de pago por SMS', 'eupago-gateway-for-woocommerce');
                 $sms_order_confirmation = esc_html__('Confirmación de pedido SMS:', 'eupago-gateway-for-woocommerce');
             }
-
-
+            
+            
             $this->form_fields = [
                 'enabled' => [
                     'title' => esc_html($enable_disable_title),
@@ -299,8 +299,8 @@ if (!class_exists('WC_Eupago_CC')) {
                     'description' =>esc_html ($choose_reduce_stock),
                     'default' => '',
                     'options' => [
-                      '' => esc_html($when_order_pays),
-                      'order' => esc_html($when_order_placed),
+                        '' => esc_html($when_order_pays),
+                        'order' => esc_html($when_order_placed),
                     ],
                 ],
                 'sms_payment_hold_cc' => [
@@ -308,7 +308,7 @@ if (!class_exists('WC_Eupago_CC')) {
                     'type' => 'checkbox',
                     'label' => esc_html($texto_enable),
                     'default' => 'no',
-                  ],
+                ],
                 'sms_payment_confirmation_cc' => [
                     'title' => esc_html($payment_confirmation),
                     'type' => 'checkbox',
@@ -317,40 +317,40 @@ if (!class_exists('WC_Eupago_CC')) {
                 ],
             ];
         }
-
+        
         public function admin_options()
         {
             include 'views/html-admin-page.php';
         }
-
+        
         /**
-         * Icon HTML
-         */
+        * Icon HTML
+        */
         public function get_icon()
         {
             $alt = (function_exists('icl_object_id') ? icl_t($this->id, $this->id . '_title', $this->title) : $this->title);
             $icon_html = '<img src="' . esc_attr($this->icon) . '" alt="' . esc_attr($alt) . '" />';
-
+            
             return apply_filters('woocommerce_gateway_icon', $icon_html, $this->id);
         }
-
+        
         /**
-         * Thank You page message.
-         *
-         * @param int $order_id Order ID.
-         *
-         * @return string
-         */
+        * Thank You page message.
+        *
+        * @param int $order_id Order ID.
+        *
+        * @return string
+        */
         public function thankyou_page($order_id)
         {
             $order = wc_get_order($order_id);
-
+            
             $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;
             $payment_method = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_payment_method() : $order->payment_method;
-
+            
             if ($payment_method == $this->id) {
                 $referencia = $order->get_meta('eupago_cc_referencia', true);
-
+                
                 wc_get_template(
                     'payment-instructions.php',
                     [
@@ -364,31 +364,31 @@ if (!class_exists('WC_Eupago_CC')) {
                 );
             }
         }
-
+        
         /**
-         *
-         * View Order detail payment reference.
-         */
+        *
+        * View Order detail payment reference.
+        */
         public function order_details_after_order_table($order)
         {
             if (is_wc_endpoint_url('view-order')) {
                 $this->thankyou_page($order->get_id());
             }
         }
-
+        
         /**
-         * Email instructions
-         */
+        * Email instructions
+        */
         public function email_instructions($order, $sent_to_admin, $plain_text = false)
         {
             $order_id = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_id() : $order->id;
             $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;
             $payment_method = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_payment_method() : $order->payment_method;
-
+            
             if ($sent_to_admin || !$order->has_status('on-hold') || $this->id !== $payment_method) {
                 return;
             }
-
+            
             if ($plain_text) {
                 wc_get_template('emails/plain-instructions.php', [
                     'method' => $payment_method,
@@ -407,34 +407,34 @@ if (!class_exists('WC_Eupago_CC')) {
                 ], 'woocommerce/eupago/', (new WC_Eupago())->get_templates_path());
             }
         }
-
+        
         public function check_order_errors($order_id)
         {
             $order = wc_get_order($order_id);
             $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;
-
+            
             // A loja não está em Euros
             if (trim(get_woocommerce_currency()) != 'EUR') {
                 return __('Configuration error. This store currency is not Euros (&euro;).', 'eupago-gateway-for-woocommerce');
             }
-
+            
             // O valor da encomenda não é aceite
             if (($order_total <= 2) || ($order_total >= 1000000)) {
                 return __('It\'s not possible to use credit card to pay values under 2&euro; or above 999999&euro;.', 'eupago-gateway-for-woocommerce');
             }
-
+            
             return false;
         }
-
+        
         /**
-         * Process the Eupago payment for the given order.
-         *
-         * @param int $order_id The order ID.
-         */
+        * Process the Eupago payment for the given order.
+        *
+        * @param int $order_id The order ID.
+        */
         public function process_payment($order_id)
         {
             global $woocommerce;
-
+            
             $order = wc_get_order($order_id);
             $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;
             $payment_method = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_payment_method() : $order->payment_method;
@@ -443,10 +443,10 @@ if (!class_exists('WC_Eupago_CC')) {
                 wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error');
                 return;
             }
-
+            
             // Determine language
             $lang = $this->determine_language($order);
-
+            
             // Make Eupago CC request
             $eupagoCC = $this->client->pedidoCC($order, $order_total, $this->get_option('logo_url'), $this->get_return_url($order), $lang, $this->get_comment_table($order, $order_total));
             if (is_string($eupagoCC)) {
@@ -465,21 +465,19 @@ if (!class_exists('WC_Eupago_CC')) {
                 wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error');
                 return;
             }
-
+            
             // Update order meta data
             $order->update_meta_data('_eupago_cc_referencia', $eupagoCC->referencia);
             $order->save();
-
-        
+            
             // Mark as on-hold
             $order->update_status('on-hold', __('Awaiting Credit Card payment.', 'eupago-gateway-for-woocommerce'));
-
+            
             // Reduce stock levels
             $this->reduce_stock_levels($order);
-
+            
             // Empty cart and session
             $this->clear_cart_and_session();
-
             
             if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php') && $this->get_option('sms_payment_hold_cc') === 'yes') {
                 include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
@@ -496,52 +494,52 @@ if (!class_exists('WC_Eupago_CC')) {
                 'redirect' => $eupagoCC->url,
             ];
         }
-
+        
         /**
-         * Determine the language for the Eupago request.
-         *
-         * @param WC_Order $order The WooCommerce order.
-         * @return string The language code.
-         */
+        * Determine the language for the Eupago request.
+        *
+        * @param WC_Order $order The WooCommerce order.
+        * @return string The language code.
+        */
         private function determine_language($order)
         {
             $lang = 'pt'; // Default to PT
-
+            
             if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
                 $browser_language = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
                 $lang = substr($browser_language, 0, 2); 
             }
-
+            
             return $lang;
         }
-
+        
         /**
-         * Reduce stock levels based on configuration.
-         *
-         * @param WC_Order $order The WooCommerce order.
-         */
+        * Reduce stock levels based on configuration.
+        *
+        * @param WC_Order $order The WooCommerce order.
+        */
         private function reduce_stock_levels($order)
         {
             if ($this->stock_when == 'order') {
                 $order->reduce_order_stock();
             }
         }
-
+        
         /**
-         * Clear cart and session after successful payment.
-         */
+        * Clear cart and session after successful payment.
+        */
         private function clear_cart_and_session()
         {
             global $woocommerce;
-
+            
             // Remove cart
             $woocommerce->cart->empty_cart();
-
+            
             // Empty awaiting payment session
             if (isset($_SESSION['order_awaiting_payment'])) {
                 unset($_SESSION['order_awaiting_payment']);
             }
-
+            
             if (isset($eupagoCC->url) && !empty($eupagoCC->url)) {
                 return [
                     'result' => 'success',
@@ -553,81 +551,82 @@ if (!class_exists('WC_Eupago_CC')) {
                     'redirect' => $redirect_url,
                 ];
                 
+                
             }
         }
-
+        
         public function get_comment_table($order, $order_total)
         {
             $products = $order->get_items();
-
+            
             $total_produtos = 0;
             $comentario = '<ul style=\'margin:0; padding:0; font-size:0.75em; color:#333; \'>';
-
+            
             foreach ($products as $product) {
                 $total_produtos += $product['line_total'];
                 $comentario .= '<li style=\'list-style: none;\'><span style=\'margin:0; font-size:9px; margin-bottom:5px; padding:0;\' class=\'large-7 columns left\'>' . $product['name'] . '</span><span style=\'margin:0; padding:0; text-align:center;\' class=\'large-2 columns\'>x ' . $product['qty'] . '</span><span style=\'margin:0; padding:0; text-align:right\' class=\'large-3 columns right\'>' . $product['line_total'] . ' €</span></li>';
             }
             $envio_e_taxas = ($order_total - $total_produtos);
             $comentario .= '<li style=\'list-style: none; padding-top: 5px; border-top: 1px solid #ddd; display: inline-block; font-size:9px; width: 100%;\'><span style=\'margin:0; padding:0;\' class=\'large-7 columns left\'>Envio e taxas:</span><span style=\'margin:0; padding:0; text-align:center;\' class=\'large-2 columns\'></span><span style=\'margin:0; padding:0; text-align:right\' class=\'large-3 columns right\'>' . $envio_e_taxas . ' €</span></li></ul>';
-
+            
             return $comentario;
         }
-
+        
         /**
-         * Just for Portugal
-         */
+        * Just for Portugal
+        */
         public function disable_unless_portugal($available_gateways)
         {
             if (!is_admin()) {
                 if (isset($available_gateways[$this->id])) {
                     if (isset(WC()->customer)) {
                         $country = version_compare(WC_VERSION, '3.0', '>=') ? WC()->customer->get_billing_country() : WC()->customer->get_country();
-
+                        
                         if ($available_gateways[$this->id]->only_portugal == 'yes' && trim($country) != 'PT') {
                             unset($available_gateways[$this->id]);
                         }
                     }
                 }
             }
-
+            
             return $available_gateways;
         }
-
+        
         /**
-         * Just above/below certain amounts
-         */
+        * Just above/below certain amounts
+        */
         public function disable_only_above_or_below($available_gateways)
         {
             global $woocommerce;
-
+            
             if (isset($available_gateways[$this->id])) {
                 if (@floatval($available_gateways[$this->id]->only_above) > 0) {
                     if ($woocommerce->cart && $woocommerce->cart->total < floatval($available_gateways[$this->id]->only_above)) {
                         unset($available_gateways[$this->id]);
                     }
                 }
-
+                
                 if (@floatval($available_gateways[$this->id]->only_below) > 0) {
                     if ($woocommerce->cart && $woocommerce->cart->total > floatval($available_gateways[$this->id]->only_below)) {
                         unset($available_gateways[$this->id]);
                     }
                 }
             }
-
+            
             return $available_gateways;
         }
-
+        
         public function payment_complete($order, $txn_id = '', $note = '')
         {
             $order->add_order_note($note);
             $order->payment_complete($txn_id);
         }
-
+        
         /* Reduce stock on 'wc_maybe_reduce_stock_levels'? */
         public function woocommerce_payment_complete_reduce_order_stock($bool, $order_id)
         {
             $order = wc_get_order($order_id);
-
+            
             if ($order->get_payment_method() == $this->id) {
                 return (new WC_Eupago())->woocommerce_payment_complete_reduce_order_stock($bool, $order, $this->id, $this->stock_when);
             } else {

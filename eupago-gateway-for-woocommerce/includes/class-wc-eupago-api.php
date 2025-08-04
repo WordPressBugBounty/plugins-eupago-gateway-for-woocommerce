@@ -117,6 +117,109 @@ class WC_Eupago_API {
     }
   }
 
+  public function getReferenciaApplePay($order, $valor, $lang, $return_url) {
+    $url = 'https://' . get_option('eupago_endpoint') . '.eupago.pt/api/v1.02/euapplepay/create';
+
+    $data = array(
+        'payment' => array(
+            'amount' => array(
+                'value'    => $valor,
+                'currency' => 'EUR',
+            ),
+            'identifier'  => (string) $order->get_id(),
+            'lang'        => $lang,
+            'successUrl'  => $return_url,
+            'failUrl'     => $return_url,
+            'backUrl'     => $return_url,
+        ),
+        'customer' => array(
+            'notify'      => false,
+            'email'       => $order->get_billing_email(),
+            'firstName'   => $order->get_billing_first_name(),
+            'lastName'    => $order->get_billing_last_name(),
+            'countryCode' => $order->get_billing_country(),
+        ),
+    );
+
+    $headers = array(
+        'Content-Type: application/json',
+        'Accept: application/json',
+        'Authorization: ApiKey ' . $this->get_api_key(),
+    );
+
+    $curl = curl_init();
+
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+
+    $response = curl_exec($curl);
+
+    if (curl_errno($curl)) {
+        error_log('ApplePay cURL Error: ' . curl_error($curl));
+        return null;
+    }
+
+    curl_close($curl);
+
+    return json_decode($response, true);
+  }
+
+
+  public function getReferenciaGooglePay($order, $valor, $lang, $return_url) {
+    $url = 'https://' . get_option('eupago_endpoint') . '.eupago.pt/api/v1.02/googlepay/create';
+
+    $data = array(
+        'payment' => array(
+            'amount' => array(
+                'value'    => $valor,
+                'currency' => 'EUR',
+            ),
+            'identifier'  => (string) $order->get_id(),
+             'lang' => 'PT',
+              'successUrl' => $return_url,
+              'failUrl' => $return_url,
+              'backUrl' => $return_url
+        ),
+        'customer' => array(
+            'notify'      => false,
+            'email'       => $order->get_billing_email(),
+            'firstName'   => $order->get_billing_first_name(),
+            'lastName'    => $order->get_billing_last_name(),
+            'countryCode' => $order->get_billing_country(),
+        )
+    );
+
+    $headers = array(
+        'Content-Type: application/json',
+        'Accept: application/json',
+        'Authorization: ApiKey ' . $this->get_api_key(),
+    );
+
+    $curl = curl_init();
+
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($curl, CURLOPT_POST, true);
+    curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($curl, CURLOPT_TIMEOUT, 60);
+
+    $response = curl_exec($curl);
+
+    if (curl_errno($curl)) {
+        error_log('GPay cURL Error: ' . curl_error($curl));
+        return null;
+    }
+
+    curl_close($curl);
+
+    return json_decode($response, true);
+  }
+
   public function getReferenciaPS($order_id, $valor) {
     if (extension_loaded('soap')) {
       $client = @new SoapClient($this->get_url(), array('cache_wsdl' => WSDL_CACHE_NONE));

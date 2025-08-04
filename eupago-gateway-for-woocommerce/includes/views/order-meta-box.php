@@ -156,6 +156,28 @@ switch ($payment_method) {
       echo '<b>' . __('EuroPix Code', 'eupago-gateway-for-woocommerce') . '</b>: ' . esc_html(get_post_meta($post->ID, '_eupago_pix_pixCode', true)) . '<br/>';
       echo !empty(get_post_meta($post->ID, "_eupago_pix_pixImage", true)) ? '<b>' . __('QR Code', 'eupago-gateway-for-woocommerce') . '</b>: <img src="' . esc_url(get_post_meta($post->ID, "_eupago_pix_pixImage", true)) . '" alt="' . esc_attr($payment_method_title) . '" /><br/>' : '';
       break;
+    case 'eupago_googlepay':
+      $reference = $order->get_meta('_eupago_googlepay_reference');
+      $value     = $order->get_total();
+      ?>
+      <p>
+          <img src="<?php echo plugins_url('assets/images/googlepay_icon.png', dirname(dirname(__FILE__))); ?>" alt="<?php echo esc_attr($payment_method_title); ?>" title="<?php echo esc_attr($payment_method_title); ?>" /><br>
+      </p>
+      <p><strong><?php _e('Reference:', 'eupago-gateway-for-woocommerce'); ?></strong><br><?php echo esc_html($reference); ?></p>
+      <p><strong><?php _e('Value:', 'eupago-gateway-for-woocommerce'); ?></strong><br><?php echo wc_price($value); ?></p>
+      <?php
+    break;
+    case 'eupago_applepay':
+      $reference = $order->get_meta('_eupago_applepay_reference');
+      $value     = $order->get_total();
+      ?>
+      <p>
+          <img src="<?php echo plugins_url('assets/images/applepay_icon.png', dirname(dirname(__FILE__))); ?>" alt="<?php echo esc_attr($payment_method_title); ?>" title="<?php echo esc_attr($payment_method_title); ?>" /><br>
+      </p>
+      <p><strong><?php _e('Reference:', 'eupago-gateway-for-woocommerce'); ?></strong><br><?php echo esc_html($reference); ?></p>
+      <p><strong><?php _e('Value:', 'eupago-gateway-for-woocommerce'); ?></strong><br><?php echo wc_price($value); ?></p>
+      <?php
+    break;
 
   default:
   echo __('No details available', 'eupago-gateway-for-woocommerce');
