@@ -53,10 +53,10 @@ if (!class_exists('WC_Eupago_GooglePay')) {
             add_filter('woocommerce_available_payment_gateways', [ $this, 'disable_unless_portugal' ]);
             add_filter('woocommerce_available_payment_gateways', [ $this, 'disable_only_above_or_below' ]);
             add_filter('woocommerce_payment_complete_reduce_order_stock', [ $this, 'woocommerce_payment_complete_reduce_order_stock' ], 10, 2);
-            add_action('woocommerce_order_status_pending', [ $this, 'send_sms_pending_googlepay' ]);
-            add_action('woocommerce_order_status_on-hold', [ $this, 'send_sms_pending_googlepay' ]);
-            add_action('woocommerce_order_status_processing', [ $this, 'send_sms_processing_googlepay' ]);
-            add_action('woocommerce_order_status_completed', [ $this, 'send_sms_completed_googlepay' ]);
+            //add_action('woocommerce_order_status_pending', [ $this, 'send_sms_pending_googlepay' ]);
+            //add_action('woocommerce_order_status_on-hold', [ $this, 'send_sms_pending_googlepay' ]);
+            //add_action('woocommerce_order_status_processing', [ $this, 'send_sms_processing_googlepay' ]);
+            //add_action('woocommerce_order_status_completed', [ $this, 'send_sms_completed_googlepay' ]);
             add_action('woocommerce_email_before_order_table', [ $this, 'email_instructions' ], 10, 2);
             
             // Emails
