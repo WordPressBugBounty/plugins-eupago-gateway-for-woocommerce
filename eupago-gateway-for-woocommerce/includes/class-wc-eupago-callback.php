@@ -182,8 +182,6 @@ class WC_Eupago_Callback
 
             if ($option_key === 'yes' && function_exists('send_sms_processing')) {
                 send_sms_processing($order->get_id());
-            } else {
-                $this->callback_log("Função ou opção SMS não disponível para {$payment_method}.");
             }
         }
     }

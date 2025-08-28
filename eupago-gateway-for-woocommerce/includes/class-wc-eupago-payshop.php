@@ -443,8 +443,6 @@ if ( !class_exists( 'WC_Eupago_PayShop' ) ) {
         include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
         if (function_exists('send_sms')) {
           send_sms($order_id);
-        } else {
-          $this->callback_log('Função send_sms_prossessing não encontrada.');
         }
       }
       

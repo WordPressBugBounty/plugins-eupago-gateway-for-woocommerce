@@ -483,8 +483,6 @@ if (!class_exists('WC_Eupago_CC')) {
                 include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
                 if (function_exists('send_sms_cc')) {
                     send_sms_cc($order_id);
-                } else {
-                    $this->callback_log('Função send_sms_prossessing não encontrada.');
                 }
             }
             
