@@ -303,20 +303,23 @@ if (!class_exists('WC_Eupago_ApplePay')) {
                 
                 $transaction_id = $order->get_meta('_eupago_applepay_tid', true);
                 $reference      = $order->get_meta('_eupago_applepay_reference', true);
+                $payment_method = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_payment_method() : $order->payment_method;
                 
-                wc_get_template(
-                    'payment-instructions.php',
-                    [
-                        'method'         => $this->id,
-                        'payment_name'   => $this->title,
-                        'instructions' => isset($this->instructions) && !empty($this->instructions) ? $this->instructions : '',
-                        'transaction_id' => $transaction_id,
-                        'reference'      => $reference,
-                        'order_total'    => $order->get_total(),
-                    ],
-                    'woocommerce/eupago/',
-                    (new WC_Eupago())->get_templates_path()
-                );
+                if ($payment_method == $this->id) {
+                    wc_get_template(
+                        'payment-instructions.php',
+                        [
+                            'method'         => $this->id,
+                            'payment_name'   => $this->title,
+                            'instructions' => isset($this->instructions) && !empty($this->instructions) ? $this->instructions : '',
+                            'transaction_id' => $transaction_id,
+                            'reference'      => $reference,
+                            'order_total'    => $order->get_total(),
+                        ],
+                        'woocommerce/eupago/',
+                        (new WC_Eupago())->get_templates_path()
+                    );
+                }
             }
             
             public function order_details_after_order_table($order) {

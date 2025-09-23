@@ -48,14 +48,14 @@ O cliente dispõe de cerca de 4 minutos para realizar o pagamento após a finali
 * Feature: Minor bug on order details showing two tables
 
 = 4.5.3(28/08/2025) =
-* Feature: Minor bug fixes on callback responses.
+* Feature: Minor bug fixes on callback responses
 
 = 4.5.2(05/08/2025) =
-* Feature: Minor bug fixes in Google Pay and Apple Pay payment methods.
+* Feature: Minor bug fixes in Google Pay and Apple Pay payment methods
 
 == Changelog ==
 = 4.5.1(01/08/2025) =
-* Feature: Added Google Pay and Apple Pay payment method.
+* Feature: Added Google Pay and Apple Pay payment method
 
 = 4.5.0(22/07/2025) =
 * Feature: Added compatibility for Eupago Webhook 2.0
@@ -65,7 +65,7 @@ O cliente dispõe de cerca de 4 minutos para realizar o pagamento após a finali
 
 = 4.4.1(07/04/2025) =
 * Changed Translations.
-* Variable names changed to English.
+* Variable names changed to english.
 
 = 4.4.0(03/03/2025) =
 * Added EuroPix payment method.
