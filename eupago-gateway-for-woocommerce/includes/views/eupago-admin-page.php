@@ -48,23 +48,74 @@ function eupago_page_content()
 
     if (isset($_POST['eupago_save']) && wp_verify_nonce($_POST['_wpnonce'], 'eupago_settings_nonce')) {
         if (sanitize_text_field(isset($_POST['eupago_save']))) {
-            $channel = sanitize_text_field($_POST['channel']);
-            $api_key = sanitize_text_field($_POST['api_key']);
-            $endpoint = sanitize_text_field($_POST['endpoint']);
-            $reminder = sanitize_text_field(isset($_POST['reminder'])) ? sanitize_text_field($_POST['reminder']) : '0';
-            $debug = sanitize_text_field(isset($_POST['debug'])) ? sanitize_text_field($_POST['debug']) : 'no';
-            $client_id = sanitize_text_field($_POST['client_id']);
-            $client_secret = sanitize_text_field($_POST['client_secret']);
-            $user_eupago = sanitize_text_field($_POST['user_eupago']);
-            $password_eupago = sanitize_text_field($_POST['password_eupago']);
-            $sms_enable = sanitize_text_field(isset($_POST['sms_enable'])) ? sanitize_text_field($_POST['sms_enable']) : 'no';
-            $sms_payment_hold = sanitize_text_field(isset($_POST['sms_payment_hold'])) ? sanitize_text_field($_POST['sms_payment_hold']) : 'no';
-            $sms_payment_confirmation = sanitize_text_field(isset($_POST['sms_payment_confirmation'])) ? sanitize_text_field($_POST['sms_payment_confirmation']) : 'no';
-            $sms_order_confirmation = sanitize_text_field(isset($_POST['sms_order_confirmation'])) ? sanitize_text_field($_POST['sms_order_confirmation']) : 'no';
-            $sms_intelidus_id = sanitize_text_field($_POST['sms_intelidus_id']);
-            $sms_intelidus_api = sanitize_text_field($_POST['sms_intelidus_api']);
-            $intelidus_sender = sanitize_text_field($_POST['intelidus_sender']);
-            $biziq_environment = sanitize_text_field($_POST['biziq_environment']);
+           $channel   = isset($_POST['channel']) 
+            ? sanitize_text_field(wp_unslash($_POST['channel'])) 
+            : '';
+
+            $api_key   = isset($_POST['api_key']) 
+                ? sanitize_text_field(wp_unslash($_POST['api_key'])) 
+                : '';
+
+            $endpoint  = isset($_POST['endpoint']) 
+                ? sanitize_text_field(wp_unslash($_POST['endpoint'])) 
+                : '';
+
+            $reminder  = isset($_POST['reminder']) 
+                ? sanitize_text_field(wp_unslash($_POST['reminder'])) 
+                : '0';
+
+            $debug     = isset($_POST['debug']) 
+                ? sanitize_text_field(wp_unslash($_POST['debug'])) 
+                : 'no';
+
+            $client_id = isset($_POST['client_id']) 
+                ? sanitize_text_field(wp_unslash($_POST['client_id'])) 
+                : '';
+
+            $client_secret = isset($_POST['client_secret']) 
+                ? sanitize_text_field(wp_unslash($_POST['client_secret'])) 
+                : '';
+
+            $user_eupago = isset($_POST['user_eupago']) 
+                ? sanitize_text_field(wp_unslash($_POST['user_eupago'])) 
+                : '';
+
+            $password_eupago = isset($_POST['password_eupago']) 
+                ? sanitize_text_field(wp_unslash($_POST['password_eupago'])) 
+                : '';
+
+            $sms_enable = isset($_POST['sms_enable']) 
+                ? sanitize_text_field(wp_unslash($_POST['sms_enable'])) 
+                : 'no';
+
+            $sms_payment_hold = isset($_POST['sms_payment_hold']) 
+                ? sanitize_text_field(wp_unslash($_POST['sms_payment_hold'])) 
+                : 'no';
+
+            $sms_payment_confirmation = isset($_POST['sms_payment_confirmation']) 
+                ? sanitize_text_field(wp_unslash($_POST['sms_payment_confirmation'])) 
+                : 'no';
+
+            $sms_order_confirmation = isset($_POST['sms_order_confirmation']) 
+                ? sanitize_text_field(wp_unslash($_POST['sms_order_confirmation'])) 
+                : 'no';
+
+            $sms_intelidus_id = isset($_POST['sms_intelidus_id']) 
+                ? sanitize_text_field(wp_unslash($_POST['sms_intelidus_id'])) 
+                : '';
+
+            $sms_intelidus_api = isset($_POST['sms_intelidus_api']) 
+                ? sanitize_text_field(wp_unslash($_POST['sms_intelidus_api'])) 
+                : '';
+
+            $intelidus_sender = isset($_POST['intelidus_sender']) 
+                ? sanitize_text_field(wp_unslash($_POST['intelidus_sender'])) 
+                : '';
+
+            $biziq_environment = isset($_POST['biziq_environment']) 
+                ? sanitize_text_field(wp_unslash($_POST['biziq_environment'])) 
+                : 'live';
+
 
             if (empty(get_option('eupago_channel'))) {
                 delete_option('eupago_channel');
@@ -671,9 +722,7 @@ function eupago_page_content()
                 dataType: 'json',
                 success: function(response) {
                     if (response.transactionStatus === "Success") {
-                        if(eupago_webhook_version == '' || eupago_webhook_version == null || eupago_webhook_version == undefined || eupago_webhook_version == 'v1.0'){
-                            $('#syncEupagoChannel').click();
-						}
+                        $('#syncEupagoChannel').click();
                         // Display success message
                         alert(response.message);
                     } else if (response.transactionStatus === "Rejected") {

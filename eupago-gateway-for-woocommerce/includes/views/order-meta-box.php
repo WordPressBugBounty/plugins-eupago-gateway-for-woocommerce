@@ -1,5 +1,5 @@
 <?php
-$order = new WC_Order( $post->ID );
+$order = wc_get_order( $post->ID );
 $client = new WC_Eupago_API();
 echo '<p>';
 $payment_method = version_compare( WC_VERSION, '3.0', '>=' ) ? $order->get_payment_method() : $order->payment_method;
@@ -77,13 +77,14 @@ switch ($payment_method) {
       $return_url='https://eupago.pt'; 
       $comment='';
       $pedido = $client->pedidoCC($order, $order_total, $logo, $return_url, $lang, $comment);
-      if ( $pedido->estado != 0 ) {
-        $error_message = $pedido->resposta;
-        wc_add_notice( __('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error' );
-        return;
+      if (!empty($pedido['transactionStatus']) && $pedido['transactionStatus'] != 0 && $pedido['estado'] != 'Success') {
+          $error_message = $pedido['message'] ?? __('Unknown error', 'eupago-gateway-for-woocommerce');
+          $logger->error("CC: Eupago returned estado={$pedido['transactionStatus']} -> {$error_message}", $context);
+          wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error');
+          return ['result' => 'fail', 'redirect' => ''];
       } else {
-        update_post_meta($post->ID, '_eupago_cc_referencia', $pedido->referencia);
-        update_post_meta($post->ID, '_eupago_cc_link', $pedido->url);
+        update_post_meta($post->ID, '_eupago_cc_referencia', $pedido['reference']);
+        update_post_meta($post->ID, '_eupago_cc_link', $pedido['redirectUrl']);
       }
     }
   echo '<img src="' . plugins_url('assets/images/cc_icon.jpg', dirname(dirname(__FILE__))) . '" alt="' . esc_attr($payment_method_title) . '" title="' . esc_attr($payment_method_title) . '" /><br />';
@@ -97,7 +98,7 @@ switch ($payment_method) {
       
       $cofidispay_vat_number = get_post_meta($post->ID, 'nif', true);
       update_post_meta($post->ID, '_eupago_cofidis_vat_number', $cofidispay_vat_number);
-      $pedido = $client->cofidispay_create($post->ID);
+      $pedido = $client->cofidispay_create($post->ID, $this->get_return_url($order));
       if ( $pedido->transactionStatus != 'Success' ) {
         wc_add_notice(__('Payment error:', 'eupago-for-woocommerce') . ' Ocorreu um erro com o pedido de pagamento', 'error');
         return;
@@ -178,7 +179,28 @@ switch ($payment_method) {
       <p><strong><?php _e('Value:', 'eupago-gateway-for-woocommerce'); ?></strong><br><?php echo wc_price($value); ?></p>
       <?php
     break;
-
+    case 'eupago_floa':
+      $reference = $order->get_meta('_eupago_floa_reference');
+      $value     = $order->get_total();
+      ?>
+      <p>
+          <img src="<?php echo plugins_url('assets/images/floa_blue.png', dirname(dirname(__FILE__))); ?>" alt="<?php echo esc_attr($payment_method_title); ?>" title="<?php echo esc_attr($payment_method_title); ?>" /><br>
+      </p>
+      <p><strong><?php _e('Reference:', 'eupago-gateway-for-woocommerce'); ?></strong><br><?php echo esc_html($reference); ?></p>
+      <p><strong><?php _e('Value:', 'eupago-gateway-for-woocommerce'); ?></strong><br><?php echo wc_price($value); ?></p>
+      <?php
+    break;
+  case 'eupago_pagaqui':
+    if (trim(get_post_meta($post->ID, $payment_method_ref, true)) == 0) {
+      $pedido = $client->getReferenciaPagaqui($order, $order_total);
+      if ($pedido->estado == 0) {
+        update_post_meta($post->ID, '_eupago_pagaqui_reference', $pedido->referencia);
+      }
+    }
+    echo '<img src="' . plugins_url('assets/images/pagaqui_banner.png', dirname(dirname(__FILE__))) . '" alt="' . esc_attr($payment_method_title) . '" title="' . esc_attr($payment_method_title) . '" /><br />';
+    echo '<b>' . __('Reference', 'eupago-gateway-for-woocommerce') . '</b>: ' . chunk_split(trim(get_post_meta($post->ID, '_eupago_pagaqui_reference', true)), 3, ' ') . '<br/>';
+    echo '<b>' . __('Value', 'eupago-gateway-for-woocommerce') . '</b>: ' . wc_price($order_total);
+    break;
   default:
   echo __('No details available', 'eupago-gateway-for-woocommerce');
   break;

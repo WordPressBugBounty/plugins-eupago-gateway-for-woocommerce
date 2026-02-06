@@ -47,61 +47,80 @@ class WC_Eupago_Callback
         $local = null;
         $identificador = null;
         $valor = null;
+        $status = null;
 
         if ($request_method === 'POST') {
             $this->log->add($this->id, 'Processing POST request...');
-            $headers = function_exists('getallheaders') ? getallheaders() : [];
 
-            $iv = $headers['X-Initialization-Vector'] ?? '';
-            $signature = $headers['X-Signature'] ?? '';
+            if (function_exists('getallheaders')) {
+                $headers = getallheaders();
+            } elseif (function_exists('apache_request_headers')) {
+                $headers = apache_request_headers();
+            } else {
+                $headers = [];
+                foreach ($_SERVER as $key => $value) {
+                    if (strpos($key, 'HTTP_') === 0) {
+                        $header_key = str_replace('_', '-', substr($key, 5));
+                        $headers[$header_key] = $value;
+                    } elseif (in_array($key, ['CONTENT_TYPE', 'CONTENT_LENGTH', 'CONTENT_MD5'], true)) {
+                        $header_key = str_replace('_', '-', $key);
+                        $headers[$header_key] = $value;
+                    }
+                }
+            }
+
+            $headers = array_change_key_case($headers, CASE_LOWER);
+
+            $iv = $headers['x-initialization-vector'] ?? ''; 
+            $signature = $headers['x-signature'] ?? '';
             $key = get_option('eupago_webhook_encrypt_key');
 
             if (empty($key)) {
                 $this->callback_log('Chave criptográfica não configurada.', true);
                 return;
-            }else{
-	            $post_body = json_decode(file_get_contents('php://input'), true);
-				if($key == 'NA'){
-					$response_data = $post_body;
-				}else{
-					$encrypted_data = $post_body['data'] ?? '';
-					$response_data = json_decode($this->decryptData($encrypted_data, $iv, $key), true);
-					$isSignatureVerified = $this->verifySignature($encrypted_data, $signature, $key);
+            } else {
+                $post_body = json_decode(file_get_contents('php://input'), true);
+                if ($key == 'NA') {
+                    $response_data = $post_body;
+                } else {
+                    $encrypted_data = $post_body['data'] ?? '';
+                    $response_data = json_decode($this->decryptData($encrypted_data, $iv, $key), true);
+                    $isSignatureVerified = $this->verifySignature($encrypted_data, $signature, $key);
 
-					if (!$isSignatureVerified || empty($response_data)) {
-						$this->callback_log('Assinatura inválida ou dados desencriptados inválidos', true);
-						return;
-					}
-				}
+                    if (!$isSignatureVerified || empty($response_data)) {
+                        $this->callback_log('Assinatura inválida ou dados desencriptados inválidos', true);
+                        return;
+                    }
+                }
             }
 
-            $identificador = $response_data['transaction']['identifier'] ?? '';
-            $valor = $response_data['transaction']['amount']['value'] ?? '';
-            $data = $response_data['transaction']['date'] ?? '';
-            $local = $response_data['transaction']['local'] ?? '';
-            $transacao = $response_data['transaction']['trid'] ?? '';
-            $status = strtoupper($response_data['transaction']['status'] ?? '');
+            $identificador = isset($response_data['transaction']['identifier']) ? sanitize_text_field($response_data['transaction']['identifier']) : '';
+            $valor = isset($response_data['transaction']['amount']['value']) ? sanitize_text_field($response_data['transaction']['amount']['value']) : '';
+            $data = isset($response_data['transaction']['date']) ? sanitize_text_field($response_data['transaction']['date']) : '';
+            $local = isset($response_data['transaction']['local']) ? sanitize_text_field($response_data['transaction']['local']) : '';
+            $transacao = isset($response_data['transaction']['trid']) ? sanitize_text_field($response_data['transaction']['trid']) : '';
+            $status = isset($response_data['transaction']['status']) ? strtoupper(sanitize_text_field($response_data['transaction']['status'])) : '';
 
         } elseif ($request_method === 'GET') {
             $this->log->add($this->id, 'Processing GET request...');
 
-            $api_key = sanitize_text_field($_GET['chave_api'] ?? '');
+            $api_key = isset($_GET['chave_api']) ? sanitize_text_field($_GET['chave_api']) : '';
             if (!$api_key || $api_key !== $this->integration->get_api()) {
                 $this->callback_log('Erro na chave API', true);
                 return;
             }
 
-            $identificador = sanitize_text_field($_GET['identificador'] ?? '');
-            if (!$identificador || get_post_type($identificador) !== 'shop_order') {
-                $this->callback_log('Identificador inválido ou não pertence a uma encomenda.', true);
+            $identificador = isset($_GET['identificador']) ? sanitize_text_field($_GET['identificador']) : '';
+            if (!$identificador) {
+                $this->callback_log('Identificador inválido.', true);
                 return;
             }
 
-            $valor = sanitize_text_field($_GET['valor'] ?? '');
-            $data = sanitize_text_field($_GET['data'] ?? '');
-            $local = sanitize_text_field($_GET['local'] ?? '');
-            $transacao = sanitize_text_field($_GET['transacao'] ?? '');
-            $status = "PAID"; // Default status for GET requests
+            $valor = isset($_GET['valor']) ? sanitize_text_field($_GET['valor']) : '';
+            $data = isset($_GET['data']) ? sanitize_text_field($_GET['data']) : '';
+            $local = isset($_GET['local']) ? sanitize_text_field($_GET['local']) : '';
+            $transacao = isset($_GET['transacao']) ? sanitize_text_field($_GET['transacao']) : '';
+            $status = "PAID";
 
         } else {
             $this->callback_log('Método HTTP não suportado.', true);
@@ -121,7 +140,12 @@ class WC_Eupago_Callback
 
         $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;
 
-        if (!$valor || floatval($valor) != floatval($order_total)) {
+        $valor_clean = str_replace(',', '.', $valor);
+        $order_total_clean = str_replace(',', '.', $order_total);
+        $valor_rounded = round(floatval($valor_clean), 2);
+        $order_total_rounded = round(floatval($order_total_clean), 2);
+
+        if (!$valor || floatval($valor_rounded) != floatval($order_total_rounded)) {
             $this->callback_log('Valor do pagamento não corresponde ao total do pedido.', true);
             return;
         }
@@ -158,30 +182,21 @@ class WC_Eupago_Callback
         }
     }
 
-    private function process_sms_if_enabled($order)
-    {
-        if (!file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php')) return;
-        include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
+    private function process_sms_if_enabled( $order ) {
+        if ( ! file_exists( plugin_dir_path( __FILE__ ) . 'hooks/hooks-sms.php' ) ) {
+            return;
+        }
+        include_once plugin_dir_path( __FILE__ ) . 'hooks/hooks-sms.php';
 
-        $payment_method = $order->get_payment_method();
-        $payment_gateway = WC()->payment_gateways->payment_gateways;
+        $payment_method   = $order->get_payment_method();
+        $payment_gateways = WC()->payment_gateways->payment_gateways;
 
-        $map = [
-            'eupago_multibanco' => 4,
-            'eupago_mbway' => 6,
-            'eupago_payshop' => 5,
-            'eupago_cc' => 8,
-            'eupago_cofidispay' => 7,
-            'eupago_bizum' => 999,
-            'eupago_pix' => 1000,
-        ];
+        if ( isset( $payment_gateways[ $payment_method ] ) ) {
+            $gateway    = $payment_gateways[ $payment_method ];
+            $option_key = $gateway->settings[ "sms_payment_confirmation_{$payment_method}" ] ?? null;
 
-        if (isset($map[$payment_method])) {
-            $gateway = $payment_gateway[$map[$payment_method]];
-            $option_key = $gateway->settings["sms_payment_confirmation_{$payment_method}"] ?? null;
-
-            if ($option_key === 'yes' && function_exists('send_sms_processing')) {
-                send_sms_processing($order->get_id());
+            if ( $option_key === 'yes' && function_exists( 'send_sms_processing' ) ) {
+                send_sms_processing( $order->get_id() );
             }
         }
     }
@@ -228,7 +243,8 @@ class WC_Eupago_Callback
                 'PF:PT' => ['eupago_pf'],
                 'CP:PT' => ['eupago_cofidispay'],
                 'BZ:PT' => ['eupago_bizum'],
-                'PX:PT' => ['eupago_pix']
+                'PX:PT' => ['eupago_pix'],
+                'PQ:PT' => ['eupago_pagaqui'],
             );
             $eupago_gateways = apply_filters('eupago_for_woocommerce_callback_gateways', $eupago_gateways);
 
@@ -251,7 +267,8 @@ class WC_Eupago_Callback
                 'eupago_pf' => 'WC_Eupago_PF',
                 'eupago_codifispay' => 'WC_Eupago_CofidisPay',
                 'eupago_bizum' => 'WC_Eupago_Bizum',
-                'eupago_pix' => 'WC_Eupago_Pix'
+                'eupago_pix' => 'WC_Eupago_Pix',
+                'eupago_pagaqui' => 'WC_Eupago_Pagaqui',
             );
             return $eupago_gateways[$gateway];
         } else {

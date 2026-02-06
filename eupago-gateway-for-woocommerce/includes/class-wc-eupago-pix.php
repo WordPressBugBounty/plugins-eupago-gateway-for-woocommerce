@@ -223,6 +223,13 @@ if (!class_exists('WC_Eupago_Pix')) {
                     'description' => esc_html($controls_checkout),
                     'default' => esc_html__($pix),
                 ],
+                 'language' => [
+                    'title'       => $language_title,
+                    'type'        => 'select',
+                    'description' => $language_description,
+                    'default'     => 'default',
+                    'options'     => $language_options,
+                ],
                 'description' => [
                     'title' => esc_html($description),
                     'type' => 'textarea',
@@ -392,7 +399,7 @@ if (!class_exists('WC_Eupago_Pix')) {
             }
         
             // Determine language
-            $lang = $this->determine_language($order);
+            $lang = $this->determine_language();
         
             // Make Eupago pix request
             $eupagopix = $this->client->getReferencePix($order_id, $order_total);
@@ -455,16 +462,25 @@ if (!class_exists('WC_Eupago_Pix')) {
             }
         }
 
-        private function determine_language($order) {
-            $lang = 'pt'; // Default to PT
-        
-            if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-                $browser_language = $_SERVER['HTTP_ACCEPT_LANGUAGE'];
-                $lang = substr($browser_language, 0, 2); 
+        private function determine_language() {
+            // 1. Admin override
+            $option = $this->get_option('language', 'default');
+            if ($option && $option !== 'default') {
+                return strtoupper($option); // 'PT', 'EN', 'ES'
             }
-        
-            return $lang;
+
+            // 2. Browser fallback
+            if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+                $browser_language = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+                if (in_array($browser_language, ['pt', 'en', 'es'], true)) {
+                    return strtoupper($browser_language);
+                }
+            }
+
+            // 3. Safe default
+            return 'PT';
         }
+
 
         /**
          * Just above/below certain amounts

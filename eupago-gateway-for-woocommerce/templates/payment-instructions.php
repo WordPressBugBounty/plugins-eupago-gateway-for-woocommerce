@@ -71,7 +71,7 @@ table.woocommerce_eupago_table th img { margin: auto; margin-top: 10px; }
       <td><?php echo esc_html($order_total.'€'); ?></td>
     </tr>
     <tr>
-      <td colspan="2" style="font-size: small;"><?php _e('The receipt issued by the ATM machine is a proof of payment. Keep it.', 'eupago-gateway-for-woocommerce'); ?></td>
+      <td colspan="2" style="font-size: small;"><?php _e('The receipt issued by the ATM machine is proof of payment. Keep it.', 'eupago-gateway-for-woocommerce'); ?></td>
     </tr>
   </table>
   <?php
@@ -92,10 +92,10 @@ table.woocommerce_eupago_table th img { margin: auto; margin-top: 10px; }
     </tr>
     <tr>
       <td><?php _e('Value', 'eupago-gateway-for-woocommerce'); ?>:</td>
-      <td><?php echo esc_html($order_total.'€'); ?>/td>
+      <td><?php echo esc_html($order_total.'€'); ?></td>
     </tr>
     <tr>
-      <td colspan="2" style="font-size: small;"><?php _e('The receipt issued by the ATM machine is a proof of payment. Keep it.', 'eupago-gateway-for-woocommerce'); ?></td>
+      <td colspan="2" style="font-size: small;"><?php _e('The receipt issued by Pagaqui serves as proof of payment. Please keep it.', 'eupago-gateway-for-woocommerce'); ?></td>
     </tr>
   </table>
 <?php elseif ($method == 'eupago_mbway') : ?>
@@ -198,7 +198,7 @@ table.woocommerce_eupago_table th img { margin: auto; margin-top: 10px; }
       <td><?php echo esc_html($order_total . '€'); ?></td>
     </tr>
     <tr>
-      <td colspan="2" style="font-size: small;"><?php _e('You will be redirected to complete payment with Google Pay.', 'eupago-gateway-for-woocommerce'); ?></td>
+      <td colspan="2" style="font-size: small;"><?php _e('You were redirected to complete your payment with Google Pay.', 'eupago-gateway-for-woocommerce'); ?></td>
     </tr>
   </table>
 <?php elseif ($method == 'eupago_applepay') : ?>
@@ -229,7 +229,38 @@ table.woocommerce_eupago_table th img { margin: auto; margin-top: 10px; }
       <td><?php echo esc_html($order_total . '€'); ?></td>
     </tr>
     <tr>
-      <td colspan="2" style="font-size: small;"><?php _e('You will be redirected to complete payment with Apple Pay.', 'eupago-gateway-for-woocommerce'); ?></td>
+      <td colspan="2" style="font-size: small;"><?php _e('You were redirected to complete your payment with Apple Pay.', 'eupago-gateway-for-woocommerce'); ?></td>
+    </tr>
+  </table>
+<?php elseif ($method == 'eupago_floa') : ?>
+  <table class="woocommerce_eupago_table" cellpadding="0" cellspacing="0">
+    <tr>
+      <th colspan="4">
+        <?php _e('Payment instructions', 'eupago-gateway-for-woocommerce'); ?>
+        <br/>
+        <span style="font-weight: normal;">
+          <?php echo nl2br(esc_html($instructions)); ?>
+        </span>
+        <br/>
+        <img src="<?php echo plugins_url('assets/images/floa_blue.png', dirname(__FILE__)); ?>" alt="<?php echo esc_attr($payment_name); ?>" title="<?php echo esc_attr($payment_name); ?>"/>
+      </th>
+    </tr>
+    <tr>
+      <td><?php _e('Transaction ID', 'eupago-gateway-for-woocommerce'); ?>:</td>
+      <td><?php echo esc_html($transaction_id ?? '—'); ?></td>
+    </tr>
+    <?php if (!empty($reference)) : ?>
+    <tr>
+      <td><?php _e('Reference', 'eupago-gateway-for-woocommerce'); ?>:</td>
+      <td><?php echo esc_html($reference); ?></td>
+    </tr>
+    <?php endif; ?>
+    <tr>
+      <td><?php _e('Value', 'eupago-gateway-for-woocommerce'); ?>:</td>
+      <td><?php echo esc_html($order_total . '€'); ?></td>
+    </tr>
+    <tr>
+      <td colspan="2" style="font-size: small;"><?php _e('You were redirected to complete your payment with Floa.', 'eupago-gateway-for-woocommerce'); ?></td>
     </tr>
   </table>
 <?php endif; ?>

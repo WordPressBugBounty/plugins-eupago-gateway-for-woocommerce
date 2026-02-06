@@ -755,7 +755,7 @@ msgstr "Sucesso"
 #: templates/emails/html-instructions.php:44
 #: templates/emails/html-instructions.php:66
 #: templates/emails/html-instructions.php:87
-msgid "The receipt issued by the ATM machine is a proof of payment. Keep it."
+msgid "The receipt issued by the ATM machine is proof of payment. Keep it."
 msgstr ""
 "O recibo emitido pelo terminal Multibanco é prova de pagamento. Guarde-o."
 
@@ -856,3 +856,7 @@ msgstr " A sua encomenda"
 #, php-format
 msgid "Your order #%d on %s is now finished."
 msgstr "Confirmamos a finalização da encomenda #%d em %s."
+
+#: templates/payment-instructions.php
+msgid "The receipt issued by Pagaqui serves as proof of payment. Please keep it."
+msgstr "O talão emitido pela Pagaqui serve de prova de pagamento. Por favor, guarde-o."

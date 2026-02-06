@@ -57,7 +57,6 @@ if (!class_exists('WC_Eupago_GooglePay')) {
             //add_action('woocommerce_order_status_on-hold', [ $this, 'send_sms_pending_googlepay' ]);
             //add_action('woocommerce_order_status_processing', [ $this, 'send_sms_processing_googlepay' ]);
             //add_action('woocommerce_order_status_completed', [ $this, 'send_sms_completed_googlepay' ]);
-            add_action('woocommerce_email_before_order_table', [ $this, 'email_instructions' ], 10, 2);
             
             // Emails
             add_action('woocommerce_email_before_order_table', [ $this, 'email_instructions' ], 10, 2);
@@ -112,8 +111,8 @@ if (!class_exists('WC_Eupago_GooglePay')) {
             $enable_text = __('Enable', 'eupago-gateway-for-woocommerce');
             $instructions_text = __('Instructions', 'eupago-gateway-for-woocommerce');
             $description_instructions_text = __('Use this field to enter instructions that will be added to the order confirmation page and in the email sent to the customer.', 'eupago-gateway-for-woocommerce');
-
-
+            
+            
             // Portuguese overrides
             if ($admin_language === 'pt_PT' || $admin_language === 'pt_BR') {
                 $enable_disable_title = __('Ativar/Desativar', 'eupago-gateway-for-woocommerce');
@@ -141,7 +140,7 @@ if (!class_exists('WC_Eupago_GooglePay')) {
                 $sms_order_confirmation = __('Confirmação de Pedido por SMS:', 'eupago-gateway-for-woocommerce');
                 $enable_text = __('Ativar', 'eupago-gateway-for-woocommerce');
                 $payment_on_hold = esc_html__('Envio de SMS dos detalhes de pagamento:', 'eupago-gateway-for-woocommerce');
-
+                
                 // Spanish overrides
             } elseif ($admin_language === 'es_ES') {
                 $enable_disable_title = __('Activar/Desactivar', 'eupago-gateway-for-woocommerce');
@@ -168,7 +167,7 @@ if (!class_exists('WC_Eupago_GooglePay')) {
                 $sms_order_confirmation = __('Confirmación de pedido SMS:', 'eupago-gateway-for-woocommerce');
                 $enable_text = __('Habilitar', 'eupago-gateway-for-woocommerce');
                 $payment_on_hold = esc_html__('Envío de SMS con los detalles de pago:', 'eupago-gateway-for-woocommerce');
-
+                
             }
             
             $this->form_fields = [
@@ -325,7 +324,7 @@ if (!class_exists('WC_Eupago_GooglePay')) {
         * @param WC_Order $order WooCommerce order (not used, but kept for consistency).
         * @return string ISO 2-letter language code.
         */
-        private function determine_language($order) {
+        private function determine_language() {
             $lang = 'pt'; // default fallback
             
             if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
@@ -338,179 +337,179 @@ if (!class_exists('WC_Eupago_GooglePay')) {
             return $lang;
         }
         
-        public function process_payment($order_id)
-        {
-            global $woocommerce;
+        public function process_payment($order_id) {
+            $logger  = wc_get_logger();
+            $context = ['source' => 'eupago-googlepay'];
             
-            $order = wc_get_order($order_id);
+            $order       = wc_get_order($order_id);
             $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;
             
             if ($error_message = $this->check_order_errors($order_id)) {
+                $logger->error("check_order_errors failed: {$error_message}", $context);
                 wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error');
                 return [ 'result' => 'fail' ];
             }
             
-            $lang = $this->determine_language($order);
+            $lang       = $this->determine_language();
             $return_url = $this->get_return_url($order);
             
             $gpayResponse = $this->client->getReferenciaGooglePay($order, $order_total, $lang, $return_url);
             
             if (!is_array($gpayResponse)) {
+                $logger->error("Invalid API response (not array): " . print_r($gpayResponse, true), $context);
                 wc_add_notice(__('Erro ao processar a resposta do gateway.', 'eupago-gateway-for-woocommerce'), 'error');
                 return [ 'result' => 'fail' ];
             }
             
             $redirect_url = $gpayResponse['redirectUrl'] ?? '';
-            
             if (empty($redirect_url)) {
+                $logger->error("No redirectUrl in response", $context);
                 wc_add_notice(__('Erro ao obter URL de redirecionamento do gateway.', 'eupago-gateway-for-woocommerce'), 'error');
                 return [ 'result' => 'fail' ];
             }
             
-            if (
-                isset($gpayResponse['transactionStatus']) &&
-                strtolower($gpayResponse['transactionStatus']) !== 'success'
-                ) {
-                    $error_message = $gpayResponse['text'] ?? __('Erro desconhecido.', 'eupago-gateway-for-woocommerce');
-                    wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error');
-                    return [ 'result' => 'fail' ];
-                }
-                
-                $order->update_meta_data('_eupago_googlepay_tid', $gpayResponse['transactionID'] ?? '');
-                $order->update_meta_data('_eupago_googlepay_reference', $gpayResponse['reference'] ?? '');
-                
-                $order->save();
-                
-                $order->update_status('on-hold', __('Aguardando pagamento via Google Pay.', 'eupago-gateway-for-woocommerce'));
-                
-                $this->reduce_stock_levels($order->get_id());
-                
-                WC()->cart->empty_cart();
-                WC()->session->__unset('order_awaiting_payment');
-                
-                if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php') && $this->get_option('sms_payment_hold_googlepay') === 'yes') {
-                    include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
-                    if (function_exists('send_sms_googlepay')) {
-                        send_sms_googlepay($order->get_id());
-                    }
-                }
-                
-                return [
-                    'result'   => 'success',
-                    'redirect' => esc_url_raw($redirect_url),
-                ];
+            if (isset($gpayResponse['transactionStatus']) && strtolower($gpayResponse['transactionStatus']) !== 'success') {
+                $error_message = $gpayResponse['text'] ?? __('Erro desconhecido.', 'eupago-gateway-for-woocommerce');
+                $logger->error("Transaction rejected: {$error_message}", $context);
+                wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error');
+                return [ 'result' => 'fail' ];
             }
             
-            public function check_order_errors($order_id) {
-                $order = wc_get_order($order_id);
-                $order_total = $order->get_total();
-                
-                // Must be in EUR
-                if (trim(get_woocommerce_currency()) !== 'EUR') {
-                    return __('Configuração inválida: a loja deve estar em Euros (€).', 'eupago-gateway-for-woocommerce');
+            $order->update_meta_data('_eupago_googlepay_tid', $gpayResponse['transactionID'] ?? '');
+            $order->update_meta_data('_eupago_googlepay_reference', $gpayResponse['reference'] ?? '');
+            $order->save();
+            
+            $order->update_status('on-hold', __('Aguardando pagamento via Google Pay.', 'eupago-gateway-for-woocommerce'));
+            
+            $this->reduce_stock_levels($order->get_id());
+            
+            WC()->cart->empty_cart();
+            WC()->session->__unset('order_awaiting_payment');
+            
+            if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php') && $this->get_option('sms_payment_hold_googlepay') === 'yes') {
+                include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
+                if (function_exists('send_sms_googlepay')) {
+                    send_sms_googlepay($order->get_id());
                 }
-                
-                // Limit based on Eupago spec
-                if ($order_total < 1 || $order_total > 99999) {
-                    return __('O valor da encomenda deve estar entre 1€ e 99.999€ para pagamento com Google Pay.', 'eupago-gateway-for-woocommerce');
-                }
-                
-                return false;
             }
             
-            public function disable_only_above_or_below($gateways) {
-                if (!is_admin() && isset($gateways[$this->id])) {
-                    $total = WC()->cart->total;
-                    if (floatval($this->only_above) > 0 && $total < floatval($this->only_above)) {
-                        unset($gateways[$this->id]);
-                    }
-                    if (floatval($this->only_below) > 0 && $total > floatval($this->only_below)) {
-                        unset($gateways[$this->id]);
-                    }
-                }
-                return $gateways;
+            return [
+                'result'   => 'success',
+                'redirect' => esc_url_raw($redirect_url),
+            ];
+        }
+        
+        
+        public function check_order_errors($order_id) {
+            $order = wc_get_order($order_id);
+            $order_total = $order->get_total();
+            
+            // Must be in EUR
+            if (trim(get_woocommerce_currency()) !== 'EUR') {
+                return __('Configuração inválida: a loja deve estar em Euros (€).', 'eupago-gateway-for-woocommerce');
             }
             
-            public function woocommerce_payment_complete_reduce_order_stock($bool, $order_id) {
-                $order = wc_get_order($order_id);
-                if ($order->get_payment_method() === $this->id) {
-                    return (new WC_Eupago())->woocommerce_payment_complete_reduce_order_stock($bool, $order, $this->id, $this->stock_when);
-                }
-                return $bool;
+            // Limit based on Eupago spec
+            if ($order_total < 1 || $order_total > 99999) {
+                return __('O valor da encomenda deve estar entre 1€ e 99.999€ para pagamento com Google Pay.', 'eupago-gateway-for-woocommerce');
             }
             
-            public function get_comment_table($order, $order_total) {
-                $products = $order->get_items();
-                $total_produtos = 0;
-                $comentario = '<ul style="margin:0; padding:0; font-size:0.75em; color:#333;">';
-                
-                foreach ($products as $product) {
-                    $total_produtos += $product->get_total();
-                    $comentario .= '<li style="list-style: none;">
+            return false;
+        }
+        
+        public function disable_only_above_or_below($gateways) {
+            if (!is_admin() && isset($gateways[$this->id])) {
+                $total = WC()->cart->total;
+                if (floatval($this->only_above) > 0 && $total < floatval($this->only_above)) {
+                    unset($gateways[$this->id]);
+                }
+                if (floatval($this->only_below) > 0 && $total > floatval($this->only_below)) {
+                    unset($gateways[$this->id]);
+                }
+            }
+            return $gateways;
+        }
+        
+        public function woocommerce_payment_complete_reduce_order_stock($bool, $order_id) {
+            $order = wc_get_order($order_id);
+            if ($order->get_payment_method() === $this->id) {
+                return (new WC_Eupago())->woocommerce_payment_complete_reduce_order_stock($bool, $order, $this->id, $this->stock_when);
+            }
+            return $bool;
+        }
+        
+        public function get_comment_table($order, $order_total) {
+            $products = $order->get_items();
+            $total_produtos = 0;
+            $comentario = '<ul style="margin:0; padding:0; font-size:0.75em; color:#333;">';
+            
+            foreach ($products as $product) {
+                $total_produtos += $product->get_total();
+                $comentario .= '<li style="list-style: none;">
                     <span style="font-size:9px;">' . esc_html($product->get_name()) . '</span>
                     <span style="margin-left:10px;">x ' . esc_html($product->get_quantity()) . '</span>
                     <span style="float:right;">' . wc_price($product->get_total()) . '</span>
                 </li>';
-                }
-                
-                $envio_e_taxas = $order_total - $total_produtos;
-                $comentario .= '<li style="list-style: none; border-top: 1px solid #ddd; padding-top: 5px;">
+            }
+            
+            $envio_e_taxas = $order_total - $total_produtos;
+            $comentario .= '<li style="list-style: none; border-top: 1px solid #ddd; padding-top: 5px;">
                 <span>Envio e taxas:</span>
                 <span style="float:right;">' . wc_price($envio_e_taxas) . '</span>
             </li>';
-                
-                $comentario .= '</ul>';
-                return $comentario;
-            }
             
-            public function disable_unless_portugal($available_gateways) {
-                if (!is_admin() && isset($available_gateways[$this->id])) {
-                    $gateway = $available_gateways[$this->id];
+            $comentario .= '</ul>';
+            return $comentario;
+        }
+        
+        public function disable_unless_portugal($available_gateways) {
+            if (!is_admin() && isset($available_gateways[$this->id])) {
+                $gateway = $available_gateways[$this->id];
+                
+                if (isset(WC()->customer)) {
+                    $country = WC()->customer->get_billing_country();
                     
-                    if (isset(WC()->customer)) {
-                        $country = WC()->customer->get_billing_country();
-                        
-                        if ($gateway->get_option('only_portugal') === 'yes' && strtoupper($country) !== 'PT') {
-                            unset($available_gateways[$this->id]);
-                        }
-                    }
-                }
-                
-                return $available_gateways;
-            }
-            
-            public function payment_complete($order, $txn_id = '', $note = '') {
-                if (!empty($note)) {
-                    $order->add_order_note($note);
-                }
-                
-                $order->payment_complete($txn_id);
-            }
-            
-            public function send_sms_pending_googlepay($order_id) {
-                if ($this->get_option('sms_payment_hold_googlepay') !== 'yes') {
-                    return;
-                }
-                
-                if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php')) {
-                    include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
-                    if (function_exists('send_sms_googlepay')) {
-                        send_sms_googlepay($order_id);
+                    if ($gateway->get_option('only_portugal') === 'yes' && strtoupper($country) !== 'PT') {
+                        unset($available_gateways[$this->id]);
                     }
                 }
             }
             
-            public function send_sms_completed_googlepay($order_id) {
-                if ($this->get_option('sms_order_confirmation_googlepay') !== 'yes') {
-                    return;
+            return $available_gateways;
+        }
+        
+        public function payment_complete($order, $txn_id = '', $note = '') {
+            if (!empty($note)) {
+                $order->add_order_note($note);
+            }
+            
+            $order->payment_complete($txn_id);
+        }
+        
+        public function send_sms_pending_googlepay($order_id) {
+            if ($this->get_option('sms_payment_hold_googlepay') !== 'yes') {
+                return;
+            }
+            
+            if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php')) {
+                include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
+                if (function_exists('send_sms_googlepay')) {
+                    send_sms_googlepay($order_id);
                 }
-                
-                if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php')) {
-                    include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
-                    if (function_exists('send_sms_googlepay')) {
-                        send_sms_googlepay($order_id);
-                    }
+            }
+        }
+        
+        public function send_sms_completed_googlepay($order_id) {
+            if ($this->get_option('sms_order_confirmation_googlepay') !== 'yes') {
+                return;
+            }
+            
+            if (file_exists(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php')) {
+                include_once(plugin_dir_path(__FILE__) . 'hooks/hooks-sms.php');
+                if (function_exists('send_sms_googlepay')) {
+                    send_sms_googlepay($order_id);
                 }
             }
         }
     }
+}

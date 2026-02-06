@@ -10,7 +10,7 @@ final class BizumBlock extends AbstractPaymentMethodType {
 	public    $gateway;
 
     public function initialize() {
-        $this->settings = get_option('woocommerce_eupago_bizum_settings');
+        $this->settings = get_option( 'woocommerce_eupago_bizum_settings', [] );
         $gateways = WC()->payment_gateways->payment_gateways();
         if (array_key_exists($this->name, $gateways)) {
             $this->gateway = $gateways[$this->name];

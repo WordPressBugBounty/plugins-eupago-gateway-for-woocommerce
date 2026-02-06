@@ -145,218 +145,238 @@ if (!class_exists('WC_Eupago_ApplePay')) {
             
             $this->form_fields = [
                 'enabled' => [
-                    'title' => esc_html($enable_disable_title),
-                    'type' => 'checkbox',
-                    'label' => esc_html($enable_applepay),
+                    'title'   => esc_html($enable_disable_title),
+                    'type'    => 'checkbox',
+                    'label'   => esc_html($enable_applepay),
                     'default' => 'no',
                 ],
                 'title' => [
-                    'title' => esc_html($title_applepay),
-                    'type' => 'text',
+                    'title'       => esc_html($title_applepay),
+                    'type'        => 'text',
                     'description' => esc_html($checkout_title),
-                    'default' => esc_html($applepay_label),
+                    'default'     => esc_html($applepay_label),
                 ],
                 'description' => [
-                    'title' => esc_html($description),
-                    'type' => 'textarea',
+                    'title'       => esc_html($description),
+                    'type'        => 'textarea',
                     'description' => esc_html($description_checkout),
-                    'default' => __('You will be redirected to pay with Apple Pay.', 'eupago-gateway-for-woocommerce'),
+                    'default'     => __('You will be redirected to pay with Apple Pay.', 'eupago-gateway-for-woocommerce'),
                 ],
                 'instructions' => [
-                    'title' => esc_html($instructions_text),
-                    'type' => 'textarea',
+                    'title'       => esc_html($instructions_text),
+                    'type'        => 'textarea',
                     'description' => esc_html($description_instructions_text),
-                    'default' => __('You will be redirected to complete your payment with Apple Pay.', 'eupago-gateway-for-woocommerce'),
+                    'default'     => __('You will be redirected to complete your payment with Apple Pay.', 'eupago-gateway-for-woocommerce'),
+                ],
+                'language' => [
+                    'title'       => __('Language', 'eupago-gateway-for-woocommerce'),
+                    'type'        => 'select',
+                    'description' => __('Select the language for the payment process.', 'eupago-gateway-for-woocommerce'),
+                    'default'     => 'default',
+                    'options'     => $language_options,
                 ],
                 'logo_url' => [
-                    'title' => esc_html($logo),
-                    'type' => 'text',
+                    'title'       => esc_html($logo),
+                    'type'        => 'text',
                     'description' => esc_html($shop_logo),
-                    'default' => '',
+                    'default'     => '',
                 ],
                 'only_portugal' => [
-                    'title' => esc_html($only_portuguese),
-                    'type' => 'checkbox',
-                    'label' => esc_html($address_portuguese),
+                    'title'   => esc_html($only_portuguese),
+                    'type'    => 'checkbox',
+                    'label'   => esc_html($address_portuguese),
                     'default' => 'no',
                 ],
                 'only_above' => [
-                    'title' => esc_html($orders_above),
-                    'type' => 'number',
+                    'title'       => esc_html($orders_above),
+                    'type'        => 'number',
                     'description' => wp_kses_post($orders_description),
-                    'default' => 0,
+                    'default'     => 0,
                 ],
                 'only_below' => [
-                    'title' => esc_html($orders_below),
-                    'type' => 'number',
+                    'title'       => esc_html($orders_below),
+                    'type'        => 'number',
                     'description' => wp_kses_post($orders_description),
-                    'default' => 0,
+                    'default'     => 0,
                 ],
                 'stock_when' => [
-                    'title' => esc_html($reduce_stock),
-                    'type' => 'select',
+                    'title'       => esc_html($reduce_stock),
+                    'type'        => 'select',
                     'description' => esc_html($stock_hint),
-                    'default' => '',
-                    'options' => [
-                        '' => esc_html($when_paid),
+                    'default'     => '',
+                    'options'     => [
+                        ''      => esc_html($when_paid),
                         'order' => esc_html($when_created),
                     ],
                 ],
                 'sms_payment_confirmation_applepay' => [
-                    'title' => esc_html($sms_confirmation),
-                    'type' => 'checkbox',
-                    'label' => esc_html($enable_text),
+                    'title'   => esc_html($sms_confirmation),
+                    'type'    => 'checkbox',
+                    'label'   => esc_html($enable_text),
                     'default' => 'no',
                 ],
                 'sms_order_confirmation_applepay' => [
-                    'title' => esc_html($sms_order_confirmation),
-                    'type' => 'checkbox',
-                    'label' => esc_html($enable_text),
+                    'title'   => esc_html($sms_order_confirmation),
+                    'type'    => 'checkbox',
+                    'label'   => esc_html($enable_text),
                     'default' => 'no',
                 ],
-            ];
+            ];  
         }
         
         public function process_payment($order_id) {
-            $order = wc_get_order($order_id);
+            $logger  = wc_get_logger();
+            $context = ['source' => 'eupago-applepay'];
+            
+            $order       = wc_get_order($order_id);
             $order_total = $order->get_total();
             
             if ($error_message = $this->check_order_errors($order)) {
+                $logger->error("check_order_errors failed: {$error_message}", $context);
                 wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error');
                 return [ 'result' => 'fail' ];
             }
             
-            $lang = $this->determine_language();
+            $lang       = $this->determine_language();
             $return_url = $this->get_return_url($order);
             
             $response = $this->client->getReferenciaApplePay($order, $order_total, $lang, $return_url);
             
+            $logger->info('Raw API response: ' . print_r($response, true), $context);
+            
             if (!is_array($response)) {
+                $logger->error("API response not array: " . print_r($response, true), $context);
                 wc_add_notice(__('Error processing Apple Pay request.', 'eupago-gateway-for-woocommerce'), 'error');
                 return [ 'result' => 'fail' ];
             }
             
             $redirect_url = $response['redirectUrl'] ?? '';
-            
             if (empty($redirect_url)) {
+                $logger->error("No redirectUrl in response. Full response: " . print_r($response, true), $context);
                 wc_add_notice(__('No redirect URL received from Eupago.', 'eupago-gateway-for-woocommerce'), 'error');
                 return [ 'result' => 'fail' ];
             }
             
-            if (
-                isset($response['transactionStatus']) &&
-                strtolower($response['transactionStatus']) !== 'success'
-                ) {
-                    $error_message = $response['text'] ?? __('Unknown error.', 'eupago-gateway-for-woocommerce');
-                    wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error');
-                    return [ 'result' => 'fail' ];
-                }
-                
-                $order->update_meta_data('_eupago_applepay_tid', $response['transactionID'] ?? '');
-                $order->update_meta_data('_eupago_applepay_reference', $response['reference'] ?? '');
-                $order->save();
-                
-                $order->update_status('on-hold', __('Awaiting Apple Pay payment.', 'eupago-gateway-for-woocommerce'));
-                
-                $this->reduce_stock_levels($order_id);
-                WC()->cart->empty_cart();
-                WC()->session->__unset('order_awaiting_payment');
-                
-                return [
-                    'result'   => 'success',
-                    'redirect' => esc_url_raw($redirect_url),
-                ];
+            if (isset($response['transactionStatus']) && strtolower($response['transactionStatus']) !== 'success') {
+                $error_message = $response['text'] ?? __('Unknown error.', 'eupago-gateway-for-woocommerce');
+                $logger->error("Transaction rejected: {$error_message}. Full response: " . print_r($response, true), $context);
+                wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error');
+                return [ 'result' => 'fail' ];
             }
             
-            private function reduce_stock_levels($order) {
-                if ($this->stock_when == 'order') {
-                    $order->reduce_order_stock();
-                }
-            }
+            $order->update_meta_data('_eupago_applepay_tid', $response['transactionID'] ?? '');
+            $order->update_meta_data('_eupago_applepay_reference', $response['reference'] ?? '');
+            $order->save();
             
-            private function determine_language() {
-                $lang = 'PT';
-                if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
-                    $browser_language = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
-                    if (in_array($browser_language, ['pt', 'en', 'es'])) {
-                        $lang = strtoupper($browser_language);
-                    }
-                }
-                return $lang;
-            }
+            $order->update_status('on-hold', __('Awaiting Apple Pay payment.', 'eupago-gateway-for-woocommerce'));
             
-            private function check_order_errors($order) {
-                $total = $order->get_total();
-                if (get_woocommerce_currency() !== 'EUR') {
-                    return __('Store currency must be Euros (€).', 'eupago-gateway-for-woocommerce');
-                }
-                
-                if ($total < 1 || $total > 99999) {
-                    return __('Order value must be between 1€ and 99.999€ for Apple Pay.', 'eupago-gateway-for-woocommerce');
-                }
-                
-                return false;
-            }
+            $this->reduce_stock_levels($order_id);
+            WC()->cart->empty_cart();
+            WC()->session->__unset('order_awaiting_payment');
             
-            public function thankyou_page($order_id) {
-                $order = wc_get_order($order_id);
-                
-                $transaction_id = $order->get_meta('_eupago_applepay_tid', true);
-                $reference      = $order->get_meta('_eupago_applepay_reference', true);
-                $payment_method = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_payment_method() : $order->payment_method;
-                
-                if ($payment_method == $this->id) {
-                    wc_get_template(
-                        'payment-instructions.php',
-                        [
-                            'method'         => $this->id,
-                            'payment_name'   => $this->title,
-                            'instructions' => isset($this->instructions) && !empty($this->instructions) ? $this->instructions : '',
-                            'transaction_id' => $transaction_id,
-                            'reference'      => $reference,
-                            'order_total'    => $order->get_total(),
-                        ],
-                        'woocommerce/eupago/',
-                        (new WC_Eupago())->get_templates_path()
-                    );
-                }
-            }
-            
-            public function order_details_after_order_table($order) {
-                if (is_wc_endpoint_url('view-order')) {
-                    $this->thankyou_page($order->get_id());
-                }
-            }
-            
-            public function disable_only_above_or_below($gateways) {
-                if (!is_admin() && isset($gateways[$this->id])) {
-                    $total = WC()->cart->total;
-                    if ($this->only_above && $total < floatval($this->only_above)) {
-                        unset($gateways[$this->id]);
-                    }
-                    if ($this->only_below && $total > floatval($this->only_below)) {
-                        unset($gateways[$this->id]);
-                    }
-                }
-                return $gateways;
-            }
-            
-            public function disable_unless_portugal($available_gateways) {
-                if (!is_admin() && isset($available_gateways[$this->id])) {
-                    $country = WC()->customer->get_billing_country();
-                    if ($this->only_portugal === 'yes' && strtoupper($country) !== 'PT') {
-                        unset($available_gateways[$this->id]);
-                    }
-                }
-                return $available_gateways;
-            }
-            
-            public function woocommerce_payment_complete_reduce_order_stock($bool, $order_id) {
-                $order = wc_get_order($order_id);
-                if ($order->get_payment_method() === $this->id) {
-                    return (new WC_Eupago())->woocommerce_payment_complete_reduce_order_stock($bool, $order, $this->id, $this->stock_when);
-                }
-                return $bool;
+            return [
+                'result'   => 'success',
+                'redirect' => esc_url_raw($redirect_url),
+            ];
+        }
+        
+        private function reduce_stock_levels($order) {
+            if ($this->stock_when == 'order') {
+                $order->reduce_order_stock();
             }
         }
+
+        public function thankyou_page($order_id) {
+            $order = wc_get_order($order_id);
+            
+            $transaction_id = $order->get_meta('_eupago_applepay_tid', true);
+            $reference      = $order->get_meta('_eupago_applepay_reference', true);
+            $payment_method = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_payment_method() : $order->payment_method;
+            
+            if ($payment_method == $this->id) {
+                wc_get_template(
+                    'payment-instructions.php',
+                    [
+                        'method'         => $this->id,
+                        'payment_name'   => $this->title,
+                        'instructions' => isset($this->instructions) && !empty($this->instructions) ? $this->instructions : '',
+                        'transaction_id' => $transaction_id,
+                        'reference'      => $reference,
+                        'order_total'    => $order->get_total(),
+                    ],
+                    'woocommerce/eupago/',
+                    (new WC_Eupago())->get_templates_path()
+                );
+            }
+        }
+        
+        public function order_details_after_order_table($order) {
+            if (is_wc_endpoint_url('view-order')) {
+                $this->thankyou_page($order->get_id());
+            }
+        }
+            
+        public function disable_only_above_or_below($gateways) {
+            if (!is_admin() && isset($gateways[$this->id])) {
+                $total = WC()->cart->total;
+                if ($this->only_above && $total < floatval($this->only_above)) {
+                    unset($gateways[$this->id]);
+                }
+                if ($this->only_below && $total > floatval($this->only_below)) {
+                    unset($gateways[$this->id]);
+                }
+            }
+            return $gateways;
+        }
+        
+        public function disable_unless_portugal($available_gateways) {
+            if (!is_admin() && isset($available_gateways[$this->id])) {
+                $country = WC()->customer->get_billing_country();
+                if ($this->only_portugal === 'yes' && strtoupper($country) !== 'PT') {
+                    unset($available_gateways[$this->id]);
+                }
+            }
+            return $available_gateways;
+        }
+        
+        public function woocommerce_payment_complete_reduce_order_stock($bool, $order_id) {
+            $order = wc_get_order($order_id);
+            if ($order->get_payment_method() === $this->id) {
+                return (new WC_Eupago())->woocommerce_payment_complete_reduce_order_stock($bool, $order, $this->id, $this->stock_when);
+            }
+            return $bool;
+        }
+        
+        private function determine_language() {
+            // 1. Admin override
+            $option = $this->get_option('language', 'default');
+            if ($option && $option !== 'default') {
+                return strtoupper($option); // 'PT', 'EN', 'ES'
+            }
+            
+            // 2. Browser fallback
+            if (isset($_SERVER['HTTP_ACCEPT_LANGUAGE'])) {
+                $browser_language = substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2);
+                if (in_array($browser_language, ['pt', 'en', 'es'], true)) {
+                    return strtoupper($browser_language);
+                }
+            }
+            
+            return 'PT';
+        }
+        
+        private function check_order_errors($order) {
+            $total = $order->get_total();
+            if (get_woocommerce_currency() !== 'EUR') {
+                return __('Store currency must be Euros (€).', 'eupago-gateway-for-woocommerce');
+            }
+            
+            if ($total < 1 || $total > 99999) {
+                return __('Order value must be between 1€ and 99.999€ for Apple Pay.', 'eupago-gateway-for-woocommerce');
+            }
+            
+            return false;
+        }
+        
     }
+}

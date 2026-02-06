@@ -247,6 +247,13 @@ if (!class_exists('WC_Eupago_Multibanco')) {
                     'default' => 'no',
                     'label' => esc_html($enable_multibanco),
                 ],
+                'language' => [
+                    'title'       => $language_title,
+                    'type'        => 'select',
+                    'description' => $language_description,
+                    'default'     => 'default',
+                    'options'     => $language_options,
+                ],
                 'title' => [
                     'title' => esc_html($title_multibanco),
                     'type' => 'text',
@@ -443,7 +450,6 @@ if (!class_exists('WC_Eupago_Multibanco')) {
         public function process_payment($order_id)
         {
             global $woocommerce;
-            // $order = new WC_Order($order_id);
             $order = wc_get_order($order_id);
 
             $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;

@@ -4,9 +4,9 @@ Tags: woocommerce, payment, gateway, multibanco, atm, debit card, credit card, b
 Author URI: https://www.eupago.pt/
 Plugin URI: 
 Requires at least: 4.4
-Tested up to: 6.8.1
+Tested up to: 6.8.3
 Requires PHP: 7.0
-Stable tag: 4.5.4
+Stable tag: 4.7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,6 +44,41 @@ Para começar a receber pagamentos deve primeiro aderir aos serviços da Eupago.
 O cliente dispõe de cerca de 4 minutos para realizar o pagamento após a finalização da compra. Este tempo é definido pela própria MB WAY.
 
 == Changelog ==
+= 4.7.0(05/01/2026) =
+* Feature: Added Pagaqui payment method
+
+= 4.6.4(19/12/2025) =
+* Added: ES translations to payment method instructions
+
+= 4.6.3(25/11/2025) =
+* Fix: Add manual order
+* Fix: Amount order value
+
+= 4.6.2(14/11/2025) =
+* Fix: Bugfix HPOS order missing
+
+= 4.6.1(12/11/2025) =
+* Fix: Bugfix (CC) reference status
+* Fix: Bugfix Webhooks 2.0
+
+= 4.6.0(05/11/2025) =
+* Fix: Bugfix (MB) reference status
+
+= 4.5.9(04/11/2025) =
+* Fix: Bugfix (MBWay) a when admin add a order manually
+
+= 4.5.8(31/10/2025) =
+* Fix: Update Webhook not Synchronize info
+
+= 4.5.7(27/10/2025) =
+* Feature: Added Floa payment method
+
+= 4.5.6(22/10/2025) =
+* Fix: CofidisPay and Credit Card missing url to redirect.
+
+= 4.5.5(09/10/2025) =
+* Fix: Several bugs with HPOS when compatibility mode is disabled (no legacy sync)
+
 = 4.5.4(23/09/2025) =
 * Feature: Minor bug on order details showing two tables
 
@@ -53,7 +88,6 @@ O cliente dispõe de cerca de 4 minutos para realizar o pagamento após a finali
 = 4.5.2(05/08/2025) =
 * Feature: Minor bug fixes in Google Pay and Apple Pay payment methods.
 
-== Changelog ==
 = 4.5.1(01/08/2025) =
 * Feature: Added Google Pay and Apple Pay payment method.
 

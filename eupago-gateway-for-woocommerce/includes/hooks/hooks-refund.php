@@ -12,12 +12,29 @@ function refund_func()
     // check_ajax_referer('refund_nonce', 'security');
 
     $endpoint = get_option('eupago_endpoint');
-    $order = wc_get_order(sanitize_text_field($_POST['refund_order']));
+
+    // 🔹 Sanitização centralizada dos inputs
+    $refund_order  = isset($_POST['refund_order'])  ? sanitize_text_field(wp_unslash($_POST['refund_order']))  : '';
+    $refund_amount = isset($_POST['refund_amount']) ? sanitize_text_field(wp_unslash($_POST['refund_amount'])) : '';
+    $refund_reason = isset($_POST['refund_reason']) ? sanitize_text_field(wp_unslash($_POST['refund_reason'])) : '';
+    $refund_iban   = isset($_POST['refund_iban'])   ? sanitize_text_field(wp_unslash($_POST['refund_iban']))   : '';
+    $refund_bic    = isset($_POST['refund_bic'])    ? sanitize_text_field(wp_unslash($_POST['refund_bic']))    : '';
+    $refund_name   = isset($_POST['refund_name'])   ? sanitize_text_field(wp_unslash($_POST['refund_name']))   : '';
+
+    $order = wc_get_order($refund_order);
+    
+    $trid  = $order->get_meta('_transaction_id', true);
+
+    $payment_method = $order->get_payment_method();
+
+    $endpoint = get_option('eupago_endpoint');
+    $order = wc_get_order($refund_order);
+
     $trid = $order->get_meta('_transaction_id', true);
 
     $payment_method = $order->get_payment_method();
 
-    if (!empty(sanitize_text_field($_POST['refund_amount']))) {
+    if (!empty($refund_amount)) {
         // Token
         $url = 'https://' . $endpoint . '.eupago.pt/api/auth/token';
         $data = [
@@ -52,26 +69,29 @@ function refund_func()
                 ];
 
                 $dataRefund = [
-                    'amount' => floatval(sanitize_text_field($_POST['refund_amount'])),
+                    'amount' => floatval($refund_amount),
                 ];
 
-                if (!empty($_POST['refund_reason'])) {
-                    $dataRefund['reason'] = sanitize_text_field($_POST['refund_reason']);
+                if (!empty($refund_reason)) {
+                    $dataRefund['reason'] = $refund_reason;
                 }
 
+
                 if ($payment_method !== "eupago_mbway" && $payment_method !== 'eupago_cc') {
-                    $dataRefund['iban'] = sanitize_text_field($_POST['refund_iban']);
-                    $dataRefund['bic'] = sanitize_text_field($_POST['refund_bic']);
+                    $dataRefund['iban'] = $refund_iban;
+                    $dataRefund['bic']  = $refund_bic;
+
                 }
 
                 if (!empty($_POST['refund_bic']) || !empty($_POST['refund_iban'])) {
-                    $dataRefund['bic'] = sanitize_text_field($_POST['refund_bic']);
-                    $dataRefund['iban'] = sanitize_text_field($_POST['refund_iban']);
+                    $dataRefund['iban'] = $refund_iban;
+                    $dataRefund['bic']  = $refund_bic;
                 }
 
-                if (!empty($_POST['refund_name'])) {
-                    $dataRefund['name'] = sanitize_text_field($_POST['refund_name']);
+               if (!empty($refund_name)) {
+                    $dataRefund['name'] = $refund_name;
                 }
+
 
                 $url_refund = 'https://' . $endpoint . '.eupago.pt/api/management/v1.02/refund/' . $trid;
 
@@ -89,7 +109,7 @@ function refund_func()
                 if ($jsonResponseRefund['transactionStatus'] === 'Success') {
                     // Add a note to the order with the refunded amount
                     $order = wc_get_order(sanitize_text_field($_POST['refund_order']));
-                    $refunded_amount = floatval(sanitize_text_field($_POST['refund_amount']));
+                    $refunded_amount = floatval($refund_amount);
                     $current_time = current_time('Y-m-d H:i:s'); // Get the current timestamp
                     $order->add_order_note('Refunded ' . $refunded_amount . ' EUR at: ' . $current_time);
                     $order->save();

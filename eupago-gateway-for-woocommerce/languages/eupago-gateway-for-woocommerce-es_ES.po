@@ -1,0 +1,46 @@
+#: templates/payment-instructions.php:24 templates/payment-instructions.php:56
+#: templates/payment-instructions.php:78 templates/payment-instructions.php:99
+#: templates/emails/plain-instructions.php:17
+#: templates/emails/plain-instructions.php:27
+#: templates/emails/plain-instructions.php:35
+#: templates/emails/plain-instructions.php:43
+#: templates/emails/html-instructions.php:20
+#: templates/emails/html-instructions.php:52
+#: templates/emails/html-instructions.php:73
+#: templates/emails/html-instructions.php:94
+msgid "Payment instructions"
+msgstr "Pedido generado con éxito, pendiente de pago"
+
+msgid "Entity"
+msgstr "Entidad"
+
+msgid "Reference"
+msgstr "Referencia"
+
+msgid "Value"
+msgstr "Importe"
+
+msgid "The receipt issued by the ATM machine is proof of payment. Keep it."
+msgstr "El recibo emitido por el cajero automático es un comprobante de pago. Guárdelo."
+
+msgid "Limit Date"
+msgstr "Fecha límite"
+
+msgid "Accept this payment with your MBWAY mobile app"
+msgstr "Acepte este pago con su aplicación móvil MB WAY"
+
+msgid "To pay for your order, you must use the Payshop reference that was assigned to you at a CTT post office or Payshop agent."
+msgstr "Para pagar su pedido, debe utilizar la referencia Payshop asignada en una oficina de correos CTT o en un agente Payshop."
+
+msgid "You were redirected to complete your payment with Apple Pay."
+msgstr "Ha sido redirigido para completar su pago con Apple Pay."
+
+msgid "You were redirected to complete your payment with Google Pay."
+msgstr "Ha sido redirigido para completar su pago con Google Pay."
+
+msgid "You were redirected to complete your payment with Floa."
+msgstr "Ha sido redirigido para completar su pago con Floa."
+
+#: templates/payment-instructions.php
+msgid "The receipt issued by Pagaqui serves as proof of payment. Please keep it."
+msgstr "El recibo emitido por Pagaqui sirve como comprobante de pago. Por favor, consérvelo."

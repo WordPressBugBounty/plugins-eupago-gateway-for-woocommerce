@@ -3,12 +3,12 @@
 * Plugin Name: Eupago Gateway For Woocommerce
 * Plugin URI:
 * Description: This plugin allows customers to pay their orders with Multibanco, MB WAY, Payshop, Credit Card, CofidisPay, Bizum and EuroPix with Eupago’s gateway.
-* Version: 4.5.4
+* Version: 4.7.0
 * Author: Eupago
 * Author URI: https://www.eupago.pt/
 * Text Domain: eupago-gateway-for-woocommerce
-* WC tested up to: 9.9.5
-* Tested up to: 6.8.1
+* WC tested up to: 10.2.2
+* Tested up to: 6.8.3
 **/
 
 use Automattic\WooCommerce\Internal\Admin\Orders\CustomOrdersTableController;
@@ -26,7 +26,7 @@ if (!class_exists('WC_Eupago')) :
          *
          * @var string
          */
-        public const VERSION = '4.5.4';
+        public const VERSION = '4.7.0';
 
         /**
          * Instance of this class.
@@ -97,6 +97,17 @@ if (!class_exists('WC_Eupago')) :
                 add_action('wp_ajax_generate_ref', [ $this, 'new_ref_order_button_action' ]);
 
                 add_action('wp_ajax_nopriv_generate_ref', [ $this, 'new_ref_order_button_action' ]);
+
+                add_action('save_post_shop_order', function($post_id) {
+                    $order = wc_get_order($post_id);
+                    if ($order) {
+                        $phone = $order->get_billing_phone();
+                        if ($phone && !$order->get_meta('_eupago_mbway_phone')) {
+                            $order->update_meta_data('_eupago_mbway_phone', $phone);
+                            $order->save();
+                        }
+                    }
+                });
 
                 // Set Callback.
                 new WC_Eupago_Callback();
@@ -400,6 +411,8 @@ if (!class_exists('WC_Eupago')) :
             $bizum_text_en = __('Bizum', 'eupago-gateway-for-woocommerce');
             $pix_text_en = __('EuroPix', 'eupago-gateway-for-woocommerce');
             $googlepay_text_en = __('Google Pay', 'eupago-gateway-for-woocommerce');
+            $floa_text_en = __('Floa', 'eupago-gateway-for-woocommerce');
+            $pagaqui_text_en = __('Pagaqui', 'eupago-gateway-for-woocommerce');
 
             // Portuguese
             $applepay_text_pt = __('Apple Pay', 'eupago-gateway-for-woocommerce-pt');
@@ -412,6 +425,8 @@ if (!class_exists('WC_Eupago')) :
             $bizum_text_pt = __('Bizum', 'eupago-gateway-for-woocommerce-pt');
             $pix_text_pt = __('EuroPix', 'eupago-gateway-for-woocommerce-pt');
             $googlepay_text_pt = __('Google Pay', 'eupago-gateway-for-woocommerce-pt');
+            $floa_text_pt = __('Floa', 'eupago-gateway-for-woocommerce');
+            $pagaqui_text_pt = __('Pagaqui', 'eupago-gateway-for-woocommerce');
 
             // Spanish
             $applepay_text_es = __('Apple Pay', 'eupago-gateway-for-woocommerce-es');
@@ -424,6 +439,8 @@ if (!class_exists('WC_Eupago')) :
             $bizum_text_es = __('Bizum', 'eupago-gateway-for-woocommerce-es');
             $pix_text_es = __('EuroPix', 'eupago-gateway-for-woocommerce-es');
             $googlepay_text_es = __('Google Pay', 'eupago-gateway-for-woocommerce-es');
+            $floa_text_es = __('Floa', 'eupago-gateway-for-woocommerce');
+            $pagaqui_text_es = __('Pagaqui', 'eupago-gateway-for-woocommerce');
 
             switch ($current_language) {
                 case 'es_ES':
@@ -437,6 +454,8 @@ if (!class_exists('WC_Eupago')) :
                     $pix_text = $pix_text_es;
                     $googlepay_text = $googlepay_text_es;
                     $applepay_text = $applepay_text_es;
+                    $floa_text = $floa_text_es;
+                    $pagaqui_text = $pagaqui_text_es;
                     break;
                 case 'pt_PT':
                     $api_settings_text = $api_settings_text_pt;
@@ -449,6 +468,8 @@ if (!class_exists('WC_Eupago')) :
                     $pix_text = $pix_text_pt;
                     $googlepay_text = $googlepay_text_pt;
                     $applepay_text = $applepay_text_pt;
+                    $floa_text = $floa_text_pt;
+                    $pagaqui_text = $pagaqui_text_pt;
                     break;
                 default:
                     $api_settings_text = $api_settings_text_en;
@@ -461,6 +482,8 @@ if (!class_exists('WC_Eupago')) :
                     $pix_text = $pix_text_en;
                     $googlepay_text = $googlepay_text_en;
                     $applepay_text = $applepay_text_en;
+                    $floa_text = $floa_text_en;
+                    $pagaqui_text = $pagaqui_text_en;
                     break;
             }
 
@@ -474,7 +497,8 @@ if (!class_exists('WC_Eupago')) :
             $pix_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_pix'));
             $googlepay_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_googlepay'));
             $applepay_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_applepay'));
-
+            $floa_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_floa'));
+            $pagaqui_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_pagaqui'));
             $plugin_links = [];
 
             if (!$this->is_terms_accepted()) {
@@ -491,7 +515,8 @@ if (!class_exists('WC_Eupago')) :
             $plugin_links[] = '<a href="' . $pix_url . '">' . $pix_text . '</a>';
             $plugin_links[] = '<a href="' . $googlepay_url . '">' . $googlepay_text . '</a>';
             $plugin_links[] = '<a href="' . $applepay_url . '">' . $applepay_text . '</a>';
-
+            $plugin_links[] = '<a href="' . $floa_url . '">' . $floa_text . '</a>';
+            $plugin_links[] = '<a href="' . $pagaqui_url . '">' . $pagaqui_text . '</a>';
             foreach ($plugin_links as $link) {
                 if (!in_array($link, $links)) {
                     $links[] = $link;
@@ -537,6 +562,10 @@ if (!class_exists('WC_Eupago')) :
             include_once 'includes/class-wc-eupago-googlepay.php';
 
             include_once 'includes/class-wc-eupago-applepay.php';
+
+            include_once 'includes/class-wc-eupago-floa.php';
+
+            include_once 'includes/class-wc-eupago-pagaqui.php';
         }
 
 
@@ -561,6 +590,8 @@ if (!class_exists('WC_Eupago')) :
                 $methods[] = 'WC_Eupago_Pix';
                 $methods[] = 'WC_Eupago_GooglePay';
                 $methods[] = 'WC_Eupago_ApplePay';
+                $methods[] = 'WC_Eupago_Floa';
+                $methods[] = 'WC_Eupago_Pagaqui';
             }else{
                 $this->show_error_message = true;
             }
@@ -617,7 +648,12 @@ if (!class_exists('WC_Eupago')) :
                 $button_text = 'Gerar nova referência'; // Set your button text here
                 $id = $order_id->get_id();
 
-                if ($order_status == 'on-hold' && $payment_method == 'eupago_multibanco' || $order_status == 'on-hold' && $payment_method == 'eupago_payshop') {
+            $conditions = [
+                'eupago_multibanco' => ['on-hold', 'scheduled-payment'],
+                'eupago_payshop'    => ['on-hold'],
+            ];
+
+            if (isset($conditions[$payment_method]) && in_array($order_status, $conditions[$payment_method], true)) {
                     echo '<a class="button generate-ref" href="' . wp_nonce_url(admin_url('admin-ajax.php?action=generate_ref&order_id=' . $order_id), 'generate_ref_' . $id) . '">' . $button_text . '</a>';
                 }
             }
@@ -662,7 +698,7 @@ if (!class_exists('WC_Eupago')) :
                 $metabox = 'mbeupago_order_meta_box_html_hpos';
             }
 
-            add_meta_box('woocommerce_eupago', __('EuPago Payment Details', 'eupago-gateway-for-woocommerce'), [$this, $metabox], $screen, 'side', 'core');
+            add_meta_box('woocommerce_eupago', __('Eupago Payment Details', 'eupago-gateway-for-woocommerce'), [$this, $metabox], $screen, 'side', 'core');
         }
 
         public function mbeupago_order_meta_box_html($post)
@@ -738,7 +774,6 @@ if (!class_exists('WC_Eupago')) :
         public function woocommerce_payment_complete_reduce_order_stock($reduce, $order, $payment_method, $stock_when)
         {
             if ($reduce) {
-                // $order = new WC_Order( $order_id );
                 if ($order->get_payment_method() == $payment_method) {
                     if (version_compare(WC_VERSION, '3.4.0', '>=')) {
                         // After 3.4.0
@@ -773,6 +808,19 @@ if (!class_exists('WC_Eupago')) :
             $file_path_pix = __DIR__ . '/includes/woocommerce-blocks/pix/PixBlock.php';
             $file_path_googlepay = __DIR__ . '/includes/woocommerce-blocks/googlepay/GooglePayBlock.php';
             $file_path_applepay = __DIR__ . '/includes/woocommerce-blocks/applepay/ApplePayBlock.php';
+            $file_path_floa = __DIR__ . '/includes/woocommerce-blocks/floa/FloaBlock.php';
+            $file_path_pagaqui = __DIR__ . '/includes/woocommerce-blocks/pagaqui/PagaquiBlock.php';
+
+            if (file_exists($file_path_floa)) {
+                require_once $file_path_floa;
+
+                add_action(
+                    'woocommerce_blocks_payment_method_type_registration',
+                    function (\Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry) {
+                        $payment_method_registry->register(new \Automattic\WooCommerce\Blocks\Payments\Integrations\FloaBlock());
+                    }
+                );
+            }
 
             if (file_exists($file_path_applepay)) {
                 require_once $file_path_applepay;
@@ -869,6 +917,17 @@ if (!class_exists('WC_Eupago')) :
                     'woocommerce_blocks_payment_method_type_registration',
                     function (Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry) {
                         $payment_method_registry->register(new \Automattic\WooCommerce\Blocks\Payments\Integrations\CofidisPayBlock());
+                    }
+                );
+            }
+
+            if (file_exists($file_path_pagaqui)) {
+                require_once $file_path_pagaqui;
+
+                add_action(
+                    'woocommerce_blocks_payment_method_type_registration',
+                    function (\Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry) {
+                        $payment_method_registry->register(new \Automattic\WooCommerce\Blocks\Payments\Integrations\PagaquiBlock());
                     }
                 );
             }

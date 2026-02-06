@@ -84,7 +84,7 @@ if ( ! defined( 'ABSPATH' ) ) {
       <td style="border: 1px solid #1465AA; color: #000000; white-space: nowrap;"><?php echo esc_html($order_total); ?>€</td>
     </tr>
     <tr>
-      <td style="font-size: x-small; border: 1px solid #1465AA; border-bottom-right-radius: 4px !important; border-bottom-left-radius: 4px !important; color: #000000; text-align: center;" colspan="2"><?php _e('The receipt issued by the ATM machine is a proof of payment. Keep it.', 'eupago-gateway-for-woocommerce'); ?></td>
+      <td style="font-size: x-small; border: 1px solid #1465AA; border-bottom-right-radius: 4px !important; border-bottom-left-radius: 4px !important; color: #000000; text-align: center;" colspan="2"><?php _e('The receipt issued by Pagaqui serves as proof of payment. Please keep it.', 'eupago-gateway-for-woocommerce'); ?></td>
     </tr>
   </table>
 <?php elseif ($method == 'eupago_mbway') : ?>

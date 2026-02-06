@@ -137,6 +137,8 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
                 'sms_order_confirmation' => __('SMS Order Confirmation:', 'eupago-gateway-for-woocommerce'),
                 'enable_label2' => 'Enable',
                 'title' => __('Title', 'woocommerce'),
+                'language_title' => __('Language', 'eupago-gateway-for-woocommerce'),
+                'language_description' => __('Select the language for the payment process.', 'eupago-gateway-for-woocommerce'),
                 'title_description' => __('Use this field to define the title that the user sees during the checkout process.', 'woocommerce'),
                 'title_default' => __('Cofidis Pay', 'eupago-for-woocommerce'),
                 'instructions' => __('Instructions', 'eupago-for-woocommerce'),
@@ -227,6 +229,8 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
                     'reduce_stock' => 'Reduzir o stock',
                     'reduce_stock_description' => 'Escolha quando reduzir o stock.',
                     'when_order_is_paid' => __('quando a encomenda é paga (requer callback activo)', 'eupago-for-woocommerce'),
+                    'language_title' => 'Idioma',
+                    'language_description' => 'Selecione o idioma para o processo de pagamento.',
                     'when_order_is_placed' => __('quando o pedido é feito (antes do pagamento)', 'eupago-for-woocommerce'),
                     'zero_tax_code' => 'Código para Imposto Zero',
                     'zero_tax_code_description' => 'Selecione a justificação do código para habilitar o imposto zero, mantenha desativado para o padrão.',
@@ -292,6 +296,8 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
                     'sms_order_confirmation' => __('Confirmación del Pedido SMS:', 'eupago-gateway-for-woocommerce'),
                     'payment_hold' => __('Envío de SMS con los detalles de pago:', 'eupago-gateway-for-woocommerce'),
                     'title' => 'Título',
+                    'language_title' => 'Idioma',
+                    'language_description' => 'Seleccione el idioma para el proceso de pago.',
                     'title_description' => 'Controla el título que el usuario ve durante el proceso de pago.',
                     'title_default' => 'Cofidis Pay',
                     'instructions' => 'Instrucciones',
@@ -360,13 +366,20 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
                 ];
                 
             }
-    
+
             $this->form_fields = [
                 'enabled' => [
                     'title' => $texts['enable_disable'],
                     'type' => 'checkbox',
                     'label' => $texts['enable_label'],
                     'default' => 'no',
+                ],
+                'language' => [
+                    'title'       => $texts['language_title'],
+                    'type'        => 'select',
+                    'description' => $texts['language_description'],
+                    'default'     => 'default',
+                    'options'     => $language_options,
                 ],
                 'title' => [
                     'title' => $texts['title'],
@@ -578,7 +591,6 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
         public function process_payment($order_id)
         {
             global $woocommerce;
-            // $order = new WC_Order($order_id);
             $order = wc_get_order($order_id);
 
             $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;
@@ -592,7 +604,7 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
                 return;
             }
 
-            $pedidoCofidis = $this->client->cofidispay_create($order_id);
+            $pedidoCofidis = $this->client->cofidispay_create($order_id, $this->get_return_url($order));
 
             if ($pedidoCofidis->transactionStatus != 'Success') {
                 wc_add_notice(__('Payment error:', 'eupago-for-woocommerce') . ' Ocorreu um erro com o pedido de pagamento', 'error');
@@ -670,7 +682,8 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
             if (isset($available_gateways[$this->id])) {
                 if (get_query_var('order-pay')) {
                     // order-pay page
-                    $order = new WC_Order(get_query_var('order-pay'));
+                    $order_id = absint( get_query_var('order-pay') );
+                    $order    = wc_get_order( $order_id );
                     $current_price = floatval(preg_replace('#[^\d.]#', '', $order->get_total()));
                 } else {
                     if (isset($woocommerce->cart)) {
@@ -683,17 +696,18 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
                     unset($available_gateways[$this->id]);
                 }
 
-                if (@floatval($available_gateways[$this->id]->only_above) > 0) {
-                    if ($current_price < floatval($available_gateways[$this->id]->only_above)) {
-                        unset($available_gateways[$this->id]);
-                    }
+                // Configurable "only_above" limit
+                $only_above = floatval($this->get_option('only_above', 0));
+                if ($only_above > 0 && $current_price < $only_above) {
+                    unset($available_gateways[$this->id]);
                 }
 
-                if (@floatval($available_gateways[$this->id]->only_below) > 0) {
-                    if ($current_price > floatval($available_gateways[$this->id]->only_below)) {
-                        unset($available_gateways[$this->id]);
-                    }
+                // Configurable "only_below" limit
+                $only_below = floatval($this->get_option('only_below', 0));
+                if ($only_below > 0 && $current_price > $only_below) {
+                    unset($available_gateways[$this->id]);
                 }
+
             }
 
             return $available_gateways;
@@ -725,7 +739,8 @@ if (!class_exists('WC_Eupago_CofidisPay')) {
             if (isset($available_gateways[$this->id])) {
                 if (get_query_var('order-pay')) {
                     // order-pay page
-                    $order = new WC_Order(get_query_var('order-pay'));
+                    $order_id = absint( get_query_var('order-pay') );
+                    $order    = wc_get_order( $order_id );
                     $order_total = floatval(preg_replace('#[^\d.]#', '', $order->get_total()));
                 } else {
                     if (isset($woocommerce->cart)) {

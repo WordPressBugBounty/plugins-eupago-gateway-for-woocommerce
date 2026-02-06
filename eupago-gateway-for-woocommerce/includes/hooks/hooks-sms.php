@@ -78,6 +78,11 @@ function send_sms_pending($order_id) {
                               __( 'Transaction ID:', 'eupago-gateway-for-woocommerce' ) . ' ' . $transactionID . ' ' .
                               __( 'Value:', 'eupago-gateway-for-woocommerce' ) . ' ' . $amount;
             break;
+            case 'eupago_floa': //floa
+               $reference     = $order->get_meta( '_eupago_floa_referencia', true);
+               $amount        = $total_amount . $order->get_meta( '_order_currency', true);
+               $payment_data  =  __( 'Reference:', 'eupago-gateway-for-woocommerce' ) . ' ' . $reference . ' ' . __( 'Value:', 'eupago-gateway-for-woocommerce' ) . ' ' . $amount;  
+            break;
          default:
                #Exit Switch
             break;

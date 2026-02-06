@@ -38,7 +38,7 @@ elseif ($method == 'eupago_pagaqui') :
   echo "\n";
   _e('Value', 'eupago-gateway-for-woocommerce'); echo esc_html(': '); echo esc_html($order_total); echo esc_html('€');
   echo "\n";
-  _e('The receipt issued by the ATM machine is a proof of payment. Keep it.', 'eupago-gateway-for-woocommerce');
+  _e('The receipt issued by Pagaqui serves as proof of payment. Please keep it.', 'eupago-gateway-for-woocommerce');
 elseif ($method == 'eupago_mbway') :
   _e('Payment instructions', 'eupago-gateway-for-woocommerce');
   echo "\n";

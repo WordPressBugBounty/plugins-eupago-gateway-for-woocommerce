@@ -247,6 +247,13 @@ if (!class_exists('WC_Eupago_MBWAY')) {
                     'type' => 'textarea',
                     'description' => esc_html($description_instructions_text),
                 ],
+                'language' => [
+                    'title'       => $language_title,
+                    'type'        => 'select',
+                    'description' => $language_description,
+                    'default'     => 'default',
+                    'options'     => $language_options,
+                ],
                 'only_portugal' => [
                     'title' => esc_html($only_portuguese),
                     'type' => 'checkbox',
@@ -266,9 +273,9 @@ if (!class_exists('WC_Eupago_MBWAY')) {
                     'default' => '',
                 ],
                 'stock_when' => [
-                    'title' => esc_html ($reduce_stock),
+                    'title' => esc_html($reduce_stock),
                     'type' => 'select',
-                    'description' =>esc_html ($choose_reduce_stock),
+                    'description' => esc_html($choose_reduce_stock),
                     'default' => '',
                     'options' => [
                         '' => esc_html($when_order_pays),
@@ -288,6 +295,7 @@ if (!class_exists('WC_Eupago_MBWAY')) {
                     'default' => 'no',
                 ],
             ];
+
         }
 
         public function admin_options()
@@ -312,16 +320,22 @@ if (!class_exists('WC_Eupago_MBWAY')) {
             $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;
 
             // A loja não está em Euros
-            if (trim(get_woocommerce_currency()) != 'EUR') {
+            if (trim(get_woocommerce_currency()) !== 'EUR') {
                 return __('Configuration error. This store currency is not Euros (&euro;).', 'eupago-gateway-for-woocommerce');
             }
 
-            // O valor da encomenda não é aceita
-            if (($order_total < 1) || ($order_total >= 1000000)) {
+            // O valor da encomenda não é aceite
+            if ($order_total < 1 || $order_total >= 1000000) {
                 return __('It\'s not possible to use Multibanco to pay values under 1&euro; or above 999999&euro;.', 'eupago-gateway-for-woocommerce');
             }
 
-            if (!isset($_POST['mbway_phone']) || empty($_POST['mbway_phone'])) {
+            // Verificação do telefone MBWAY
+            if (empty($_POST['mbway_phone'])) {
+                return __('Please enter a valid mobile phone number to proceed with payment!', 'eupago-for-woocommerce');
+            }
+
+            $mbway_phone = sanitize_text_field(wp_unslash($_POST['mbway_phone']));
+            if ($mbway_phone === '') {
                 return __('Please enter a valid mobile phone number to proceed with payment!', 'eupago-for-woocommerce');
             }
 
@@ -452,11 +466,16 @@ if (!class_exists('WC_Eupago_MBWAY')) {
             $order = wc_get_order($order_id);
 
             $order_total = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_total() : $order->order_total;
-            // $billing_phone = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_billing_phone() : $order->billing_phone;
-            // $trimmed_phone = substr(preg_replace('/\s+/', '', sanitize_text_field($billing_phone)), -9);
 
-            $mbway_phone = sanitize_text_field(isset($_POST['mbway_phone'])) && !empty(sanitize_text_field($_POST['mbway_phone'])) ? sanitize_text_field($_POST['mbway_phone']) : '';
-            $country_code = sanitize_text_field(isset($_POST['mbway_country_code'])) && !empty(sanitize_text_field($_POST['mbway_country_code'])) ? sanitize_text_field($_POST['mbway_country_code']) : '+351';
+            // ✅ Sanitização correta dos inputs, mantendo o "+"
+            $mbway_phone  = isset($_POST['mbway_phone'])
+                ? preg_replace('/[^0-9]/', '', wp_unslash($_POST['mbway_phone']))
+                : '';
+
+            $country_code = (isset($_POST['mbway_country_code']) && $_POST['mbway_country_code'] !== '')
+                ? preg_replace('/[^0-9+]/', '', wp_unslash($_POST['mbway_country_code']))
+                : '+351';
+
             $full_phone_number = $country_code . $mbway_phone;
 
             // Validate phone number length
@@ -480,14 +499,14 @@ if (!class_exists('WC_Eupago_MBWAY')) {
             // Attempt to get the MBWAY reference
             $pedidoMBWAY = $this->client->getReferenciaMBW($order_id, $order_total, $mbway_phone, $country_code);
 
-            if($pedidoMBWAY && isset($pedidoMBWAY)){
-                // Decode the MBWAY response
+            $pedidoMBWAY_decode = [];
+            if ($pedidoMBWAY) {
                 $pedidoMBWAY_decode = json_decode($pedidoMBWAY, true);
             }
 
-            // Handle null or error response
-            if (!$pedidoMBWAY_decode['reference'] && $pedidoMBWAY_decode['transactionStatus'] != 'Success') {
-                wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' MBWAY request failed. Please try again.', 'error');
+            // ⚠️ Mantemos a validação simples como no original (não endurecer demasiado)
+            if (empty($pedidoMBWAY_decode['reference'])) {
+                wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' MBWAY request failed: no reference received.', 'error');
                 return [
                     'result' => 'failure',
                     'redirect' => '',
@@ -501,15 +520,12 @@ if (!class_exists('WC_Eupago_MBWAY')) {
             // Mark order as on-hold
             $order->update_status('on-hold', __('Awaiting MBWAY payment.', 'eupago-gateway-for-woocommerce'));
 
-            // Reduce stock levels (if applicable)
             if ($this->stock_when == 'order') {
                 $order->reduce_order_stock();
             }
 
-            // Remove cart
             $woocommerce->cart->empty_cart();
 
-            // Clear awaiting payment session
             if (isset($_SESSION['order_awaiting_payment'])) {
                 unset($_SESSION['order_awaiting_payment']);
             }
@@ -521,33 +537,41 @@ if (!class_exists('WC_Eupago_MBWAY')) {
                 }
             }
 
-
-            // Return success and redirect to the thank you page
             return [
-                'result' => 'success',
+                'result'   => 'success',
                 'redirect' => $this->get_return_url($order),
             ];
         }
+
 
         /**
          * Just for Portugal
          */
         public function disable_unless_portugal($available_gateways)
         {
-            if (!is_admin()) {
-                if (isset(WC()->customer)) {
-                    $country = version_compare(WC_VERSION, '3.0', '>=') ? WC()->customer->get_billing_country() : WC()->customer->get_country();
+            if (is_admin()) {
+                return $available_gateways;
+            }
 
-                    if (isset($available_gateways[$this->id])) {
-                        if ($available_gateways[$this->id]->only_portugal == 'yes' && trim($country) != 'PT') {
-                            unset($available_gateways[$this->id]);
-                        }
-                    }
-                }
+            // Primeiro tenta pelo WooCommerce Customer
+            $country = WC()->customer ? WC()->customer->get_billing_country() : '';
+
+            // Se não houver, tenta pelo POST
+            if (!$country && isset($_POST['country'])) {
+                $country = sanitize_text_field(wp_unslash($_POST['country']));
+            } elseif (!$country && isset($_POST['billing_country'])) {
+                $country = sanitize_text_field(wp_unslash($_POST['billing_country']));
+            }
+
+            if ($country !== 'PT') {
+                unset($available_gateways['eupago_mbway']);
             }
 
             return $available_gateways;
         }
+
+
+
 
         /**
          * Just above/below certain amounts
