@@ -6,7 +6,7 @@ Plugin URI:
 Requires at least: 4.4
 Tested up to: 6.8.3
 Requires PHP: 7.0
-Stable tag: 4.7.0
+Stable tag: 4.7.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,6 +44,9 @@ Para começar a receber pagamentos deve primeiro aderir aos serviços da Eupago.
 O cliente dispõe de cerca de 4 minutos para realizar o pagamento após a finalização da compra. Este tempo é definido pela própria MB WAY.
 
 == Changelog ==
+= 4.7.1(18/02/2026) =
+* Fix: Translations on error messages
+
 = 4.7.0(05/01/2026) =
 * Feature: Added Pagaqui payment method
 

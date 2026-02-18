@@ -42,7 +42,7 @@ const ContentMBWay = (props) => {
 	
 			return {
 				type: emitResponse.responseTypes.ERROR,
-				message: window.wp.i18n.__('Invalid Phone number or country code', 'eupago_mbway'),
+				message: window.wp.i18n.__('Invalid Phone number or country code', 'eupago-gateway-for-woocommerce'),
 			};
 		});
 		return () => {
