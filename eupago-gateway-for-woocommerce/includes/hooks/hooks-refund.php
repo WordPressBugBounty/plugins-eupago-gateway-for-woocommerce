@@ -5,11 +5,18 @@
 
 // Refund request Ajax
 add_action('wp_ajax_refund', 'refund_func');
-add_action('wp_ajax_nopriv_refund', 'refund_func');
+//add_action('wp_ajax_nopriv_refund', 'refund_func');
 
 function refund_func()
 {
-    // check_ajax_referer('refund_nonce', 'security');
+    // verifica o nonce (garante que o pedido veio do próprio painel do WP e não de fora)
+    check_ajax_referer('refund_nonce', 'security');
+
+    // verifica as permissões (garante que quem clicou tem poder para gerir a loja)
+    if (!current_user_can( 'manage_woocommerce' ) ) {
+        wp_send_json_error( [ 'message' => 'Não tem permissões para realizar esta ação.' ], 403 );
+        wp_die();
+    }
 
     $endpoint = get_option('eupago_endpoint');
 
@@ -20,12 +27,6 @@ function refund_func()
     $refund_iban   = isset($_POST['refund_iban'])   ? sanitize_text_field(wp_unslash($_POST['refund_iban']))   : '';
     $refund_bic    = isset($_POST['refund_bic'])    ? sanitize_text_field(wp_unslash($_POST['refund_bic']))    : '';
     $refund_name   = isset($_POST['refund_name'])   ? sanitize_text_field(wp_unslash($_POST['refund_name']))   : '';
-
-    $order = wc_get_order($refund_order);
-    
-    $trid  = $order->get_meta('_transaction_id', true);
-
-    $payment_method = $order->get_payment_method();
 
     $endpoint = get_option('eupago_endpoint');
     $order = wc_get_order($refund_order);
@@ -140,10 +141,11 @@ function refund_func()
 }
 
 // // Add nonce to the page
-// function eupago_add_ajax_nonce() {
-//     echo '<script>var eupago_ajax_nonce = "' . wp_create_nonce('refund_nonce') . '";</script>';
-// }
-// add_action('wp_head', 'eupago_add_ajax_nonce');
+function eupago_add_ajax_nonce()
+{
+    echo '<script>var eupago_ajax_nonce = "' . wp_create_nonce('refund_nonce') . '";</script>';
+}
+add_action('admin_head', 'eupago_add_ajax_nonce');
 
 // Add meta box for refund order.
 function eupago_refund()

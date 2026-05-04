@@ -3,7 +3,7 @@
 * Plugin Name: Eupago Gateway For Woocommerce
 * Plugin URI:
 * Description: This plugin allows customers to pay their orders with Multibanco, MB WAY, Payshop, Credit Card, CofidisPay, Bizum and EuroPix with Eupago’s gateway.
-* Version: 4.7.1
+* Version: 4.7.2
 * Author: Eupago
 * Author URI: https://www.eupago.pt/
 * Text Domain: eupago-gateway-for-woocommerce
@@ -26,7 +26,7 @@ if (!class_exists('WC_Eupago')) :
          *
          * @var string
          */
-        public const VERSION = '4.7.1';
+        public const VERSION = '4.7.2';
 
         /**
          * Instance of this class.
@@ -96,8 +96,6 @@ if (!class_exists('WC_Eupago')) :
 
                 add_action('wp_ajax_generate_ref', [ $this, 'new_ref_order_button_action' ]);
 
-                add_action('wp_ajax_nopriv_generate_ref', [ $this, 'new_ref_order_button_action' ]);
-
                 add_action('save_post_shop_order', function($post_id) {
                     $order = wc_get_order($post_id);
                     if ($order) {
@@ -108,6 +106,9 @@ if (!class_exists('WC_Eupago')) :
                         }
                     }
                 });
+
+                add_action('wp_ajax_eupago_update_callback', [ $this, 'ajax_update_callback' ]);
+                add_action('wp_ajax_eupago_sync_channel', [ $this, 'ajax_sync_channel' ]);
 
                 // Set Callback.
                 new WC_Eupago_Callback();
@@ -930,6 +931,164 @@ if (!class_exists('WC_Eupago')) :
                         $payment_method_registry->register(new \Automattic\WooCommerce\Blocks\Payments\Integrations\PagaquiBlock());
                     }
                 );
+            }
+        }
+
+        /**
+         * AJAX Handler para atualizar o Webhook (Callback)
+         */
+        public function ajax_update_callback()
+        {
+            // verificação de aegurança e permissões
+            check_ajax_referer('eupago_settings_nonce', 'security');
+            
+            if (!current_user_can('manage_options')) {
+                wp_send_json(['transactionStatus' => 'Rejected', 'text' => 'Acesso negado. Não tem permissões.']);
+            }
+
+            // sanitize
+            $clientId       = sanitize_text_field($_POST['client_id']);
+            $clientSecret   = sanitize_text_field($_POST['client_secret']);
+            $callbackApiKey = sanitize_text_field($_POST['callback_api_key']);
+            $callbackURL    = esc_url_raw($_POST['callback_url']);
+
+            $grantType = 'client_credentials';
+
+            if (substr($callbackApiKey, 0, 4) === 'demo') {
+                $url    = 'https://sandbox.eupago.pt/api/auth/token';
+                $newUrl = 'https://sandbox.eupago.pt/api/management/v1.02/channels/configuration/callback';
+            } else {
+                $url    = 'https://clientes.eupago.pt/api/auth/token';
+                $newUrl = 'https://clientes.eupago.pt/api/management/v1.02/channels/configuration/callback';
+            }
+
+            $auth_args = [
+                'body'    => json_encode([
+                    'grant_type'    => $grantType,
+                    'client_id'     => $clientId,
+                    'client_secret' => $clientSecret,
+                ]),
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'timeout' => 15,
+            ];
+
+            $auth_response = wp_remote_post($url, $auth_args);
+
+            if (is_wp_error($auth_response)) {
+                wp_send_json(['transactionStatus' => 'Rejected', 'text' => $auth_response->get_error_message()]);
+            }
+
+            $auth_body    = wp_remote_retrieve_body($auth_response);
+            $responseData = json_decode($auth_body, true);
+
+            if (isset($responseData['transactionStatus']) && $responseData['transactionStatus'] === 'Success') {
+                $accessToken = $responseData['access_token'];
+
+                $webhook_args = [
+                    'body'    => json_encode([
+                        'channelApiKey'           => $callbackApiKey,
+                        'receiveUrlNotifications' => 'Y',
+                        'url'                     => $callbackURL,
+                        'webhookVersion'          => 'v2.0',
+                        'webhookEncrypt'          => 'Y',
+                        'webhookTypes'            => ["PAID", "ERROR", "CANCELED", "EXPIRED"]
+                    ]),
+                    'headers' => [
+                        'Content-Type'  => 'application/json',
+                        'Authorization' => 'Bearer ' . $accessToken,
+                    ],
+                    'timeout' => 15,
+                ];
+
+                $webhook_response = wp_remote_post($newUrl, $webhook_args);
+
+                if (is_wp_error($webhook_response)) {
+                    wp_send_json(['transactionStatus' => 'Rejected', 'text' => $webhook_response->get_error_message()]);
+                }
+
+                $webhook_body    = wp_remote_retrieve_body($webhook_response);
+                $newResponseData = json_decode($webhook_body, true);
+
+                wp_send_json($newResponseData);
+            } else {
+                wp_send_json(['transactionStatus' => 'Rejected', 'text' => 'Erro de Autenticação: Verifique o Client ID e Client Secret.']);
+            }
+        }
+
+        /**
+         * AJAX Handler para sincronizar informações do Canal (Info Script)
+         */
+        public function ajax_sync_channel()
+        {
+            check_ajax_referer('eupago_settings_nonce', 'security');
+            
+            if (!current_user_can('manage_options')) {
+                wp_send_json(['transactionStatus' => 'Rejected', 'text' => 'Acesso negado. Não tem permissões.']);
+            }
+
+            $clientId       = sanitize_text_field($_POST['client_id']);
+            $clientSecret   = sanitize_text_field($_POST['client_secret']);
+            $callbackApiKey = sanitize_text_field($_POST['callback_api_key']);
+
+            $grantType = 'client_credentials';
+
+            if (substr($callbackApiKey, 0, 4) === 'demo') {
+                $url    = 'https://sandbox.eupago.pt/api/auth/token';
+                $newUrl = 'https://sandbox.eupago.pt/api/management/v1.02/channels/configuration/info';
+            } else {
+                $url    = 'https://clientes.eupago.pt/api/auth/token';
+                $newUrl = 'https://clientes.eupago.pt/api/management/v1.02/channels/configuration/info';
+            }
+
+            $auth_args = [
+                'body'    => json_encode([
+                    'grant_type'    => $grantType,
+                    'client_id'     => $clientId,
+                    'client_secret' => $clientSecret,
+                ]),
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'timeout' => 15,
+            ];
+
+            $auth_response = wp_remote_post($url, $auth_args);
+
+            if (is_wp_error($auth_response)) {
+                wp_send_json(['transactionStatus' => 'Rejected', 'text' => $auth_response->get_error_message()]);
+            }
+
+            $auth_body    = wp_remote_retrieve_body($auth_response);
+            $responseData = json_decode($auth_body, true);
+
+            if (isset($responseData['transactionStatus']) && $responseData['transactionStatus'] === 'Success') {
+                $accessToken = $responseData['access_token'];
+
+                $info_args = [
+                    'body'    => json_encode([
+                        'channelApiKey' => $callbackApiKey
+                    ]),
+                    'headers' => [
+                        'Content-Type'  => 'application/json',
+                        'Authorization' => 'Bearer ' . $accessToken,
+                    ],
+                    'timeout' => 15,
+                ];
+
+                $info_response = wp_remote_post($newUrl, $info_args);
+
+                if (is_wp_error($info_response)) {
+                    wp_send_json(['transactionStatus' => 'Rejected', 'text' => $info_response->get_error_message()]);
+                }
+
+                $info_body    = wp_remote_retrieve_body($info_response);
+                $newResponseData = json_decode($info_body, true);
+
+                wp_send_json($newResponseData);
+            } else {
+                wp_send_json(['transactionStatus' => 'Rejected', 'text' => 'Erro de Autenticação: Verifique o Client ID e Client Secret.']);
             }
         }
     }
