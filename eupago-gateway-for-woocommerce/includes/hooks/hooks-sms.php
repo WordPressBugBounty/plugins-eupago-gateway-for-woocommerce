@@ -1,5 +1,7 @@
 <?php
 
+use WC_Eupago;
+
 /**
 * Eupago SMS.
 */
@@ -102,7 +104,10 @@ function send_sms_pending($order_id) {
       $args = array(
          'headers' => array(
             'Accept: application/json',
-            'Content-Type: application/x-www-form-urlencoded'
+            'Content-Type: application/x-www-form-urlencoded',
+            'X-App-Source'   => WC_Eupago::SOURCE,
+            'X-App-Version'  => WC_Eupago::VERSION,
+            'X-Runtime-Info' => 'PHP ' . PHP_VERSION
          ),
          'body' => array(
             'mobile_num'    => $phone,
@@ -135,7 +140,10 @@ function send_sms_processing($order_id) {
       $args = array(
          'headers' => array(
             'Accept: application/json',
-            'Content-Type: application/x-www-form-urlencoded'
+            'Content-Type: application/x-www-form-urlencoded',
+            'X-App-Source'   => WC_Eupago::SOURCE,
+            'X-App-Version'  => WC_Eupago::VERSION,
+            'X-Runtime-Info' => 'PHP ' . PHP_VERSION
          ),
          'body' => array(
             'mobile_num'    => $phone,

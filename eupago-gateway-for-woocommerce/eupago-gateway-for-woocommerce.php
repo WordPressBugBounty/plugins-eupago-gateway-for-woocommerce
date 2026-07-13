@@ -3,7 +3,7 @@
 * Plugin Name: Eupago Gateway For Woocommerce
 * Plugin URI:
 * Description: This plugin allows customers to pay their orders with Multibanco, MB WAY, Payshop, Credit Card, CofidisPay, Bizum and EuroPix with Eupago’s gateway.
-* Version: 4.7.2
+* Version: 4.7.3
 * Author: Eupago
 * Author URI: https://www.eupago.pt/
 * Text Domain: eupago-gateway-for-woocommerce
@@ -26,7 +26,14 @@ if (!class_exists('WC_Eupago')) :
          *
          * @var string
          */
-        public const VERSION = '4.7.2';
+        public const VERSION = '4.7.3';
+
+        /**
+         * Plugin source for API tracking.
+         *
+         * @var string
+         */
+        public const SOURCE = 'woocommerce';
 
         /**
          * Instance of this class.
@@ -45,8 +52,11 @@ if (!class_exists('WC_Eupago')) :
         public function __construct()
         {
 
-            // Load plugin text domain
-            add_action('init', [ $this, 'load_plugin_textdomain' ]);
+            // Register the translations path immediately (loading itself is lazy since WP 6.1).
+            // WooCommerce constructs the gateways on init priority 0, so an init-hooked
+            // load_plugin_textdomain would run too late: the just-in-time loader would cache
+            // the plugin root as the translations path and every label would stay in English.
+            $this->load_plugin_textdomain();
 
             // Load CSS and JS
             add_action('admin_enqueue_scripts', [ $this, 'load_scripts' ]);
@@ -714,6 +724,12 @@ if (!class_exists('WC_Eupago')) :
 
         private function is_hpos_compliant()
         {
+            // Bail if WooCommerce is not loaded (e.g. deactivated or still bootstrapping),
+            // otherwise referencing WC_VERSION would trigger a fatal "Undefined constant" error.
+            if (!defined('WC_VERSION') || !function_exists('wc_get_container')) {
+                return false;
+            }
+
             // Check if HPOS compliance is enabled
             if (version_compare(WC_VERSION, '7.1', '>=')) {
                 $customOrdersTableController = wc_get_container()->get(\Automattic\WooCommerce\Internal\DataStores\Orders\CustomOrdersTableController::class);
@@ -970,6 +986,9 @@ if (!class_exists('WC_Eupago')) :
                 ]),
                 'headers' => [
                     'Content-Type' => 'application/json',
+                    'X-App-Source'   => WC_Eupago::SOURCE,
+                    'X-App-Version'  => WC_Eupago::VERSION,
+                    'X-Runtime-Info' => 'PHP ' . PHP_VERSION
                 ],
                 'timeout' => 15,
             ];
@@ -998,6 +1017,9 @@ if (!class_exists('WC_Eupago')) :
                     'headers' => [
                         'Content-Type'  => 'application/json',
                         'Authorization' => 'Bearer ' . $accessToken,
+                        'X-App-Source'   => WC_Eupago::SOURCE,
+                        'X-App-Version'  => WC_Eupago::VERSION,
+                        'X-Runtime-Info' => 'PHP ' . PHP_VERSION
                     ],
                     'timeout' => 15,
                 ];
@@ -1050,6 +1072,9 @@ if (!class_exists('WC_Eupago')) :
                 ]),
                 'headers' => [
                     'Content-Type' => 'application/json',
+                    'X-App-Source'   => WC_Eupago::SOURCE,
+                    'X-App-Version'  => WC_Eupago::VERSION,
+                    'X-Runtime-Info' => 'PHP ' . PHP_VERSION
                 ],
                 'timeout' => 15,
             ];
@@ -1073,6 +1098,9 @@ if (!class_exists('WC_Eupago')) :
                     'headers' => [
                         'Content-Type'  => 'application/json',
                         'Authorization' => 'Bearer ' . $accessToken,
+                        'X-App-Source'   => WC_Eupago::SOURCE,
+                        'X-App-Version'  => WC_Eupago::VERSION,
+                        'X-Runtime-Info' => 'PHP ' . PHP_VERSION
                     ],
                     'timeout' => 15,
                 ];

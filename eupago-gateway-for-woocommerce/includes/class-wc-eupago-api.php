@@ -1,5 +1,6 @@
 <?php
 
+use WC_Eupago;
 /**
  * WC Eupago API Class.
  */
@@ -152,6 +153,9 @@ class WC_Eupago_API
       'Content-Type: application/json',
       'Accept: application/json',
       'Authorization: ApiKey ' . $this->get_api_key(),
+      'X-App-Source'   => WC_Eupago::SOURCE,
+      'X-App-Version'  => WC_Eupago::VERSION,
+      'X-Runtime-Info' => 'PHP ' . PHP_VERSION
     );
 
     $curl = curl_init();
@@ -205,6 +209,9 @@ class WC_Eupago_API
       'Content-Type: application/json',
       'Accept: application/json',
       'Authorization: ApiKey ' . $this->get_api_key(),
+      'X-App-Source'   => WC_Eupago::SOURCE,
+      'X-App-Version'  => WC_Eupago::VERSION,
+      'X-Runtime-Info' => 'PHP ' . PHP_VERSION
     );
 
     $curl = curl_init();
@@ -287,7 +294,10 @@ class WC_Eupago_API
     $headers = array(
       'Authorization:ApiKey ' . $this->get_api_key(),
       'Accept: application/json',
-      'Content-Type: application/json'
+      'Content-Type: application/json',
+      'X-App-Source'   => WC_Eupago::SOURCE,
+      'X-App-Version'  => WC_Eupago::VERSION,
+      'X-Runtime-Info' => 'PHP ' . PHP_VERSION
     );
 
     $curl = curl_init();
@@ -333,7 +343,10 @@ class WC_Eupago_API
     $headers = array(
       'Authorization: ApiKey ' . $this->get_api_key(),
       'Accept: application/json',
-      'Content-Type: application/json'
+      'Content-Type: application/json',
+      'X-App-Source'   => WC_Eupago::SOURCE,
+      'X-App-Version'  => WC_Eupago::VERSION,
+      'X-Runtime-Info' => 'PHP ' . PHP_VERSION
     );
 
     $curl = curl_init();
@@ -386,7 +399,10 @@ class WC_Eupago_API
 
     $headers = array(
       'Authorization: ApiKey ' . $this->get_api_key(),
-      'Content-Type: application/json'
+      'Content-Type: application/json',
+      'X-App-Source'   => WC_Eupago::SOURCE,
+      'X-App-Version'  => WC_Eupago::VERSION,
+      'X-Runtime-Info' => 'PHP ' . PHP_VERSION
     );
 
     $curl = curl_init();
@@ -472,6 +488,9 @@ class WC_Eupago_API
       'Content-Type: application/json',
       'Accept: application/json',
       'Authorization: ApiKey ' . $api_key,
+      'X-App-Source'   => WC_Eupago::SOURCE,
+      'X-App-Version'  => WC_Eupago::VERSION,
+      'X-Runtime-Info' => 'PHP ' . PHP_VERSION
     ];
 
     $curl = curl_init();
@@ -651,6 +670,9 @@ class WC_Eupago_API
           'Cache-Control' => 'no-cache',
           'X-WP-Nonce' => $nonce,
           'Authorization' => 'ApiKey ' . $this->get_api_key(),
+          'X-App-Source'   => WC_Eupago::SOURCE,
+          'X-App-Version'  => WC_Eupago::VERSION,
+          'X-Runtime-Info' => 'PHP ' . PHP_VERSION
         ],
         'body' => json_encode($data),
       ]
@@ -737,6 +759,9 @@ class WC_Eupago_API
           'Content-Type: application/json',
           'Accept: application/json',
           'Authorization: ApiKey ' . $this->get_api_key(),
+          'X-App-Source'   => WC_Eupago::SOURCE,
+          'X-App-Version'  => WC_Eupago::VERSION,
+          'X-Runtime-Info' => 'PHP ' . PHP_VERSION
       );
       
       $curl = curl_init();
@@ -783,6 +808,9 @@ class WC_Eupago_API
       'Content-Type: application/json',
       'Accept: application/json',
       'Authorization: ApiKey ' . $this->get_api_key(),
+      'X-App-Source'   => WC_Eupago::SOURCE,
+      'X-App-Version'  => WC_Eupago::VERSION,
+      'X-Runtime-Info' => 'PHP ' . PHP_VERSION
     );
 
     $curl = curl_init();

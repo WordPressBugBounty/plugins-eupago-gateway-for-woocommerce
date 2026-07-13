@@ -90,7 +90,7 @@ switch ($payment_method) {
   echo '<img src="' . plugins_url('assets/images/cc_icon.jpg', dirname(dirname(__FILE__))) . '" alt="' . esc_attr($payment_method_title) . '" title="' . esc_attr($payment_method_title) . '" /><br />';
   echo '<b>'.__('Reference', 'eupago-gateway-for-woocommerce').'</b>: '.chunk_split(trim(get_post_meta($post->ID, '_eupago_cc_referencia', true)), 3, ' ').'<br/>';
   echo '<b>'.__('Value', 'eupago-gateway-for-woocommerce').'</b>: '.wc_price( $order_total ).'<br/>';
-  echo !empty(get_post_meta($post->ID, "_eupago_cc_link", true)) ? '<b>'.__('Payment Link', 'eupago-gateway-for-woocommerce').'</b>: <a href='.get_post_meta($post->ID, "_eupago_cc_link", true).' target="_black">Click here</a>' : '';
+  echo !empty(get_post_meta($post->ID, "_eupago_cc_link", true)) ? '<b>'.__('Payment Link', 'eupago-gateway-for-woocommerce').'</b>: <a href='.get_post_meta($post->ID, "_eupago_cc_link", true).' target="_black">' . esc_html(__('Click here', 'eupago-gateway-for-woocommerce')) . '</a>' : '';
   break;
 
   case 'eupago_cofidispay':
@@ -111,7 +111,7 @@ switch ($payment_method) {
   echo '<img src="' . plugins_url('assets/images/cofidispay.png', dirname(dirname(__FILE__))) . '" alt="' . esc_attr($payment_method_title) . '" title="' . esc_attr($payment_method_title) . '" /><br />';
   echo '<b>'.__('Reference', 'eupago-gateway-for-woocommerce').'</b>: '.chunk_split(trim(get_post_meta($post->ID, '_eupago_cofidispay_referencia', true)), 3, ' ').'<br/>';
   echo '<b>'.__('Value', 'eupago-gateway-for-woocommerce').'</b>: '.wc_price( $order_total ).'<br/>';
-  echo !empty(get_post_meta($post->ID, "_eupago_cofidispay_redirectUrl", true)) ? '<b>'.__('Payment Link', 'eupago-gateway-for-woocommerce').'</b>: <a href='.get_post_meta($post->ID, "_eupago_cofidispay_redirectUrl", true).' target="_black">Click here</a>' : '';
+  echo !empty(get_post_meta($post->ID, "_eupago_cofidispay_redirectUrl", true)) ? '<b>'.__('Payment Link', 'eupago-gateway-for-woocommerce').'</b>: <a href='.get_post_meta($post->ID, "_eupago_cofidispay_redirectUrl", true).' target="_black">' . esc_html(__('Click here', 'eupago-gateway-for-woocommerce')) . '</a>' : '';
   break;
 
   case 'eupago_payshop':
@@ -138,7 +138,7 @@ switch ($payment_method) {
     echo '<img src="' . plugins_url('assets/images/bizum_icon.png', dirname(dirname(__FILE__))) . '" alt="' . esc_attr($payment_method_title) . '" title="' . esc_attr($payment_method_title) . '" /><br />';
     echo '<b>' . __('Reference', 'eupago-gateway-for-woocommerce') . '</b>: ' . esc_html(get_post_meta($post->ID, '_eupago_bizum_referencia', true)) . '<br/>';
     echo '<b>' . __('Value', 'eupago-gateway-for-woocommerce') . '</b>: ' . wc_price($order_total) . '<br/>';
-    echo !empty(get_post_meta($post->ID, "_eupago_bizum_redirect_url", true)) ? '<b>' . __('Payment Link', 'eupago-gateway-for-woocommerce') . '</b>: <a href=' . get_post_meta($post->ID, "_eupago_bizum_redirect_url", true) . ' target="_black">Click here</a>' : '';
+    echo !empty(get_post_meta($post->ID, "_eupago_bizum_redirect_url", true)) ? '<b>' . __('Payment Link', 'eupago-gateway-for-woocommerce') . '</b>: <a href=' . get_post_meta($post->ID, "_eupago_bizum_redirect_url", true) . ' target="_black">' . esc_html(__('Click here', 'eupago-gateway-for-woocommerce')) . '</a>' : '';
     break;
 
     case 'eupago_pix':
@@ -164,8 +164,8 @@ switch ($payment_method) {
       <p>
           <img src="<?php echo plugins_url('assets/images/googlepay_icon.png', dirname(dirname(__FILE__))); ?>" alt="<?php echo esc_attr($payment_method_title); ?>" title="<?php echo esc_attr($payment_method_title); ?>" /><br>
       </p>
-      <p><strong><?php _e('Reference:', 'eupago-gateway-for-woocommerce'); ?></strong><br><?php echo esc_html($reference); ?></p>
-      <p><strong><?php _e('Value:', 'eupago-gateway-for-woocommerce'); ?></strong><br><?php echo wc_price($value); ?></p>
+      <p><strong><?php echo esc_html(__('Reference:', 'eupago-gateway-for-woocommerce')); ?></strong><br><?php echo esc_html($reference); ?></p>
+      <p><strong><?php echo esc_html(__('Value:', 'eupago-gateway-for-woocommerce')); ?></strong><br><?php echo wc_price($value); ?></p>
       <?php
     break;
     case 'eupago_applepay':
@@ -175,8 +175,8 @@ switch ($payment_method) {
       <p>
           <img src="<?php echo plugins_url('assets/images/applepay_icon.png', dirname(dirname(__FILE__))); ?>" alt="<?php echo esc_attr($payment_method_title); ?>" title="<?php echo esc_attr($payment_method_title); ?>" /><br>
       </p>
-      <p><strong><?php _e('Reference:', 'eupago-gateway-for-woocommerce'); ?></strong><br><?php echo esc_html($reference); ?></p>
-      <p><strong><?php _e('Value:', 'eupago-gateway-for-woocommerce'); ?></strong><br><?php echo wc_price($value); ?></p>
+      <p><strong><?php echo esc_html(__('Reference:', 'eupago-gateway-for-woocommerce')); ?></strong><br><?php echo esc_html($reference); ?></p>
+      <p><strong><?php echo esc_html(__('Value:', 'eupago-gateway-for-woocommerce')); ?></strong><br><?php echo wc_price($value); ?></p>
       <?php
     break;
     case 'eupago_floa':
@@ -186,8 +186,8 @@ switch ($payment_method) {
       <p>
           <img src="<?php echo plugins_url('assets/images/floa_blue.png', dirname(dirname(__FILE__))); ?>" alt="<?php echo esc_attr($payment_method_title); ?>" title="<?php echo esc_attr($payment_method_title); ?>" /><br>
       </p>
-      <p><strong><?php _e('Reference:', 'eupago-gateway-for-woocommerce'); ?></strong><br><?php echo esc_html($reference); ?></p>
-      <p><strong><?php _e('Value:', 'eupago-gateway-for-woocommerce'); ?></strong><br><?php echo wc_price($value); ?></p>
+      <p><strong><?php echo esc_html(__('Reference:', 'eupago-gateway-for-woocommerce')); ?></strong><br><?php echo esc_html($reference); ?></p>
+      <p><strong><?php echo esc_html(__('Value:', 'eupago-gateway-for-woocommerce')); ?></strong><br><?php echo wc_price($value); ?></p>
       <?php
     break;
   case 'eupago_pagaqui':

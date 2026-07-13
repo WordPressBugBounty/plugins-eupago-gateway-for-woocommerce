@@ -266,13 +266,10 @@ msgstr ""
 msgid "ERROR!"
 msgstr ""
 
+#. Author of the plugin
 #: includes/views/eupago-admin-page.php:9
 #: includes/views/eupago-admin-page.php:10
 #: includes/views/eupago-admin-page.php:188
-msgid "Eupago"
-msgstr ""
-
-#. Author of the plugin
 msgid "Eupago"
 msgstr ""
 
@@ -812,4 +809,20 @@ msgstr ""
 #: includes/hooks/hooks-sms.php:93
 #, php-format
 msgid "Your order #%d on %s is now finished."
+msgstr ""
+
+#: includes/views/order-meta-box.php includes/views/order-meta-box-hpos.php
+msgid "Payment Link"
+msgstr ""
+
+#: includes/views/order-meta-box.php includes/views/order-meta-box-hpos.php
+msgid "Click here"
+msgstr ""
+
+#: includes/views/order-meta-box.php includes/views/order-meta-box-hpos.php
+msgid "EuroPix Code"
+msgstr ""
+
+#: includes/views/order-meta-box.php includes/views/order-meta-box-hpos.php
+msgid "QR Code"
 msgstr ""

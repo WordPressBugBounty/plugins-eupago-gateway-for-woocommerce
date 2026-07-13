@@ -1,3 +1,14 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: EuPago Gateway For Woocommerce\n"
+"Language-Team: Español\n"
+"Language: es_ES\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Domain: eupago-gateway-for-woocommerce\n"
+
 #: templates/payment-instructions.php:24 templates/payment-instructions.php:56
 #: templates/payment-instructions.php:78 templates/payment-instructions.php:99
 #: templates/emails/plain-instructions.php:17
@@ -44,3 +55,34 @@ msgstr "Ha sido redirigido para completar su pago con Floa."
 #: templates/payment-instructions.php
 msgid "The receipt issued by Pagaqui serves as proof of payment. Please keep it."
 msgstr "El recibo emitido por Pagaqui sirve como comprobante de pago. Por favor, consérvelo."
+#: eupago-gateway-for-woocommerce.php
+msgid "Eupago Payment Details"
+msgstr "Detalles de pago Eupago"
+
+#: includes/views/order-meta-box.php includes/views/order-meta-box-hpos.php
+msgid "No details available"
+msgstr "No hay detalles disponibles"
+
+#: includes/views/order-meta-box.php includes/views/order-meta-box-hpos.php
+msgid "Payment Link"
+msgstr "Enlace de pago"
+
+#: includes/views/order-meta-box.php includes/views/order-meta-box-hpos.php
+msgid "Click here"
+msgstr "Haga clic aquí"
+
+#: includes/views/order-meta-box.php includes/views/order-meta-box-hpos.php
+msgid "EuroPix Code"
+msgstr "Código EuroPix"
+
+#: includes/views/order-meta-box.php includes/views/order-meta-box-hpos.php
+msgid "QR Code"
+msgstr "Código QR"
+
+#: includes/views/order-meta-box.php
+msgid "Reference:"
+msgstr "Referencia:"
+
+#: includes/views/order-meta-box.php
+msgid "Value:"
+msgstr "Importe:"

@@ -281,13 +281,10 @@ msgstr "Erro a obter detalhas de pagamento"
 msgid "ERROR!"
 msgstr "ERRO!"
 
+#. Author of the plugin
 #: includes/views/eupago-admin-page.php:9
 #: includes/views/eupago-admin-page.php:10
 #: includes/views/eupago-admin-page.php:188
-msgid "Eupago"
-msgstr "Eupago"
-
-#. Author of the plugin
 msgid "Eupago"
 msgstr "Eupago"
 
@@ -860,3 +857,19 @@ msgstr "Confirmamos a finalização da encomenda #%d em %s."
 #: templates/payment-instructions.php
 msgid "The receipt issued by Pagaqui serves as proof of payment. Please keep it."
 msgstr "O talão emitido pela Pagaqui serve de prova de pagamento. Por favor, guarde-o."
+
+#: includes/views/order-meta-box.php includes/views/order-meta-box-hpos.php
+msgid "Payment Link"
+msgstr "Link de pagamento"
+
+#: includes/views/order-meta-box.php includes/views/order-meta-box-hpos.php
+msgid "Click here"
+msgstr "Clique aqui"
+
+#: includes/views/order-meta-box.php includes/views/order-meta-box-hpos.php
+msgid "EuroPix Code"
+msgstr "Código EuroPix"
+
+#: includes/views/order-meta-box.php includes/views/order-meta-box-hpos.php
+msgid "QR Code"
+msgstr "Código QR"
