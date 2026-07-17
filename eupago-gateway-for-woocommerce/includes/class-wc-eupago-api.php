@@ -1,6 +1,5 @@
 <?php
 
-use WC_Eupago;
 /**
  * WC Eupago API Class.
  */

@@ -1,7 +1,5 @@
 <?php
 
-use WC_Eupago;
-
 /**
 * Eupago SMS.
 */

@@ -6,7 +6,7 @@ Plugin URI:
 Requires at least: 4.4
 Tested up to: 6.8.3
 Requires PHP: 7.0
-Stable tag: 4.7.3
+Stable tag: 4.7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -44,6 +44,9 @@ Para começar a receber pagamentos deve primeiro aderir aos serviços da Eupago.
 O cliente dispõe de cerca de 4 minutos para realizar o pagamento após a finalização da compra. Este tempo é definido pela própria MB WAY.
 
 == Changelog ==
+= 4.7.4(17/07/2026) =
+* Fix: Remove invalid use statements that caused PHP warnings visible on client websites
+
 = 4.7.3(13/07/2026) =
 * Feature: Add telemetry headers to API requests
 * Feature: Add translations to plugin (entity/reference/value/Limit date)
