@@ -873,3 +873,17 @@ msgstr "Código EuroPix"
 #: includes/views/order-meta-box.php includes/views/order-meta-box-hpos.php
 msgid "QR Code"
 msgstr "Código QR"
+
+
+
+#: includes/class-wc-eupago-payment-return.php
+msgid "The customer left the Eupago payment page without paying. The cart was restored so they can try again."
+msgstr "O cliente saiu da página de pagamento Eupago sem pagar. O carrinho foi reposto para poder tentar de novo."
+
+#: includes/class-wc-eupago-payment-return.php
+msgid "The payment was not completed. Your cart has been restored so you can try again."
+msgstr "O pagamento não foi concluído. O carrinho foi reposto para poder tentar de novo."
+
+#: includes/class-wc-eupago-email-instructions.php
+msgid "Payment method"
+msgstr "Método de pagamento"

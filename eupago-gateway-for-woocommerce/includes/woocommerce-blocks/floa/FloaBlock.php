@@ -48,7 +48,11 @@ final class FloaBlock extends AbstractPaymentMethodType
      */
     public function is_active()
     {
-        return ! empty($this->settings['enabled']) && 'yes' === $this->settings['enabled'];
+        // Without a registered gateway (e.g. terms not accepted yet after an
+        // activation) there is nothing to pay with, so do not load the block.
+        return $this->gateway !== null
+            && ! empty($this->settings['enabled'])
+            && 'yes' === $this->settings['enabled'];
     }
 
     /**
@@ -128,7 +132,7 @@ final class FloaBlock extends AbstractPaymentMethodType
             'description'       => $description,
             'installmentsText'  => $installmentsText,
             'bannerUrl'         => esc_url( $banner_url ),
-            'supports'          => array_filter( $this->gateway->supports, [ $this->gateway, 'supports' ] )
+            'supports'          => $this->gateway ? array_filter( $this->gateway->supports, [ $this->gateway, 'supports' ] ) : []
         ];
     }
 }

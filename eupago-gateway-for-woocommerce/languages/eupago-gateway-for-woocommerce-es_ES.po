@@ -86,3 +86,17 @@ msgstr "Referencia:"
 #: includes/views/order-meta-box.php
 msgid "Value:"
 msgstr "Importe:"
+
+
+
+#: includes/class-wc-eupago-payment-return.php
+msgid "The customer left the Eupago payment page without paying. The cart was restored so they can try again."
+msgstr "El cliente salió de la página de pago de Eupago sin pagar. El carrito se ha restaurado para que pueda intentarlo de nuevo."
+
+#: includes/class-wc-eupago-payment-return.php
+msgid "The payment was not completed. Your cart has been restored so you can try again."
+msgstr "El pago no se completó. El carrito se ha restaurado para que pueda intentarlo de nuevo."
+
+#: includes/class-wc-eupago-email-instructions.php
+msgid "Payment method"
+msgstr "Método de pago"

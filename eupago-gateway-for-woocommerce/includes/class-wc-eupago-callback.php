@@ -21,16 +21,25 @@ class WC_Eupago_Callback
         add_action('woocommerce_api_wc_eupago', array($this, 'callback_handler'));
     }
 
+    protected function debug_log($message)
+    {
+        if ($this->log instanceof WC_Logger) {
+            $this->log->add($this->id, $message);
+        }
+    }
+
     function callback_log($message, $error = false)
     {
         $title = $error ? __('Error', 'eupago-gateway-for-woocommerce') : __('Success', 'eupago-gateway-for-woocommerce');
         $response = $error ? 500 : 200;
 
-        if ($this->integration->debug) {
-            $this->log->add($this->id, '- Callback (' . $_SERVER['REQUEST_URI'] . ') ' . $_SERVER['REMOTE_ADDR'] . ' - ' . $message);
-        }
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+        $remote_addr = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+
+        $this->debug_log('- Callback (' . $request_uri . ') ' . $remote_addr . ' - ' . $message);
         if ($this->integration->debug_email != '') {
-            wp_mail($this->integration->debug_email, $this->id . ' - Error: Callback with missing arguments', 'Callback ( ' . $_SERVER['HTTP_HOST'] . ' ' . $_SERVER['REQUEST_URI'] . ' ) with missing arguments from ' . $_SERVER['REMOTE_ADDR'] . $message);
+            $http_host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : '';
+            wp_mail($this->integration->debug_email, $this->id . ' - Error: Callback with missing arguments', 'Callback ( ' . $http_host . ' ' . $request_uri . ' ) with missing arguments from ' . $remote_addr . $message);
         }
 
         wp_die($message, $title, array('response' => $response));
@@ -38,9 +47,9 @@ class WC_Eupago_Callback
 
     public function callback_handler()
     {
-        $this->log->add($this->id, 'Callback handler triggered.');
+        $this->debug_log('Callback handler triggered.');
 
-        $request_method = $_SERVER['REQUEST_METHOD'];
+        $request_method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : '';
         $order = null;
         $transacao = null;
         $data = null;
@@ -50,7 +59,7 @@ class WC_Eupago_Callback
         $status = null;
 
         if ($request_method === 'POST') {
-            $this->log->add($this->id, 'Processing POST request...');
+            $this->debug_log('Processing POST request...');
 
             if (function_exists('getallheaders')) {
                 $headers = getallheaders();
@@ -78,19 +87,41 @@ class WC_Eupago_Callback
             if (empty($key)) {
                 $this->callback_log('Chave criptográfica não configurada.', true);
                 return;
-            } else {
-                $post_body = json_decode(file_get_contents('php://input'), true);
-                if ($key == 'NA') {
-                    $response_data = $post_body;
-                } else {
-                    $encrypted_data = $post_body['data'] ?? '';
-                    $response_data = json_decode($this->decryptData($encrypted_data, $iv, $key), true);
-                    $isSignatureVerified = $this->verifySignature($encrypted_data, $signature, $key);
+            }
 
-                    if (!$isSignatureVerified || empty($response_data)) {
-                        $this->callback_log('Assinatura inválida ou dados desencriptados inválidos', true);
-                        return;
-                    }
+            $raw_body  = file_get_contents('php://input');
+            $post_body = json_decode($raw_body, true);
+
+            // Encrypted deliveries carry the ciphertext in "data" plus an IV header;
+            // unencrypted ones carry the transaction JSON directly in the body.
+            $is_encrypted = is_array($post_body) && isset($post_body['data']) && is_string($post_body['data']) && $iv !== '';
+
+            if ($key == 'NA') {
+                // Channel without a key (older channels). There is nothing to verify
+                // the signature against, so only unencrypted payloads can be processed.
+                if ($is_encrypted) {
+                    $this->callback_log('Webhook encriptado mas o canal não tem chave configurada. Sincronize o canal nas definições do plugin.', true);
+                    return;
+                }
+                $this->debug_log('Channel key is NA: processing unsigned webhook.');
+                $response_data = $post_body;
+            } else {
+                // Every webhook is signed with the channel key, encrypted or not:
+                // HMAC over the ciphertext when encrypted, over the raw body otherwise.
+                $signed_payload = $is_encrypted ? $post_body['data'] : $raw_body;
+
+                if ($signature === '' || !$this->verifySignature($signed_payload, $signature, $key)) {
+                    $this->callback_log('Assinatura inválida', true);
+                    return;
+                }
+
+                $response_data = $is_encrypted
+                    ? json_decode($this->decryptData($post_body['data'], $iv, $key), true)
+                    : $post_body;
+
+                if (empty($response_data) || !is_array($response_data)) {
+                    $this->callback_log('Dados do webhook inválidos', true);
+                    return;
                 }
             }
 
@@ -102,7 +133,7 @@ class WC_Eupago_Callback
             $status = isset($response_data['transaction']['status']) ? strtoupper(sanitize_text_field($response_data['transaction']['status'])) : '';
 
         } elseif ($request_method === 'GET') {
-            $this->log->add($this->id, 'Processing GET request...');
+            $this->debug_log('Processing GET request...');
 
             $api_key = isset($_GET['chave_api']) ? sanitize_text_field($_GET['chave_api']) : '';
             if (!$api_key || $api_key !== $this->integration->get_api()) {
@@ -135,6 +166,11 @@ class WC_Eupago_Callback
 
         if (!$order->has_status(['on-hold', 'pending'])) {
             $this->callback_log('Pedido já não se encontra pendente.', true);
+            return;
+        }
+
+        if (strpos((string) $order->get_payment_method(), 'eupago_') !== 0) {
+            $this->callback_log('Pedido não foi pago através da Eupago.', true);
             return;
         }
 
@@ -203,15 +239,15 @@ class WC_Eupago_Callback
 
     public function decryptData($encrypted_data, $iv, $key)
     {
-        $this->log->add($this->id, 'Decrypting data...');
+        $this->debug_log('Decrypting data...');
         $cipher = 'aes-256-cbc';
         $options = OPENSSL_RAW_DATA;
         $response_data = openssl_decrypt(base64_decode($encrypted_data), $cipher, $key, $options, base64_decode($iv));
 
         if ($response_data) {
-            $this->log->add($this->id, 'Data decrypted successfully.');
+            $this->debug_log('Data decrypted successfully.');
         } else {
-            $this->log->add($this->id, 'Failed to decrypt data.', true);
+            $this->debug_log('Failed to decrypt data.');
         }
 
         return $response_data;
@@ -219,13 +255,13 @@ class WC_Eupago_Callback
 
     public function verifySignature($encrypted_data, $signature, $key)
     {
-        $this->log->add($this->id, 'Verifying signature...');
+        $this->debug_log('Verifying signature...');
         $generated_signature = hash_hmac('sha256', $encrypted_data, $key, true);
 
         if ($generated_signature) {
-            $this->log->add($this->id, 'Signature verified successfully.');
+            $this->debug_log('Signature verified successfully.');
         } else {
-            $this->log->add($this->id, 'Failed to verify signature.', true);
+            $this->debug_log('Failed to verify signature.');
         }
 
         return hash_equals($generated_signature, base64_decode($signature));
@@ -241,7 +277,6 @@ class WC_Eupago_Callback
                 'CC:PT' => ['eupago_cc'],
                 'PSC:PT' => ['eupago_psc'],
                 'PF:PT' => ['eupago_pf'],
-                'CP:PT' => ['eupago_cofidispay'],
                 'BZ:PT' => ['eupago_bizum'],
                 'PX:PT' => ['eupago_pix'],
                 'PQ:PT' => ['eupago_pagaqui'],
@@ -265,7 +300,6 @@ class WC_Eupago_Callback
                 'eupago_cc' => 'WC_Eupago_CC',
                 'eupago_psc' => 'WC_Eupago_PSC',
                 'eupago_pf' => 'WC_Eupago_PF',
-                'eupago_codifispay' => 'WC_Eupago_CofidisPay',
                 'eupago_bizum' => 'WC_Eupago_Bizum',
                 'eupago_pix' => 'WC_Eupago_Pix',
                 'eupago_pagaqui' => 'WC_Eupago_Pagaqui',

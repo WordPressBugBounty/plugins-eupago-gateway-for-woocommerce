@@ -27,10 +27,12 @@ const ContentPagaqui = (props) => {
 
 const LabelPagaqui = (props) => {
 	var icon = React.createElement('img', {
-	  src: '/wp-content/plugins/eupago-gateway-for-woocommerce/assets/images/pagaqui_banner.png',
+	  src: '/wp-content/plugins/eupago-gateway-for-woocommerce/assets/images/pagaqui_logo.png',
+	  alt: 'Pagaqui',
+	  // Size comes from assets/css/checkout.css (one rule for both checkouts).
 	  style: {
-		display: 'inline',
-		marginLeft: '5px', // Adjust the value as needed
+	    display: 'inline',
+	    marginLeft: '6px',
 	  },
 	});
 	var span = React.createElement('span', {

@@ -24,28 +24,13 @@ switch ($payment_method) {
       } else {
         $eupagoMultibanco = $pedido = $client->getReferenciaMB($post->ID, $order_total, $duplicate_payments);
       }
-      if (extension_loaded('soap')) {
-        if ( $eupagoMultibanco->estado != 0 ) {
-          $error_message = $eupagoMultibanco->resposta;
-          wc_add_notice( __('Payment error:', 'eupago-gateway-for-woocommerce') . $error_message, 'error' );
-          return;
-        }
-      } else {
-        $eupagoMultibanco_decode = json_decode($eupagoMultibanco, true);
-        if ( $eupagoMultibanco_decode['estado'] != 0 ) {
-          $error_message = $eupagoMultibanco_decode['resposta'];
-          wc_add_notice( __('Payment error:', 'eupago-gateway-for-woocommerce') . $error_message, 'error' );
-          return;
-        }
+      if ( ! is_object( $eupagoMultibanco ) || ! isset( $eupagoMultibanco->estado ) || $eupagoMultibanco->estado != 0 ) {
+        $error_message = is_object( $eupagoMultibanco ) && isset( $eupagoMultibanco->resposta ) ? $eupagoMultibanco->resposta : '';
+        wc_add_notice( __('Payment error:', 'eupago-gateway-for-woocommerce') . $error_message, 'error' );
+        return;
       }
-      if (extension_loaded('soap')) {
-        update_post_meta ($post->ID, '_eupago_multibanco_entidade', $eupagoMultibanco->entidade);
-        update_post_meta ($post->ID, '_eupago_multibanco_referencia', $eupagoMultibanco->referencia);
-      } else {
-        $eupagoMultibanco_decode = json_decode($eupagoMultibanco, true);
-        update_post_meta ($post->ID, '_eupago_multibanco_entidade', $eupagoMultibanco_decode['entidade']);
-        update_post_meta ($post->ID, '_eupago_multibanco_referencia', $eupagoMultibanco_decode['referencia']);
-      }
+      update_post_meta ($post->ID, '_eupago_multibanco_entidade', $eupagoMultibanco->entidade ?? '');
+      update_post_meta ($post->ID, '_eupago_multibanco_referencia', $eupagoMultibanco->referencia ?? '');
     }
   echo '<img src="' . plugins_url('assets/images/multibanco_banner.png', dirname(dirname(__FILE__))) . '" alt="' . esc_attr($payment_method_title) . '" title="' . esc_attr($payment_method_title) . '" /><br />';
   echo '<b>'.__('Entity', 'eupago-gateway-for-woocommerce').'</b>: '.trim(get_post_meta($post->ID, '_eupago_multibanco_entidade', true)).'<br/>';
@@ -94,20 +79,8 @@ switch ($payment_method) {
   break;
 
   case 'eupago_cofidispay':
-    if (trim(get_post_meta($post->ID, $payment_method_ref, true)) == 0) {
-      
-      $cofidispay_vat_number = get_post_meta($post->ID, 'nif', true);
-      update_post_meta($post->ID, '_eupago_cofidis_vat_number', $cofidispay_vat_number);
-      $pedido = $client->cofidispay_create($post->ID, $this->get_return_url($order));
-      if ( $pedido->transactionStatus != 'Success' ) {
-        wc_add_notice(__('Payment error:', 'eupago-for-woocommerce') . ' Ocorreu um erro com o pedido de pagamento', 'error');
-        return;
-      } else {
-        update_post_meta($post->ID, '_eupago_cofidispay_transactionID', $pedido->transactionID);
-        update_post_meta($post->ID, '_eupago_cofidispay_referencia', $pedido->reference);
-        update_post_meta($post->ID, '_eupago_cofidispay_redirectUrl', $pedido->redirectUrl);
-      }
-    }
+    // CofidisPay was discontinued: existing orders keep showing their payment
+    // details, but no new payment request is ever created here.
   echo '<img src="' . plugins_url('assets/images/cofidispay.png', dirname(dirname(__FILE__))) . '" alt="' . esc_attr($payment_method_title) . '" title="' . esc_attr($payment_method_title) . '" /><br />';
   echo '<b>'.__('Reference', 'eupago-gateway-for-woocommerce').'</b>: '.chunk_split(trim(get_post_meta($post->ID, '_eupago_cofidispay_referencia', true)), 3, ' ').'<br/>';
   echo '<b>'.__('Value', 'eupago-gateway-for-woocommerce').'</b>: '.wc_price( $order_total ).'<br/>';
@@ -117,7 +90,7 @@ switch ($payment_method) {
   case 'eupago_payshop':
     if (trim(get_post_meta($post->ID, $payment_method_ref, true)) == 0) {
       $pedido = $client->getReferenciaPS($post->ID, $order_total);
-      if ($pedido->estado == 0) {
+      if (is_object($pedido) && isset($pedido->estado) && $pedido->estado == 0) {
         update_post_meta($post->ID, '_eupago_payshop_referencia', $pedido->referencia);
       }
     }
@@ -193,7 +166,7 @@ switch ($payment_method) {
   case 'eupago_pagaqui':
     if (trim(get_post_meta($post->ID, $payment_method_ref, true)) == 0) {
       $pedido = $client->getReferenciaPagaqui($order, $order_total);
-      if ($pedido->estado == 0) {
+      if (is_object($pedido) && isset($pedido->estado) && $pedido->estado == 0) {
         update_post_meta($post->ID, '_eupago_pagaqui_reference', $pedido->referencia);
       }
     }

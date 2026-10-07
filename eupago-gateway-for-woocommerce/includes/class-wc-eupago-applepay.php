@@ -36,6 +36,7 @@ if (!class_exists('WC_Eupago_ApplePay')) {
             add_action('woocommerce_update_options_payment_gateways_' . $this->id, [ $this, 'process_admin_options' ]);
             add_action('woocommerce_thankyou_' . $this->id, [ $this, 'thankyou_page' ]);
             add_action('woocommerce_order_details_after_order_table', [ $this, 'order_details_after_order_table' ], 20);
+            add_action('woocommerce_email_before_order_table', [ $this, 'email_instructions' ], 10, 3);
             add_filter('woocommerce_available_payment_gateways', [ $this, 'disable_unless_portugal' ]);
             add_filter('woocommerce_available_payment_gateways', [ $this, 'disable_only_above_or_below' ]);
             add_filter('woocommerce_payment_complete_reduce_order_stock', [ $this, 'woocommerce_payment_complete_reduce_order_stock' ], 10, 2);
@@ -239,8 +240,11 @@ if (!class_exists('WC_Eupago_ApplePay')) {
             
             $lang       = $this->determine_language();
             $return_url = $this->get_return_url($order);
-            
-            $response = $this->client->getReferenciaApplePay($order, $order_total, $lang, $return_url);
+
+            // Failed payment or "back" button: back to the checkout with the cart restored (order stays on-hold)
+            $cancel_url = WC_Eupago_Payment_Return::get_url($order);
+
+            $response = $this->client->getReferenciaApplePay($order, $order_total, $lang, $return_url, $cancel_url);
             
             $logger->info('Raw API response: ' . print_r($response, true), $context);
             
@@ -250,17 +254,17 @@ if (!class_exists('WC_Eupago_ApplePay')) {
                 return [ 'result' => 'fail' ];
             }
             
-            $redirect_url = $response['redirectUrl'] ?? '';
-            if (empty($redirect_url)) {
-                $logger->error("No redirectUrl in response. Full response: " . print_r($response, true), $context);
-                wc_add_notice(__('No redirect URL received from Eupago.', 'eupago-gateway-for-woocommerce'), 'error');
-                return [ 'result' => 'fail' ];
-            }
-            
             if (isset($response['transactionStatus']) && strtolower($response['transactionStatus']) !== 'success') {
                 $error_message = $response['text'] ?? __('Unknown error.', 'eupago-gateway-for-woocommerce');
                 $logger->error("Transaction rejected: {$error_message}. Full response: " . print_r($response, true), $context);
                 wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error');
+                return [ 'result' => 'fail' ];
+            }
+
+            $redirect_url = $response['redirectUrl'] ?? '';
+            if (empty($redirect_url)) {
+                $logger->error("No redirectUrl in response. Full response: " . print_r($response, true), $context);
+                wc_add_notice(__('No redirect URL received from Eupago.', 'eupago-gateway-for-woocommerce'), 'error');
                 return [ 'result' => 'fail' ];
             }
             
@@ -270,7 +274,7 @@ if (!class_exists('WC_Eupago_ApplePay')) {
             
             $order->update_status('on-hold', __('Awaiting Apple Pay payment.', 'eupago-gateway-for-woocommerce'));
             
-            $this->reduce_stock_levels($order_id);
+            $this->reduce_stock_levels($order);
             WC()->cart->empty_cart();
             WC()->session->__unset('order_awaiting_payment');
             
@@ -280,6 +284,29 @@ if (!class_exists('WC_Eupago_ApplePay')) {
             ];
         }
         
+        /**
+         * Payment block in the customer's on-hold email, same templates as the
+         * other gateways.
+         */
+        public function email_instructions($order, $sent_to_admin, $plain_text = false) {
+            if ($sent_to_admin || !$order->has_status('on-hold') || $order->get_payment_method() !== $this->id) {
+                return;
+            }
+
+            wc_get_template(
+                $plain_text ? 'emails/plain-instructions.php' : 'emails/html-instructions.php',
+                [
+                    'method'       => $this->id,
+                    'payment_name' => $this->title,
+                    'instructions' => isset($this->instructions) && !empty($this->instructions) ? $this->instructions : '',
+                    'referencia'   => $order->get_meta('_eupago_applepay_reference', true),
+                    'order_total'  => $order->get_total(),
+                ],
+                'woocommerce/eupago/',
+                (new WC_Eupago())->get_templates_path()
+            );
+        }
+
         private function reduce_stock_levels($order) {
             if ($this->stock_when == 'order') {
                 $order->reduce_order_stock();

@@ -18,12 +18,6 @@
     <h3><?php echo $this->method_title; ?> <span style="font-size: 75%;">v.<?php echo WC_Eupago::VERSION; ?></span></h3>
     
     <?php if ($this->id == 'eupago_cc') { ?>
-      <?php if (!extension_loaded('soap')) { ?>
-        <div class="eupago-soap-error">
-          <p><?php esc_html_e('Requires SOAP protocol active on your server.', 'eupago-gateway-for-woocommerce'); ?></p>
-        </div>
-      <?php } ?>
-
       <h4><?php echo esc_html($payment_method_text); ?></h4>
       <p>
         <?php echo esc_html($request_method_text); ?> 

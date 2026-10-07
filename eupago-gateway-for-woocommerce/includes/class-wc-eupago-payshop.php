@@ -400,36 +400,19 @@ if ( !class_exists( 'WC_Eupago_PayShop' ) ) {
       
       if ($error_message = $this->check_order_errors($order_id)) {
         wc_add_notice( __('Payment error:', 'eupago-gateway-for-woocommerce') . $error_message, 'error' );
-        return;
+        return ['result' => 'failure', 'redirect' => ''];
       }
       
       $eupagoPayShop = $this->client->getReferenciaPS( $order_id, $order_total );
       
-      if (extension_loaded('soap')) {
-        if ( $eupagoPayShop->estado != 0 ) {
-          $error_message = $eupagoPayShop->resposta;
-          wc_add_notice( __('Payment error:', 'eupago-gateway-for-woocommerce') . $error_message, 'error' );
-          return;
-        }
-      } else {
-        $eupagoPayShop_decode = json_decode($eupagoPayShop, true);
-        if ( $eupagoPayShop_decode['estado'] != 0 ) {
-          $error_message = $eupagoPayShop_decode['resposta'];
-          wc_add_notice( __('Payment error:', 'eupago-gateway-for-woocommerce') . $error_message, 'error' );
-          return;
-        }
+      if ( ! is_object( $eupagoPayShop ) || ! isset( $eupagoPayShop->estado ) || $eupagoPayShop->estado != 0 ) {
+        $error_message = is_object( $eupagoPayShop ) && isset( $eupagoPayShop->resposta ) ? $eupagoPayShop->resposta : '';
+        wc_add_notice( __('Payment error:', 'eupago-gateway-for-woocommerce') . $error_message, 'error' );
+        return ['result' => 'failure', 'redirect' => ''];
       }
-      
-      if (extension_loaded('soap')) {
-        // update_post_meta ($order_id, '_eupago_payshop_referencia', $eupagoPayShop->referencia);
-        $order->update_meta_data( '_eupago_payshop_referencia', $eupagoPayShop->referencia);
-        $order->save();
-      } else {
-        $eupagoPayShop_decode = json_decode($eupagoPayShop, true);
-        // update_post_meta ($order_id, '_eupago_payshop_referencia', $eupagoPayShop_decode['referencia']);
-        $order->update_meta_data( '_eupago_payshop_referencia', $eupagoPayShop_decode['referencia']);
-        $order->save();
-      }
+
+      $order->update_meta_data( '_eupago_payshop_referencia', $eupagoPayShop->referencia ?? '' );
+      $order->save();
       
       // Mark as on-hold
       $order->update_status('on-hold', __('Awaiting PayShop payment.', 'eupago-gateway-for-woocommerce'));

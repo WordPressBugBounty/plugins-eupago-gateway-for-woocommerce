@@ -1,0 +1,78 @@
+/**
+ * Eupago payment-method icons on the checkout, classic and blocks.
+ *
+ * One display height per method: the icon files have very different
+ * proportions (wordmarks, card strips, square pills), so a single height for
+ * all would not look uniform; these values give a similar visual weight.
+ *
+ * Classic checkout marks each method with .payment_method_<gateway id>; only the
+ * icon inside its <label> is sized (the payment box below may hold other images,
+ * e.g. the Floa banner);
+ * the block checkout labels each radio option with
+ * for="radio-control-wc-payment-method-options-<gateway id>".
+ */
+
+/* Common rule: proportional width, aligned with the label. The block
+   checkout stylesheet sizes label icons at 24px with a 3-class selector
+   (.wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option
+   .wc-block-components-radio-control__label img); the block selectors below
+   carry four so they win on specificity without !important. */
+.payment_method_eupago_multibanco > label img,
+.payment_method_eupago_mbway > label img,
+.payment_method_eupago_payshop > label img,
+.payment_method_eupago_pagaqui > label img,
+.payment_method_eupago_pix > label img,
+.payment_method_eupago_bizum > label img,
+.payment_method_eupago_cc > label img,
+.payment_method_eupago_cofidispay > label img,
+.payment_method_eupago_pf > label img,
+.payment_method_eupago_floa > label img,
+.payment_method_eupago_googlepay > label img,
+.payment_method_eupago_applepay > label img,
+.wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option label[for^="radio-control-wc-payment-method-options-eupago_"] .wc-block-components-payment-method-label img {
+    width: auto;
+    max-width: 160px;
+    max-height: none;
+    vertical-align: middle;
+    margin-left: 6px;
+}
+
+/* Per-method heights */
+.payment_method_eupago_pagaqui > label img,
+.wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option label[for="radio-control-wc-payment-method-options-eupago_pagaqui"] .wc-block-components-payment-method-label img {
+    height: 15px;
+}
+
+.payment_method_eupago_multibanco > label img,
+.payment_method_eupago_payshop > label img,
+.payment_method_eupago_pix > label img,
+.payment_method_eupago_bizum > label img,
+.payment_method_eupago_cc > label img,
+.payment_method_eupago_pf > label img,
+.wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option label[for="radio-control-wc-payment-method-options-eupago_multibanco"] .wc-block-components-payment-method-label img,
+.wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option label[for="radio-control-wc-payment-method-options-eupago_payshop"] .wc-block-components-payment-method-label img,
+.wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option label[for="radio-control-wc-payment-method-options-eupago_pix"] .wc-block-components-payment-method-label img,
+.wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option label[for="radio-control-wc-payment-method-options-eupago_bizum"] .wc-block-components-payment-method-label img,
+.wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option label[for="radio-control-wc-payment-method-options-eupago_cc"] .wc-block-components-payment-method-label img,
+.wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option label[for="radio-control-wc-payment-method-options-eupago_pf"] .wc-block-components-payment-method-label img {
+    height: 18px;
+}
+
+.payment_method_eupago_mbway > label img,
+.payment_method_eupago_cofidispay > label img,
+.wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option label[for="radio-control-wc-payment-method-options-eupago_mbway"] .wc-block-components-payment-method-label img,
+.wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option label[for="radio-control-wc-payment-method-options-eupago_cofidispay"] .wc-block-components-payment-method-label img {
+    height: 20px;
+}
+
+.payment_method_eupago_floa > label img,
+.wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option label[for="radio-control-wc-payment-method-options-eupago_floa"] .wc-block-components-payment-method-label img {
+    height: 22px;
+}
+
+.payment_method_eupago_googlepay > label img,
+.payment_method_eupago_applepay > label img,
+.wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option label[for="radio-control-wc-payment-method-options-eupago_googlepay"] .wc-block-components-payment-method-label img,
+.wc-block-checkout__payment-method .wc-block-components-radio-control-accordion-option label[for="radio-control-wc-payment-method-options-eupago_applepay"] .wc-block-components-payment-method-label img {
+    height: 30px;
+}

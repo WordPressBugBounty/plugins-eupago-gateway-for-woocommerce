@@ -62,6 +62,7 @@ function send_sms_pending($order_id) {
                $pixImage      = esc_url($order->get_meta('_eupago_pix_pixImage', true));
                $pixCode       = $order->get_meta('_eupago_pix_pixCode', true);
                $payment_data  =  __( 'Reference:', 'eupago-gateway-for-woocommerce' ) . ' ' . $reference . ' ' . __( 'Value:', 'eupago-gateway-for-woocommerce' ) . ' ' . $amount . ' ' . __( 'QR Code:', 'eupago-gateway-for-woocommerce' ) . ' ' . $pixImage . ' ' . __( 'EuroPix Code:', 'eupago-gateway-for-woocommerce' ) . ' ' . $pixCode;
+                break;
           case 'eupago_googlepay': // google pay
             $reference     = $order->get_meta( '_eupago_googlepay_reference', true );
             $transactionID = $order->get_meta( '_eupago_googlepay_tid', true );
@@ -103,9 +104,9 @@ function send_sms_pending($order_id) {
          'headers' => array(
             'Accept: application/json',
             'Content-Type: application/x-www-form-urlencoded',
-            'X-App-Source'   => WC_Eupago::SOURCE,
-            'X-App-Version'  => WC_Eupago::VERSION,
-            'X-Runtime-Info' => 'PHP ' . PHP_VERSION
+            'X-App-Source: ' . WC_Eupago::SOURCE,
+            'X-App-Version: ' . WC_Eupago::VERSION,
+            'X-Runtime-Info: PHP ' . PHP_VERSION
          ),
          'body' => array(
             'mobile_num'    => $phone,
@@ -139,9 +140,9 @@ function send_sms_processing($order_id) {
          'headers' => array(
             'Accept: application/json',
             'Content-Type: application/x-www-form-urlencoded',
-            'X-App-Source'   => WC_Eupago::SOURCE,
-            'X-App-Version'  => WC_Eupago::VERSION,
-            'X-Runtime-Info' => 'PHP ' . PHP_VERSION
+            'X-App-Source: ' . WC_Eupago::SOURCE,
+            'X-App-Version: ' . WC_Eupago::VERSION,
+            'X-Runtime-Info: PHP ' . PHP_VERSION
          ),
          'body' => array(
             'mobile_num'    => $phone,

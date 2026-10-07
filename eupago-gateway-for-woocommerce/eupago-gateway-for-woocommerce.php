@@ -2,13 +2,16 @@
 /**
 * Plugin Name: Eupago Gateway For Woocommerce
 * Plugin URI:
-* Description: This plugin allows customers to pay their orders with Multibanco, MB WAY, Payshop, Credit Card, CofidisPay, Bizum and EuroPix with Eupago’s gateway.
-* Version: 4.7.4
+* Description: This plugin allows customers to pay their orders with Multibanco, MB WAY, Payshop, Credit Card, Bizum and EuroPix with Eupago’s gateway.
+* Version: 4.7.5
 * Author: Eupago
 * Author URI: https://www.eupago.pt/
 * Text Domain: eupago-gateway-for-woocommerce
-* WC tested up to: 10.2.2
-* Tested up to: 6.8.3
+* Requires at least: 6.0
+* Tested up to: 7.1
+* Requires PHP: 7.4
+* WC requires at least: 7.1
+* WC tested up to: 11.1.0
 **/
 
 use Automattic\WooCommerce\Internal\Admin\Orders\CustomOrdersTableController;
@@ -26,7 +29,7 @@ if (!class_exists('WC_Eupago')) :
          *
          * @var string
          */
-        public const VERSION = '4.7.4';
+        public const VERSION = '4.7.5';
 
         /**
          * Plugin source for API tracking.
@@ -34,6 +37,7 @@ if (!class_exists('WC_Eupago')) :
          * @var string
          */
         public const SOURCE = 'woocommerce';
+
 
         /**
          * Instance of this class.
@@ -122,6 +126,12 @@ if (!class_exists('WC_Eupago')) :
 
                 // Set Callback.
                 new WC_Eupago_Callback();
+
+                // Landing endpoint for the "back" button and the failure return of the Eupago payment page.
+                new WC_Eupago_Payment_Return();
+
+                // Payment-method icon sizes on the checkout (classic and blocks).
+                add_action('wp_enqueue_scripts', [ $this, 'enqueue_checkout_styles' ]);
             } else {
                 add_action('admin_notices', [ $this, 'woocommerce_missing_notice' ]);
             }
@@ -348,7 +358,7 @@ if (!class_exists('WC_Eupago')) :
             if (!isset($_GET['page']) || $_GET['page'] !== $this->settings_page_slug) {
                 return;
             }
-            wp_enqueue_script('eupago-redirect', plugin_dir_url(__FILE__) . 'assets/js/redirect.js', [], false, true);
+            wp_enqueue_script('eupago-redirect', plugin_dir_url(__FILE__) . 'assets/js/redirect.js', [ 'jquery' ], self::VERSION, true);
         }
     
         /**
@@ -387,9 +397,22 @@ if (!class_exists('WC_Eupago')) :
         /**
          * Load css.
          */
+        /**
+         * Icon sizes for the Eupago payment methods on the checkout page, classic
+         * and blocks alike (assets/css/checkout.css). One place to adjust them.
+         */
+        public function enqueue_checkout_styles()
+        {
+            if (!function_exists('is_checkout') || !is_checkout()) {
+                return;
+            }
+
+            wp_enqueue_style('eupago-checkout', plugin_dir_url(__FILE__) . 'assets/css/checkout.css', [], self::VERSION);
+        }
+
         public function load_scripts()
         {
-            wp_enqueue_style('admin_style', plugin_dir_url(__FILE__) . 'assets/css/admin_style.css');
+            wp_enqueue_style('admin_style', plugin_dir_url(__FILE__) . 'assets/css/admin_style.css', [], self::VERSION);
             $hpos_enabled = $this->is_hpos_compliant();
 
             if ($hpos_enabled) {
@@ -418,7 +441,6 @@ if (!class_exists('WC_Eupago')) :
             $mbway_text_en = __('MB WAY', 'eupago-gateway-for-woocommerce');
             $cc_text_en = __('Credit Card', 'eupago-gateway-for-woocommerce');
             $payshop_text_en = __('Payshop', 'eupago-gateway-for-woocommerce');
-            $cofidispay_text_en = __('CofidisPay', 'eupago-gateway-for-woocommerce');
             $bizum_text_en = __('Bizum', 'eupago-gateway-for-woocommerce');
             $pix_text_en = __('EuroPix', 'eupago-gateway-for-woocommerce');
             $googlepay_text_en = __('Google Pay', 'eupago-gateway-for-woocommerce');
@@ -432,7 +454,6 @@ if (!class_exists('WC_Eupago')) :
             $mbway_text_pt = __('MB WAY', 'eupago-gateway-for-woocommerce-pt');
             $cc_text_pt = __('Cartão de Crédito', 'eupago-gateway-for-woocommerce-pt');
             $payshop_text_pt = __('Payshop', 'eupago-gateway-for-woocommerce-pt');
-            $cofidispay_text_pt = __('CofidisPay', 'eupago-gateway-for-woocommerce-pt');
             $bizum_text_pt = __('Bizum', 'eupago-gateway-for-woocommerce-pt');
             $pix_text_pt = __('EuroPix', 'eupago-gateway-for-woocommerce-pt');
             $googlepay_text_pt = __('Google Pay', 'eupago-gateway-for-woocommerce-pt');
@@ -446,7 +467,6 @@ if (!class_exists('WC_Eupago')) :
             $mbway_text_es = __('MB WAY', 'eupago-gateway-for-woocommerce-es');
             $cc_text_es = __('Tarjeta de Crédito', 'eupago-gateway-for-woocommerce-es');
             $payshop_text_es = __('Payshop', 'eupago-gateway-for-woocommerce-es');
-            $cofidispay_text_es = __('CofidisPay', 'eupago-gateway-for-woocommerce-es');
             $bizum_text_es = __('Bizum', 'eupago-gateway-for-woocommerce-es');
             $pix_text_es = __('EuroPix', 'eupago-gateway-for-woocommerce-es');
             $googlepay_text_es = __('Google Pay', 'eupago-gateway-for-woocommerce-es');
@@ -460,7 +480,6 @@ if (!class_exists('WC_Eupago')) :
                     $mbway_text = $mbway_text_es;
                     $cc_text = $cc_text_es;
                     $payshop_text = $payshop_text_es;
-                    $cofidispay_text = $cofidispay_text_es;
                     $bizum_text = $bizum_text_es;
                     $pix_text = $pix_text_es;
                     $googlepay_text = $googlepay_text_es;
@@ -474,7 +493,6 @@ if (!class_exists('WC_Eupago')) :
                     $mbway_text = $mbway_text_pt;
                     $cc_text = $cc_text_pt;
                     $payshop_text = $payshop_text_pt;
-                    $cofidispay_text = $cofidispay_text_pt;
                     $bizum_text = $bizum_text_pt;
                     $pix_text = $pix_text_pt;
                     $googlepay_text = $googlepay_text_pt;
@@ -488,7 +506,6 @@ if (!class_exists('WC_Eupago')) :
                     $mbway_text = $mbway_text_en;
                     $cc_text = $cc_text_en;
                     $payshop_text = $payshop_text_en;
-                    $cofidispay_text = $cofidispay_text_en;
                     $bizum_text = $bizum_text_en;
                     $pix_text = $pix_text_en;
                     $googlepay_text = $googlepay_text_en;
@@ -503,7 +520,6 @@ if (!class_exists('WC_Eupago')) :
             $mbway_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_mbway'));
             $cc_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_cc'));
             $payshop_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_payshop'));
-            $cofidispay_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_cofidispay'));
             $bizum_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_bizum'));
             $pix_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_pix'));
             $googlepay_url = esc_url(admin_url('admin.php?page=wc-settings&tab=checkout&section=eupago_googlepay'));
@@ -521,7 +537,6 @@ if (!class_exists('WC_Eupago')) :
             $plugin_links[] = '<a href="' . $mbway_url . '">' . $mbway_text . '</a>';
             $plugin_links[] = '<a href="' . $cc_url . '">' . $cc_text . '</a>';
             $plugin_links[] = '<a href="' . $payshop_url . '">' . $payshop_text . '</a>';
-            $plugin_links[] = '<a href="' . $cofidispay_url . '">' . $cofidispay_text . '</a>';
             $plugin_links[] = '<a href="' . $bizum_url . '">' . $bizum_text . '</a>';
             $plugin_links[] = '<a href="' . $pix_url . '">' . $pix_text . '</a>';
             $plugin_links[] = '<a href="' . $googlepay_url . '">' . $googlepay_text . '</a>';
@@ -556,13 +571,15 @@ if (!class_exists('WC_Eupago')) :
 
             include_once 'includes/class-wc-eupago-pix.php';
 
-            include_once 'includes/class-wc-eupago-cofidispay.php';
-
             include_once 'includes/class-wc-eupago-cc.php';
 
             include_once 'includes/class-wc-eupago-paysafecard.php';
 
             include_once 'includes/class-wc-eupago-callback.php';
+
+            include_once 'includes/class-wc-eupago-payment-return.php';
+
+            include_once 'includes/class-wc-eupago-email-instructions.php';
 
             include_once 'includes/hooks/hooks-refund.php';
 
@@ -594,7 +611,6 @@ if (!class_exists('WC_Eupago')) :
                 $methods[] = 'WC_Eupago_Multibanco';
                 $methods[] = 'WC_Eupago_PayShop';
                 $methods[] = 'WC_Eupago_MBWAY';
-                $methods[] = 'WC_Eupago_CofidisPay';
                 $methods[] = 'WC_Eupago_CC';
                 $methods[] = 'WC_Eupago_PF';
                 $methods[] = 'WC_Eupago_Bizum';
@@ -820,7 +836,6 @@ if (!class_exists('WC_Eupago')) :
             $file_path_mbw = __DIR__ . '/includes/woocommerce-blocks/mbway/MbwBlock.php';
             $file_path_cc = __DIR__ . '/includes/woocommerce-blocks/cc/CcBlock.php';
             $file_path_payshop = __DIR__ . '/includes/woocommerce-blocks/payshop/PayshopBlock.php';
-            $file_path_cofidispay = __DIR__ . '/includes/woocommerce-blocks/cofidispay/CofidisPayBlock.php';
             $file_path_bizum = __DIR__ . '/includes/woocommerce-blocks/bizum/BizumBlock.php';
             $file_path_pix = __DIR__ . '/includes/woocommerce-blocks/pix/PixBlock.php';
             $file_path_googlepay = __DIR__ . '/includes/woocommerce-blocks/googlepay/GooglePayBlock.php';
@@ -927,17 +942,6 @@ if (!class_exists('WC_Eupago')) :
                 );
             }
 
-            if (file_exists($file_path_cofidispay)) {
-                require_once $file_path_cofidispay;
-
-                add_action(
-                    'woocommerce_blocks_payment_method_type_registration',
-                    function (Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry) {
-                        $payment_method_registry->register(new \Automattic\WooCommerce\Blocks\Payments\Integrations\CofidisPayBlock());
-                    }
-                );
-            }
-
             if (file_exists($file_path_pagaqui)) {
                 require_once $file_path_pagaqui;
 
@@ -986,9 +990,9 @@ if (!class_exists('WC_Eupago')) :
                 ]),
                 'headers' => [
                     'Content-Type' => 'application/json',
-                    'X-App-Source'   => WC_Eupago::SOURCE,
-                    'X-App-Version'  => WC_Eupago::VERSION,
-                    'X-Runtime-Info' => 'PHP ' . PHP_VERSION
+                    'X-App-Source: ' . WC_Eupago::SOURCE,
+                    'X-App-Version: ' . WC_Eupago::VERSION,
+                    'X-Runtime-Info: PHP ' . PHP_VERSION
                 ],
                 'timeout' => 15,
             ];
@@ -1017,9 +1021,9 @@ if (!class_exists('WC_Eupago')) :
                     'headers' => [
                         'Content-Type'  => 'application/json',
                         'Authorization' => 'Bearer ' . $accessToken,
-                        'X-App-Source'   => WC_Eupago::SOURCE,
-                        'X-App-Version'  => WC_Eupago::VERSION,
-                        'X-Runtime-Info' => 'PHP ' . PHP_VERSION
+                        'X-App-Source: ' . WC_Eupago::SOURCE,
+                        'X-App-Version: ' . WC_Eupago::VERSION,
+                        'X-Runtime-Info: PHP ' . PHP_VERSION
                     ],
                     'timeout' => 15,
                 ];
@@ -1072,9 +1076,9 @@ if (!class_exists('WC_Eupago')) :
                 ]),
                 'headers' => [
                     'Content-Type' => 'application/json',
-                    'X-App-Source'   => WC_Eupago::SOURCE,
-                    'X-App-Version'  => WC_Eupago::VERSION,
-                    'X-Runtime-Info' => 'PHP ' . PHP_VERSION
+                    'X-App-Source: ' . WC_Eupago::SOURCE,
+                    'X-App-Version: ' . WC_Eupago::VERSION,
+                    'X-Runtime-Info: PHP ' . PHP_VERSION
                 ],
                 'timeout' => 15,
             ];
@@ -1098,9 +1102,9 @@ if (!class_exists('WC_Eupago')) :
                     'headers' => [
                         'Content-Type'  => 'application/json',
                         'Authorization' => 'Bearer ' . $accessToken,
-                        'X-App-Source'   => WC_Eupago::SOURCE,
-                        'X-App-Version'  => WC_Eupago::VERSION,
-                        'X-Runtime-Info' => 'PHP ' . PHP_VERSION
+                        'X-App-Source: ' . WC_Eupago::SOURCE,
+                        'X-App-Version: ' . WC_Eupago::VERSION,
+                        'X-Runtime-Info: PHP ' . PHP_VERSION
                     ],
                     'timeout' => 15,
                 ];

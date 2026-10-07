@@ -73,7 +73,7 @@ if (!class_exists('WC_Eupago_CC')) {
             add_filter('woocommerce_available_payment_gateways', [$this, 'disable_only_above_or_below']);
 
             // Customer Emails
-            add_action('woocommerce_email_before_order_table', [$this, 'email_instructions'], 10, 2);
+            add_action('woocommerce_email_before_order_table', [$this, 'email_instructions'], 10, 3);
 
             // Filter to decide if payment_complete reduces stock, or not
             add_filter('woocommerce_payment_complete_reduce_order_stock', [$this, 'woocommerce_payment_complete_reduce_order_stock'], 10, 2);
@@ -463,32 +463,36 @@ if (!class_exists('WC_Eupago_CC')) {
             // Determine language
             $lang = $this->determine_language();
 
-            // Call API
             $eupagoCC = $this->client->pedidoCC(
                 $order,
                 $order_total,
-                $this->get_option('logo_url'),
                 $this->get_return_url($order),
                 $lang,
-                $this->get_comment_table($order, $order_total)
+                WC_Eupago_Payment_Return::get_url($order)
             );
 
             $logger->debug("CC: Raw response -> " . print_r($eupagoCC, true), $context);
 
-            // Extract redirect URL
-            if (isset($eupagoCC['redirectUrl'])) {
-                $redirect_url = $eupagoCC['redirectUrl'];
-            } else {
-                $logger->error("CC: No redirectUrl found in response", $context);
-                wc_add_notice(__('No redirect URL received from Eupago.', 'eupago-gateway-for-woocommerce'), 'error');
+            if (!is_array($eupagoCC) || isset($eupagoCC['error'])) {
+                $error_message = is_array($eupagoCC) && !empty($eupagoCC['error']) ? $eupagoCC['error'] : __('Unknown error', 'eupago-gateway-for-woocommerce');
+                $logger->error("CC: API call failed -> {$error_message}", $context);
+                wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error');
                 return ['result' => 'fail', 'redirect' => ''];
             }
 
             // Handle errors
-            if (!empty($eupagoCC['transactionStatus']) && $eupagoCC['transactionStatus'] != 0 && $eupagoCC['estado'] != 'Success') {
-                $error_message = $eupagoCC['message'] ?? __('Unknown error', 'eupago-gateway-for-woocommerce');
-                $logger->error("CC: Eupago returned estado={$eupagoCC['transactionStatus']} -> {$error_message}", $context);
+            if (!isset($eupagoCC['transactionStatus']) || strtolower($eupagoCC['transactionStatus']) !== 'success') {
+                $error_message = $eupagoCC['text'] ?? $eupagoCC['message'] ?? __('Unknown error', 'eupago-gateway-for-woocommerce');
+                $logger->error("CC: Eupago returned transactionStatus=" . ($eupagoCC['transactionStatus'] ?? 'n/a') . " -> {$error_message}", $context);
                 wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error');
+                return ['result' => 'fail', 'redirect' => ''];
+            }
+
+            // Extract redirect URL
+            $redirect_url = $eupagoCC['redirectUrl'] ?? '';
+            if (empty($redirect_url)) {
+                $logger->error("CC: No redirectUrl found in response", $context);
+                wc_add_notice(__('No redirect URL received from Eupago.', 'eupago-gateway-for-woocommerce'), 'error');
                 return ['result' => 'fail', 'redirect' => ''];
             }
 
@@ -497,7 +501,7 @@ if (!class_exists('WC_Eupago_CC')) {
             $order->update_meta_data('_eupago_cc_referencia', $eupagoCC['reference'] ?? '');
             $order->save();
 
-            $logger->debug("CC: Saved TID={$eupagoCC['transactionID']} reference={$eupagoCC['reference']}", $context);
+            $logger->debug("CC: Saved TID=" . ($eupagoCC['transactionID'] ?? '') . " reference=" . ($eupagoCC['reference'] ?? ''), $context);
 
             // Mark order on-hold
             $order->update_status('on-hold', __('Awaiting Credit Card payment.', 'eupago-gateway-for-woocommerce'));

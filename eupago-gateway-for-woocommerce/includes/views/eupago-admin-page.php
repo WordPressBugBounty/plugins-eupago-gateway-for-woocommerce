@@ -6,21 +6,9 @@ function getStoreUrl()
 {
     // Check if WooCommerce is active
     if (class_exists('WooCommerce')) {
-        // Get the URL components
-        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
-        $domain = $_SERVER['HTTP_HOST'];
-
-        // Get the shop base slug
-        $shop_base_slug = get_option('woocommerce_shop_page_id');
-        // $base_uri = ($shop_base_slug) ? '/' . get_page_uri($shop_base_slug) . '/' : '/';
-
-        // Add the custom part to the store URL
-        $custom_part = '/?wc-api=WC_euPago';
-
-        // Combine the components to form the store URL
-        $store_url = $protocol . $domain . $custom_part;
-
-        return $store_url;
+        // home_url() instead of $_SERVER['HTTPS'] and $_SERVER['HTTP_HOST']: those are
+        // not always set, and they ignore the site URL configured in WordPress.
+        return home_url('/?wc-api=WC_euPago');
     } else {
         // WooCommerce is not active, handle the error or return a default URL
         return 'https://example.com/'; // Replace with your default URL
@@ -46,7 +34,7 @@ function eupago_page_content()
 {
     $callback_url = getStoreUrl(); // Set the callback URL to the value returned by getStoreUrl()
 
-    if (isset($_POST['eupago_save']) && wp_verify_nonce($_POST['_wpnonce'], 'eupago_settings_nonce')) {
+    if (isset($_POST['eupago_save'], $_POST['_wpnonce']) && wp_verify_nonce($_POST['_wpnonce'], 'eupago_settings_nonce')) {
         if (sanitize_text_field(isset($_POST['eupago_save']))) {
             $channel   = isset($_POST['channel'])
                 ? sanitize_text_field(wp_unslash($_POST['channel']))
@@ -74,14 +62,6 @@ function eupago_page_content()
 
             $client_secret = isset($_POST['client_secret'])
                 ? sanitize_text_field(wp_unslash($_POST['client_secret']))
-                : '';
-
-            $user_eupago = isset($_POST['user_eupago'])
-                ? sanitize_text_field(wp_unslash($_POST['user_eupago']))
-                : '';
-
-            $password_eupago = isset($_POST['password_eupago'])
-                ? sanitize_text_field(wp_unslash($_POST['password_eupago']))
                 : '';
 
             $sms_enable = isset($_POST['sms_enable'])
@@ -166,20 +146,6 @@ function eupago_page_content()
                 update_option('eupago_client_secret', $client_secret);
             }
 
-            if (empty(get_option('eupago_user'))) {
-                delete_option('eupago_user');
-                add_option('eupago_user', $user_eupago, '', 'yes');
-            } else {
-                update_option('eupago_user', $user_eupago);
-            }
-
-            if (empty(get_option('eupago_password'))) {
-                delete_option('eupago_password');
-                add_option('eupago_password', $password_eupago, '', 'yes');
-            } else {
-                update_option('eupago_password', $password_eupago);
-            }
-
             if (empty(get_option('eupago_sms_enable'))) {
                 delete_option('eupago_sms_enable');
                 add_option('eupago_sms_enable', $sms_enable, '', 'yes');
@@ -234,44 +200,11 @@ function eupago_page_content()
             } else {
                 update_option('biziq_environment', $biziq_environment);
             }
-
-            // Prepare POST data
-            $request_body = [
-                'grant_type'       => 'client_credentials',
-                'client_id'        => $client_id,
-                'client_secret'    => $client_secret,
-                'callback_api_key' => $api_key,
-            ];
-
-            // Make the request to info-script.php
-            $response = wp_remote_post(site_url('/wp-content/plugins/eupago-gateway-for-woocommerce/includes/views/info-script.php'), [
-                'body'    => $request_body,
-                'timeout' => 15,
-            ]);
-
-            // Handle errors
-            if (is_wp_error($response)) {
-                $error_message = $response->get_error_message();
-                echo "Something went wrong: $error_message";
-            } else {
-                // Retrieve and decode JSON body
-                $body = wp_remote_retrieve_body($response);
-                $data = json_decode($body, true);
-
-                if (!empty($data['channelInfo'])) {
-                    $channel_data['eupago_webhook_version'] = $data['channelInfo']['webhookVersion'];
-                    $channel_data['eupago_webhook_encrypt_key'] = $data['channelInfo']['webhookEncryptKey'];
-                    $channel_data['eupago_webhook_url'] = $data['channelInfo']['webhookUrl'];
-                    saveWebhookInfo($channel_data);
-                } else {
-                    echo "Unexpected response format or missing channelInfo.";
-                }
-            }
         }
     }
 
     if (
-        $_SERVER['REQUEST_METHOD'] === 'POST' &&
+        isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' &&
         isset($_POST['eupago_webhook_nonce']) &&
         wp_verify_nonce($_POST['eupago_webhook_nonce'], 'eupago_save_webhook')
     ) {
@@ -312,9 +245,6 @@ function eupago_page_content()
     // Generate the nonce
     $eupago_settings_nonce = wp_create_nonce('eupago_settings_nonce');
 ?>
-    <!-- Include jQuery library -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <div class="eupago_header">
         <div>
             <img src="<?php echo esc_attr(plugins_url('images/eupago_nobg.png', __FILE__)); ?>" alt="avatar" style="width: 25%;">
@@ -382,9 +312,7 @@ function eupago_page_content()
                     $here = esc_html__('here.', 'eupago-gateway-for-woocommerce');
                     $debug_log = esc_html__('Debug Log: ', 'eupago-gateway-for-woocommerce');
                     $log_plugins = esc_html__('Log plugin events and request responses inside', 'eupago-gateway-for-woocommerce');
-                    $refund_text = esc_html('Refund:', 'eupago-gateway-for-woocommerce');
-                    $user_text = esc_html__('User: ', 'eupago-gateway-for-woocommerce');
-                    $password_text = esc_html__('Password', 'eupagp-gateway-for-woocommerce');
+                    $refund_text = esc_html('Refund', 'eupago-gateway-for-woocommerce');
                     $notificacoes_sms = esc_html__('Nofitications Biziq: ', 'eupago-gateway-for-woocommerce');
                     $payment_on_hold = esc_html__('Send SMS with payment details:', 'eupago-gateway-for-woocommerce');
                     $sms_order_confirmation = esc_html('SMS Order Confirmation:', 'eupago-gateway-for-woocommerce');
@@ -398,7 +326,7 @@ function eupago_page_content()
                     $biziq_help = esc_html__('Click here for more details about Biziq environment.', 'eupago-gateway-for-woocommerce');
                     $environment = esc_html__('Environment', 'eupago-gateway-for-woocommerce');
                     $sync_channel = esc_html__('Synchronize Channel Info', 'eupago-gateway-for-woocommerce');
-                    $refund_note = esc_html__('Please make sure that the fields Client ID and Client Secret are properly filled to configure the refund functionality', 'eupago-gateway-for-woocommerce');
+                    $refund_note = esc_html__('To use the refund functionality, the Client ID and Client Secret fields must be properly filled in.', 'eupago-gateway-for-woocommerce');
                     if (get_locale() == 'pt_BR' || get_locale() == 'pt_PT') {
                         $texto_traduzido = 'Cada conta tem pelo menos um canal. Cada canal possui uma chave API que identifica a sua conta da Eupago.';
                         $texto_callback = 'Por favor, ative o callback para este URL no painel da Eupago:';
@@ -422,9 +350,7 @@ function eupago_page_content()
                         $here = esc_html__('aqui.', 'eupago-gateway-for-woocommerce');
                         $debug_log = esc_html__('Log de Depuração: ', 'eupago-gateway-for-woocommerce');
                         $log_plugins = esc_html__('Registe eventos do plugin e as respostas a pedidos, dentro do diretório', 'eupago-gateway-for-woocommerce');
-                        $refund_text = esc_html__('Reembolso:', 'eupago-gateway-for-woocommerce');
-                        $user_text = esc_html__('Utilizador: ', 'eupago-gateway-for-woocommerce');
-                        $password_text = esc_html__('Palavra-Passe', 'eupagp-gateway-for-woocommerce');
+                        $refund_text = esc_html__('Reembolso', 'eupago-gateway-for-woocommerce');
                         $notificacoes_sms = esc_html__('Notificações Biziq: ', 'eupago-gateway-for-woocommerce');
                         $payment_on_hold = esc_html__('Envio de SMS dos detalhes de pagamento:', 'eupago-gateway-for-woocommerce');
                         $sms_order_confirmation = esc_html__('Confirmação de Pedido por SMS:', 'eupago-gateway-for-woocommerce');
@@ -438,7 +364,7 @@ function eupago_page_content()
                         $biziq_help = esc_html__('Clique aqui para mais detalhes sobre o ambiente Biziq.', 'eupago-gateway-for-woocommerce');
                         $environment = esc_html__('Ambiente', 'eupago-gateway-for-woocommerce');
                         $sync_channel = esc_html__('Sincronizar Informações do Canal', 'eupago-gateway-for-woocommerce');
-                        $refund_note = esc_html__('Certifique-se de que os campos Client ID e Client Secret estão devidamente preenchidos para configurar a funcionalidade de reembolso.', 'eupago-gateway-for-woocommerce');
+                        $refund_note = esc_html__('Para utilizar a funcionalidade de reembolso, os campos Client ID e Client Secret devem estar corretamente preenchidos.', 'eupago-gateway-for-woocommerce');
                     } else if (get_locale() == 'es_ES') {
                         $texto_traduzido = 'Cada cuenta tiene al menos un canal. Cada canal tiene una Clave API que identifica su cuenta de Eupago.';
                         $texto_callback = 'Por favor, active la devolución de llamada para esta URL en el panel de Eupago:';
@@ -462,9 +388,7 @@ function eupago_page_content()
                         $here = esc_html__('aquí.', 'eupago-gateway-for-woocommerce');
                         $debug_log = esc_html__('Registro de depuración: ', 'eupago-gateway-for-woocommerce');
                         $log_plugins = esc_html__('Registrar eventos del plugin y las respuestas a solicitudes dentro', 'eupago-gateway-for-woocommerce');
-                        $refund_text = esc_html__('Reembolso:', 'eupago-gateway-for-woocommerce');
-                        $user_text = esc_html__('Usuario: ', 'eupago-gateway-for-woocommerce');
-                        $password_text = esc_html__('Contraseña', 'eupagp-gateway-for-woocommerce');
+                        $refund_text = esc_html__('Reembolso', 'eupago-gateway-for-woocommerce');
                         $notificacoes_sms = esc_html__('Notificaciones Biziq: ', 'eupago-gateway-for-woocommerce');
                         $payment_on_hold = esc_html__('Envío de SMS con los detalles de pago:', 'eupago-gateway-for-woocommerce');
                         $sms_order_confirmation = esc_html__('Confirmación de pedido SMS:', 'eupago-gateway-for-woocommerce');
@@ -478,7 +402,7 @@ function eupago_page_content()
                         $biziq_help = esc_html__('Haga clic aquí para más detalles sobre el entorno de Biziq.', 'eupago-gateway-for-woocommerce');
                         $environment = esc_html__('Entorno', 'eupago-gateway-for-woocommerce');
                         $sync_channel = esc_html__('Sincronizar Información del Canal', 'eupago-gateway-for-woocommerce');
-                        $refund_note = esc_html__('Asegúrese de que los campos Client ID y Client Secret estén correctamente completados para configurar la funcionalidad de reembolso.', 'eupago-gateway-for-woocommerce');
+                        $refund_note = esc_html__('Para utilizar la funcionalidad de reembolso, los campos Client ID y Client Secret deben estar correctamente rellenados.', 'eupago-gateway-for-woocommerce');
                     }
                     ?><tbody>
                         <tr>
@@ -574,20 +498,6 @@ function eupago_page_content()
                 </table>
 
                 <h3><?php esc_html_e($refund_text); ?></h3>
-                <table class="form-table" role="presentation">
-                    <tbody>
-                        <tr>
-                            <th scope="row"><label for="user_eupago"><?php esc_html_e($user_text); ?></label></th>
-                            <td><input class="regular-text" type="text" name="user_eupago" value="<?php echo esc_attr(get_option('eupago_user')); ?>"></td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="password_eupago"><?php esc_html_e($password_text); ?></label></th>
-                            <td><input class="regular-text" type="password" name="password_eupago" value="<?php echo esc_attr(get_option('eupago_password')); ?>"></td>
-                        </tr>
-
-
-                    </tbody>
-                </table>
                 <p><?php esc_html_e($refund_note); ?></p>
 
                 <h3><?php esc_html_e('SMS Biziq', 'eupago-gateway-for-woocommerce'); ?></h3>
@@ -696,6 +606,8 @@ function eupago_page_content()
 
 
     <script>
+    // WordPress loads jQuery in noConflict mode, so $ is not global here.
+    (function ($) {
         // Função genérica para os pedidos da Eupago
         function eupago_admin_ajax(action, data, successCallback) {
             data.action = action;
@@ -755,6 +667,7 @@ function eupago_page_content()
                 }
             });
         });
+    })(jQuery);
     </script>
 
 <?php

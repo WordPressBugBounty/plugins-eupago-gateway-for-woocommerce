@@ -63,11 +63,10 @@ const LabelFloa = () => {
   const icon = React.createElement('img', {
     src: iconUrl,
     alt: 'Floa',
+    // Size comes from assets/css/checkout.css (one rule for both checkouts).
     style: {
-      display: 'inline-block',
-      marginLeft: '5px',
-      verticalAlign: 'middle',
-      width: '40px', // Example width, adjust as needed
+      display: 'inline',
+      marginLeft: '6px',
     },
   });
   return React.createElement('span', {

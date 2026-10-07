@@ -1,33 +1,19 @@
 const settings_googlepay = window.wc.wcSettings.getSetting('eupago_googlepay_data', {});
 const defaultLabel_googlepay = window.wp.i18n.__('Eupago Google Pay', 'eupago_googlepay');
 const label_googlepay = window.wp.htmlEntities.decodeEntities(settings_googlepay.title) || defaultLabel_googlepay;
-var description = React.createElement('p', null, window.wp.htmlEntities.decodeEntities(settings_googlepay.description || 'Use Google Pay'));
 
 const ContentGooglePay = (props) => {
-  const decodedDescription = window.wp.htmlEntities.decodeEntities(
-    settings_googlepay.description || 'Use Google Pay'
-  );
-
-  const decodedInstructions = window.wp.htmlEntities.decodeEntities(
-    settings_googlepay.instructions || ''
-  );
-
-  return React.createElement(
-    'div',
-    null,
-    React.createElement('p', null, decodedDescription),
-    decodedInstructions
-      ? React.createElement('p', { style: { fontSize: '0.85em', color: '#555' } }, decodedInstructions)
-      : null
-  );
+  const description = window.wp.htmlEntities.decodeEntities(settings_googlepay.description || '');
+  return description ? React.createElement('p', null, description) : null;
 };
 
 const LabelGooglePay = (props) => {
-  var icon = React.createElement('img', { 
+  var icon = React.createElement('img', {
     src: '/wp-content/plugins/eupago-gateway-for-woocommerce/includes/woocommerce-blocks/googlepay/googlepay_icon.png',
+    // Size comes from assets/css/checkout.css (one rule for both checkouts).
     style: {
       display: 'inline',
-      marginLeft: '5px',
+      marginLeft: '6px',
     },
   });
   var span = React.createElement('span', {

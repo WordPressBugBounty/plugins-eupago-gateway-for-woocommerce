@@ -51,8 +51,7 @@ final class ApplePayBlock extends AbstractPaymentMethodType {
     public function get_payment_method_data() {
         return [
             'title'       => $this->settings['title'] ?? 'Apple Pay',
-            'description' => $this->settings['description'] ?? 'Pague com Apple Pay via eupago',
-            'instructions' => $this->settings['instructions'] ?? 'Pague com Apple Pay via eupago',
+            'description' => $this->settings['description'] ?? '',
             'supports'    => [ 'products' ],
         ];
     }

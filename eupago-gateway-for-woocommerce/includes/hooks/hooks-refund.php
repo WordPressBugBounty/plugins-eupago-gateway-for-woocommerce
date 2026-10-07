@@ -31,9 +31,18 @@ function refund_func()
     $endpoint = get_option('eupago_endpoint');
     $order = wc_get_order($refund_order);
 
-    $trid = $order->get_meta('_transaction_id', true);
+    // wc_get_order() returns false for an invalid id, so bail before using $order.
+    if (!$order) {
+        echo '<p class="eupago-output-error">' . esc_html__('Order not found', 'eupago-gateway-for-woocommerce') . '</p>';
+        wp_die();
+    }
+
+    $trid = $order->get_transaction_id();
 
     $payment_method = $order->get_payment_method();
+
+    $output_class   = 'eupago-output-error';
+    $output_request = __('Request error', 'eupago-gateway-for-woocommerce');
 
     if (!empty($refund_amount)) {
         // Token
@@ -56,14 +65,19 @@ function refund_func()
         $responseData = json_decode($response, true);
         // Check if the request was successful
 
-        if ($responseData['transactionStatus'] === 'Rejected') {
+        $transaction_status = isset($responseData['transactionStatus']) ? $responseData['transactionStatus'] : '';
+
+        if ($transaction_status === 'Rejected') {
             // Handle the error
             $output_class = 'eupago-output-error';
             $output_request = __('Invalid Credentials: Check your client id and client secret', 'eupago-gateway-for-woocommerce');
+        } elseif ($transaction_status !== 'Success') {
+            // Unexpected response: without this branch both $output_* stay undefined.
+            $output_class = 'eupago-output-error';
+            $output_request = __('Request error', 'eupago-gateway-for-woocommerce');
         } else {
             curl_close($ch);
-            if ($responseData['transactionStatus'] === 'Success') {
-                $accessToken = $responseData['access_token'];
+                $accessToken = isset($responseData['access_token']) ? $responseData['access_token'] : '';
                 $headerRefund = [
                     'Content-Type: application/json',
                     'Authorization: Bearer ' . $accessToken,
@@ -107,9 +121,10 @@ function refund_func()
                 // Execute the new cURL request
                 $newResponse = curl_exec($newCh);
                 $jsonResponseRefund = json_decode($newResponse, true);
-                if ($jsonResponseRefund['transactionStatus'] === 'Success') {
+                $refund_status      = isset($jsonResponseRefund['transactionStatus']) ? $jsonResponseRefund['transactionStatus'] : '';
+                $refund_code        = isset($jsonResponseRefund['code']) ? $jsonResponseRefund['code'] : '';
+                if ($refund_status === 'Success') {
                     // Add a note to the order with the refunded amount
-                    $order = wc_get_order(sanitize_text_field($_POST['refund_order']));
                     $refunded_amount = floatval($refund_amount);
                     $current_time = current_time('Y-m-d H:i:s'); // Get the current timestamp
                     $order->add_order_note('Refunded ' . $refunded_amount . ' EUR at: ' . $current_time);
@@ -118,21 +133,18 @@ function refund_func()
                     $output_request = __('Request made successfully', 'eupago-gateway-for-woocommerce');
                 } else {
                     $output_class = 'eupago-output-error';
-                    if ($jsonResponseRefund['code'] == 'IBAN_INVALID') {
+                    if ($refund_code == 'IBAN_INVALID') {
                         $output_request = __('IBAN Invalid', 'eupago-gateway-for-woocommerce');
-                    } elseif ($jsonResponseRefund['code'] == 'BIC_INVALID') {
+                    } elseif ($refund_code == 'BIC_INVALID') {
                         $output_request = __('BIC Invalid', 'eupago-gateway-for-woocommerce');
-                    } elseif ($jsonResponseRefund['code'] == 'AMOUNT_INVALID') {
+                    } elseif ($refund_code == 'AMOUNT_INVALID') {
                         $output_request = __('Amount Invalid', 'eupago-gateway-for-woocommerce');
                     } else {
                         $output_request = __('Request error', 'eupago-gateway-for-woocommerce');
                     }
                 }
-            }
         }
     } else {
-        // Close the cURL session
-        curl_close($ch);
         $output_class = 'eupago-output-error';
         $output_request = __('Fill all fields', 'eupago-gateway-for-woocommerce');
     }

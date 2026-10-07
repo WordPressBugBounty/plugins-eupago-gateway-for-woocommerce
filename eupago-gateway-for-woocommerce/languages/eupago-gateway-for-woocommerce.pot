@@ -826,3 +826,17 @@ msgstr ""
 #: includes/views/order-meta-box.php includes/views/order-meta-box-hpos.php
 msgid "QR Code"
 msgstr ""
+
+
+
+#: includes/class-wc-eupago-payment-return.php
+msgid "The customer left the Eupago payment page without paying. The cart was restored so they can try again."
+msgstr ""
+
+#: includes/class-wc-eupago-payment-return.php
+msgid "The payment was not completed. Your cart has been restored so you can try again."
+msgstr ""
+
+#: includes/class-wc-eupago-email-instructions.php
+msgid "Payment method"
+msgstr ""

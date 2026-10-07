@@ -27,15 +27,6 @@ class WC_Eupago_API
     }
   }
 
-  public function get_cofidis_url()
-  {
-    if (get_option('eupago_endpoint') == 'sandbox') {
-      return 'https://sandbox.eupago.pt/api/v1.02/cofidis/create';
-    } else {
-      return 'https://clientes.eupago.pt/api/v1.02/cofidis/create';
-    }
-  }
-
   public function get_api_key()
   {
     return get_option('eupago_api_key');
@@ -58,72 +49,132 @@ class WC_Eupago_API
     return number_format($value, 2, '.', '');
   }
 
-  public function getReferenciaMB($order_id, $valor, $per_dup = 0, $deadline = null)
+  /**
+   * Error object in the shape the legacy API returns, so callers can treat a
+   * transport failure like any other rejected request.
+   */
+  protected function legacy_error($message)
   {
+    return (object) array(
+      'sucesso'  => false,
+      'estado'   => -1,
+      'resposta' => $message,
+    );
+  }
 
-    if (extension_loaded('soap')) {
+  /**
+   * Legacy REST API call (clientes/rest_api/<path>).
+   *
+   * @return object|null Decoded response, or null when the request itself could
+   *                     not be completed (network error, non-2xx status, body
+   *                     that is not a JSON object).
+   */
+  protected function legacy_rest_post($path, array $body)
+  {
+    $url = 'https://' . get_option('eupago_endpoint') . '.eupago.pt/clientes/rest_api/' . ltrim($path, '/');
 
-      $get_order = wc_get_order($order_id);
-      $email = $get_order->get_billing_email();
-      $phone = $get_order->get_billing_phone();
+    $response = wp_remote_post($url, array(
+      'body'    => $body,
+      'timeout' => 60,
+      'headers' => array(
+        'X-App-Source'   => WC_Eupago::SOURCE,
+        'X-App-Version'  => WC_Eupago::VERSION,
+        'X-Runtime-Info' => 'PHP ' . PHP_VERSION,
+      ),
+    ));
 
-      $client = @new SoapClient($this->get_url(), array('cache_wsdl' => WSDL_CACHE_NONE));
+    if (is_wp_error($response)) {
+      $this->log_error("REST {$path}: " . $response->get_error_message());
+      return null;
+    }
 
-      $args = array(
-        'chave' => $this->get_api_key(),
-        'valor' => $this->money_format($valor),
-        'id' => $order_id,
-        'per_dup' => $per_dup,
-        "failOver" => (int)$this->get_failover(),
-        'email'   => $email,
-        'contacto' => (int)$phone
-      );
+    $code = (int) wp_remote_retrieve_response_code($response);
+    $raw  = wp_remote_retrieve_body($response);
+    $data = json_decode($raw);
 
-      if (isset($deadline) && !empty($deadline)) {
+    if ($code < 200 || $code >= 300 || !is_object($data)) {
+      $this->log_error("REST {$path}: HTTP {$code}, body: " . substr((string) $raw, 0, 500));
+      return null;
+    }
 
-        $args['data_inicio'] = date('Y-m-d');
-        $args['data_fim'] = date('Y-m-d', strtotime('+' . $deadline . ' day', strtotime($args['data_inicio'])));
+    return $data;
+  }
 
-        return $client->gerarReferenciaMBDL($args);
-      }
+  /**
+   * Legacy SOAP API call. Only used when the REST request could not be completed.
+   *
+   * @return object|null Response object, or null when SOAP is unavailable or the call failed.
+   */
+  protected function legacy_soap_call($method, array $args)
+  {
+    if (!extension_loaded('soap')) {
+      $this->log_error("SOAP {$method}: soap extension not loaded, no fallback available");
+      return null;
+    }
 
-      return $client->gerarReferenciaMB($args);
-    } else {
+    try {
+      $client = new SoapClient($this->get_url(), array('cache_wsdl' => WSDL_CACHE_NONE, 'exceptions' => true));
+      $result = $client->{$method}($args);
+    } catch (Throwable $e) {
+      $this->log_error("SOAP {$method}: " . $e->getMessage());
+      return null;
+    }
 
-      //$curl = curl_init();
+    return is_object($result) ? $result : null;
+  }
 
-      if (isset($deadline) && !empty($deadline)) {
-        $body = array(
-          'chave'         => $this->get_api_key(),
-          'valor'         => $this->money_format($valor),
-          'id'            => $order_id,
-          'per_dup'       => $per_dup,
-          'data_inicio'   => date('Y-m-d'),
-          'data_fim'      => date('Y-m-d', strtotime('+' . $deadline . ' day', strtotime(date('Y-m-d'))))
-        );
-      } else {
-        $body = array(
-          'chave'         => $this->get_api_key(),
-          'valor'         => $this->money_format($valor),
-          'id'            => $order_id,
-          'per_dup'       => $per_dup
-        );
-      }
+  /**
+   * Legacy request: REST first, SOAP as fallback when REST could not be completed.
+   * A response the API rejected (estado != 0) is returned as is, it is not retried.
+   */
+  protected function legacy_request($rest_path, $soap_method, array $args)
+  {
+    $response = $this->legacy_rest_post($rest_path, $args);
 
-      $url = 'https://' . get_option('eupago_endpoint') . '.eupago.pt/clientes/rest_api/multibanco/create';
-      $args = array(
-        'body' => $body,
-        'timeout'     => '60',
-      );
+    if ($response === null) {
+      $response = $this->legacy_soap_call($soap_method, $args);
+    }
 
-      $response = wp_remote_post($url, $args);
-      $client     = wp_remote_retrieve_body($response);
+    if ($response === null) {
+      return $this->legacy_error(__('Could not reach the Eupago service. Please try again.', 'eupago-gateway-for-woocommerce'));
+    }
 
-      return $client;
+    return $response;
+  }
+
+  protected function log_error($message)
+  {
+    if (function_exists('wc_get_logger')) {
+      wc_get_logger()->error($message, array('source' => 'eupago-api'));
     }
   }
 
-  public function getReferenciaApplePay($order, $valor, $lang, $return_url)
+  public function getReferenciaMB($order_id, $valor, $per_dup = 0, $deadline = null)
+  {
+    $order = wc_get_order($order_id);
+
+    $args = array(
+      'chave'    => $this->get_api_key(),
+      'valor'    => $this->money_format($valor),
+      'id'       => $order_id,
+      'per_dup'  => $per_dup,
+      'failOver' => (int) $this->get_failover(),
+      'email'    => $order ? $order->get_billing_email() : '',
+      'contacto' => $order ? (int) $order->get_billing_phone() : 0,
+    );
+
+    $soap_method = 'gerarReferenciaMB';
+
+    if (isset($deadline) && !empty($deadline)) {
+      $args['data_inicio'] = date('Y-m-d');
+      $args['data_fim']    = date('Y-m-d', strtotime('+' . $deadline . ' day', strtotime($args['data_inicio'])));
+      $soap_method = 'gerarReferenciaMBDL';
+    }
+
+    return $this->legacy_request('multibanco/create', $soap_method, $args);
+  }
+
+  public function getReferenciaApplePay($order, $valor, $lang, $return_url, $cancel_url)
   {
     $url = 'https://' . get_option('eupago_endpoint') . '.eupago.pt/api/v1.02/euapplepay/create';
 
@@ -136,8 +187,8 @@ class WC_Eupago_API
         'identifier'  => (string) $order->get_id(),
         'lang'        => $lang,
         'successUrl'  => $return_url,
-        'failUrl'     => $return_url,
-        'backUrl'     => $return_url,
+        'failUrl'     => $cancel_url,
+        'backUrl'     => $cancel_url,
       ),
       'customer' => array(
         'notify'      => false,
@@ -152,9 +203,9 @@ class WC_Eupago_API
       'Content-Type: application/json',
       'Accept: application/json',
       'Authorization: ApiKey ' . $this->get_api_key(),
-      'X-App-Source'   => WC_Eupago::SOURCE,
-      'X-App-Version'  => WC_Eupago::VERSION,
-      'X-Runtime-Info' => 'PHP ' . PHP_VERSION
+      'X-App-Source: ' . WC_Eupago::SOURCE,
+      'X-App-Version: ' . WC_Eupago::VERSION,
+      'X-Runtime-Info: PHP ' . PHP_VERSION
     );
 
     $curl = curl_init();
@@ -178,8 +229,7 @@ class WC_Eupago_API
     return json_decode($response, true);
   }
 
-
-  public function getReferenciaGooglePay($order, $valor, $lang, $return_url)
+  public function getReferenciaGooglePay($order, $valor, $lang, $return_url, $cancel_url)
   {
     $url = 'https://' . get_option('eupago_endpoint') . '.eupago.pt/api/v1.02/googlepay/create';
 
@@ -192,8 +242,8 @@ class WC_Eupago_API
         'identifier'  => (string) $order->get_id(),
         'lang' => 'PT',
         'successUrl' => $return_url,
-        'failUrl' => $return_url,
-        'backUrl' => $return_url
+        'failUrl'    => $cancel_url,
+        'backUrl'    => $cancel_url,
       ),
       'customer' => array(
         'notify'      => false,
@@ -208,9 +258,9 @@ class WC_Eupago_API
       'Content-Type: application/json',
       'Accept: application/json',
       'Authorization: ApiKey ' . $this->get_api_key(),
-      'X-App-Source'   => WC_Eupago::SOURCE,
-      'X-App-Version'  => WC_Eupago::VERSION,
-      'X-Runtime-Info' => 'PHP ' . PHP_VERSION
+      'X-App-Source: ' . WC_Eupago::SOURCE,
+      'X-App-Version: ' . WC_Eupago::VERSION,
+      'X-Runtime-Info: PHP ' . PHP_VERSION
     );
 
     $curl = curl_init();
@@ -236,29 +286,11 @@ class WC_Eupago_API
 
   public function getReferenciaPS($order_id, $valor)
   {
-    if (extension_loaded('soap')) {
-      $client = @new SoapClient($this->get_url(), array('cache_wsdl' => WSDL_CACHE_NONE));
-      return $client->gerarReferenciaPS(array(
-        "chave" => $this->get_api_key(),
-        "valor" => $this->money_format($valor),
-        "id" => $order_id
-      ));
-    } else {
-      $url = 'https://' . get_option('eupago_endpoint') . '.eupago.pt/clientes/rest_api/payshop/create';
-      $args = array(
-        'body' => array(
-          "chave" => $this->get_api_key(),
-          "valor" => $this->money_format($valor),
-          "id" => $order_id
-        ),
-        'timeout'     => '60',
-      );
-
-      $response = wp_remote_post($url, $args);
-      $client     = wp_remote_retrieve_body($response);
-
-      return $client;
-    }
+    return $this->legacy_request('payshop/create', 'gerarReferenciaPS', array(
+      'chave' => $this->get_api_key(),
+      'valor' => $this->money_format($valor),
+      'id'    => $order_id,
+    ));
   }
 
   public function getReferenciaPQ($order_id, $valor)
@@ -286,7 +318,7 @@ class WC_Eupago_API
         'customerPhone' => $telefone,
       ),
       'customer' => array(
-        'notify' => true
+        'notify' => false
       )
     );
 
@@ -294,9 +326,9 @@ class WC_Eupago_API
       'Authorization:ApiKey ' . $this->get_api_key(),
       'Accept: application/json',
       'Content-Type: application/json',
-      'X-App-Source'   => WC_Eupago::SOURCE,
-      'X-App-Version'  => WC_Eupago::VERSION,
-      'X-Runtime-Info' => 'PHP ' . PHP_VERSION
+      'X-App-Source: ' . WC_Eupago::SOURCE,
+      'X-App-Version: ' . WC_Eupago::VERSION,
+      'X-Runtime-Info: PHP ' . PHP_VERSION
     );
 
     $curl = curl_init();
@@ -333,7 +365,7 @@ class WC_Eupago_API
         'failUrl' => $failUrl
       ),
       'customer' => array(
-        'notify' => true,
+        'notify' => false,
         'name' => $order->get_formatted_billing_full_name(),
         'email' => $order->get_billing_email()
       )
@@ -343,9 +375,9 @@ class WC_Eupago_API
       'Authorization: ApiKey ' . $this->get_api_key(),
       'Accept: application/json',
       'Content-Type: application/json',
-      'X-App-Source'   => WC_Eupago::SOURCE,
-      'X-App-Version'  => WC_Eupago::VERSION,
-      'X-Runtime-Info' => 'PHP ' . PHP_VERSION
+      'X-App-Source: ' . WC_Eupago::SOURCE,
+      'X-App-Version: ' . WC_Eupago::VERSION,
+      'X-Runtime-Info: PHP ' . PHP_VERSION
     );
 
     $curl = curl_init();
@@ -381,7 +413,7 @@ class WC_Eupago_API
         'identifier' => (string) $order_id
       ),
       'customer' => array(
-        'notify' => true,
+        'notify' => false,
         //'countryCode' => '+351',
         'phoneNumber' => $order->get_billing_phone(),
         'email' => $order->get_billing_email(),
@@ -399,9 +431,9 @@ class WC_Eupago_API
     $headers = array(
       'Authorization: ApiKey ' . $this->get_api_key(),
       'Content-Type: application/json',
-      'X-App-Source'   => WC_Eupago::SOURCE,
-      'X-App-Version'  => WC_Eupago::VERSION,
-      'X-Runtime-Info' => 'PHP ' . PHP_VERSION
+      'X-App-Source: ' . WC_Eupago::SOURCE,
+      'X-App-Version: ' . WC_Eupago::VERSION,
+      'X-Runtime-Info: PHP ' . PHP_VERSION
     );
 
     $curl = curl_init();
@@ -423,62 +455,35 @@ class WC_Eupago_API
     return $response;
   }
 
-  public function pedidoCC($order, $amount, $logo_url, $return_url, $lang, $comment)
+  /**
+   * Creates a Credit Card payment through the REST API (v1.02).
+   * 
+   * @param WC_Order $order
+   * @param float    $amount
+   * @param string   $return_url Thank-you page: only a successful payment lands here.
+   * @param string   $lang       PT, EN or ES.
+   * @param string   $cancel_url Where the payment page sends the buyer when the payment fails
+   *                             or they press "back" (WC_Eupago_Payment_Return endpoint).
+   * @return array Decoded API response, or ['error' => message] when the call itself failed.
+   */
+  public function pedidoCC($order, $amount, $return_url, $lang, $cancel_url)
   {
     $url = 'https://' . get_option('eupago_endpoint') . '.eupago.pt/api/v1.02/creditcard/create';
-    $api_key = $this->get_api_key();
-    // --- Try SOAP first ---
-    if (extension_loaded('soap')) {
-      try {
-        $client = new \SoapClient($this->get_url(), ['cache_wsdl' => WSDL_CACHE_NONE]);
-        $response = $client->pedidoCC([
-          'chave'        => $api_key,
-          'valor'        => $this->money_format($amount),
-          'id'           => $order->get_id(),
-          'url_logotipo' => $logo_url,
-          'url_retorno'  => $return_url,
-          'nome'         => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
-          'email'        => $order->get_billing_email(),
-          'lang'         => strtolower($lang),
-          'comentario'   => $comment,
-          'tds'          => 1,
-        ]);
 
-        $decoded = json_decode(json_encode($response), true);
-
-        $response = [
-          'success'   => isset($decoded['sucesso']) ? (bool)$decoded['sucesso'] : null,
-          'redirectUrl'       => $decoded['url'] ?? null,
-          'transactionID'     => $decoded['token'] ?? null,
-          'reference' => $decoded['referencia'] ?? null,
-          'amount'    => $decoded['valor'] ?? null,
-          'transactionStatus'    => $decoded['estado'] ?? null,
-          'message'   => $dadecodedta['resposta'] ?? null,
-        ];
-
-        // Convert SOAP object to array
-        return $response;
-      } catch (\Exception $e) {
-        wc_get_logger()->error("CC SOAP error: " . $e->getMessage(), ['source' => 'eupago-cc']);
-        // fallback to cURL
-      }
-    }
-
-    // --- cURL fallback ---
     $data = [
       'payment' => [
         'amount' => [
-          'value' => $amount,
+          'value' => $this->money_format($amount),
           'currency' => 'EUR',
         ],
         'identifier' => (string) $order->get_id(),
-        'lang' => $lang,
+        'lang' => strtoupper($lang),
         'successUrl' => $return_url,
-        'failUrl'    => $return_url,
-        'backUrl'    => $return_url,
+        'failUrl'    => $cancel_url,
+        'backUrl'    => $cancel_url,
       ],
       'customer' => [
-        'notify' => true,
+        'notify' => false,
         'email'  => $order->get_billing_email(),
       ],
     ];
@@ -486,10 +491,10 @@ class WC_Eupago_API
     $headers = [
       'Content-Type: application/json',
       'Accept: application/json',
-      'Authorization: ApiKey ' . $api_key,
-      'X-App-Source'   => WC_Eupago::SOURCE,
-      'X-App-Version'  => WC_Eupago::VERSION,
-      'X-Runtime-Info' => 'PHP ' . PHP_VERSION
+      'Authorization: ApiKey ' . $this->get_api_key(),
+      'X-App-Source: ' . WC_Eupago::SOURCE,
+      'X-App-Version: ' . WC_Eupago::VERSION,
+      'X-Runtime-Info: PHP ' . PHP_VERSION
     ];
 
     $curl = curl_init();
@@ -523,36 +528,14 @@ class WC_Eupago_API
 
   public function pedidoPF($order, $valor, $return_url, $comment)
   {
-    if (extension_loaded('soap')) {
-      $client = @new SoapClient($this->get_url(), array('cache_wsdl' => WSDL_CACHE_NONE));
-      return $client->pedidoPF(array(
-        'chave' => $this->get_api_key(),
-        'valor' => $this->money_format($valor),
-        'id' => $order->get_id(),
-        'admin_callback' => '',
-        'url_retorno' => $return_url,
-        'comentario' => $comment,
-      ));
-    } else {
-
-      $url = 'https://' . get_option('eupago_endpoint') . '.eupago.pt/clientes/rest_api/paysafecard/create';
-      $args = array(
-        'body' => array(
-          'chave' => $this->get_api_key(),
-          'valor' => $this->money_format($valor),
-          'id' => $order->get_id(),
-          'admin_callback' => '',
-          'url_retorno' => $return_url,
-          'comentario' => $comment,
-        ),
-        'timeout'     => '60',
-      );
-
-      $response = wp_remote_post($url, $args);
-      $client     = wp_remote_retrieve_body($response);
-
-      return $client;
-    }
+    return $this->legacy_request('paysafecard/create', 'pedidoPF', array(
+      'chave'          => $this->get_api_key(),
+      'valor'          => $this->money_format($valor),
+      'id'             => $order->get_id(),
+      'admin_callback' => '',
+      'url_retorno'    => $return_url,
+      'comentario'     => $comment,
+    ));
   }
 
   public function pedidoPSC($order, $valor, $return_url, $lang, $comment)
@@ -569,117 +552,6 @@ class WC_Eupago_API
       'email' => $order->get_billing_email(),
       'lang' => $lang,
     ));
-  }
-
-  public function cofidispay_create($order_id, $return_url = null)
-  {
-
-    $nonce = wp_create_nonce('wp_rest');
-
-    $order = wc_get_order($order_id);
-
-    $tax_code_string = get_option('woocommerce_eupago_cofidispay_settings');
-    $code = $tax_code_string['zero_tax_code'];
-
-    $data = [
-      'payment' => [
-        'identifier' => $order->get_order_number(),
-        'amount' => [
-          'value' => $order->get_total(),
-          'currency' => 'EUR'
-        ],
-        'successUrl' => $return_url,
-        'failUrl' => $return_url,
-      ],
-      'customer' => [
-        'notify' => false,
-        'email' => $order->get_billing_email(),
-        'name' => $order->get_formatted_billing_full_name(),
-        'vatNumber' => $order->get_meta('_eupago_cofidis_vat_number', true),
-        'phoneNumber' => $order->get_billing_phone(),
-        'billingAddress' => [
-          'address' => $order->get_billing_address_1() . ' ' . $order->get_billing_address_2(),
-          'zipCode' => $order->get_billing_postcode(),
-          'city' => $order->get_billing_city(),
-        ],
-      ],
-      'items' => [],
-      'taxCode' => $code,
-    ];
-
-    $tax = new WC_Tax();
-    foreach ($order->get_items() as $item) {
-      $product_variation_id = $item['variation_id'];
-
-      // Check if product has variation.
-      if ($product_variation_id) {
-        $_product = wc_get_product($item['variation_id']);
-      } else {
-        $_product = wc_get_product($item['product_id']);
-      }
-
-      // Get SKU
-      $item_sku = $_product->get_sku();
-
-      //For taxes
-      $taxes = $tax->get_rates($item->get_tax_class());
-      $rates = array_shift($taxes);
-
-      //Take only the item rate and round it.  NULL is for default tax
-      ($rates == NULL ? $item_rate = 23 : $item_rate = round(array_shift($rates)));
-
-      $data['items'][] = [
-        'reference' => $item_sku,
-        'price' => (float) $item->get_total() / $item->get_quantity(),
-        'quantity' => $item->get_quantity(),
-        'tax' => $item_rate,
-        'discount' => 0,
-        'description' => $item->get_name(),
-      ];
-    }
-
-
-    $portes = 0;
-
-    $portes = $order->get_shipping_total() + $order->get_shipping_tax();
-
-    foreach ($order->fee_lines as $fee_item) {
-      $portes += $fee_item->total;
-    }
-
-    if ($portes > 0) {
-      $data['items'][] = [
-        'reference' => 'PORTES',
-        'price' => $portes,
-        'quantity' => 1,
-        'tax' => 23,
-        'discount' => 0,
-        'description' => 'Custos de expedição',
-      ];
-    }
-
-
-    $response = wp_remote_request(
-      $this->get_cofidis_url(),
-      [
-        'method' => 'POST',
-        'user-agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:20.0) Gecko/20100101 Firefox/20.0',
-        'headers' => [
-          'Content-Type' => 'application/json',
-          'Cache-Control' => 'no-cache',
-          'X-WP-Nonce' => $nonce,
-          'Authorization' => 'ApiKey ' . $this->get_api_key(),
-          'X-App-Source'   => WC_Eupago::SOURCE,
-          'X-App-Version'  => WC_Eupago::VERSION,
-          'X-Runtime-Info' => 'PHP ' . PHP_VERSION
-        ],
-        'body' => json_encode($data),
-      ]
-    );
-
-    $response_body = wp_remote_retrieve_body($response);
-
-    return json_decode($response_body);
   }
 
   public function getReferenciaFloa($order, $valor, $lang, $return_url) {
@@ -758,9 +630,9 @@ class WC_Eupago_API
           'Content-Type: application/json',
           'Accept: application/json',
           'Authorization: ApiKey ' . $this->get_api_key(),
-          'X-App-Source'   => WC_Eupago::SOURCE,
-          'X-App-Version'  => WC_Eupago::VERSION,
-          'X-Runtime-Info' => 'PHP ' . PHP_VERSION
+          'X-App-Source: ' . WC_Eupago::SOURCE,
+          'X-App-Version: ' . WC_Eupago::VERSION,
+          'X-Runtime-Info: PHP ' . PHP_VERSION
       );
       
       $curl = curl_init();
@@ -797,7 +669,7 @@ class WC_Eupago_API
         'identifier'  => (string) $order->get_id(),
       ),
       'customer' => array(
-        'notify'      => true,
+        'notify' => false,
         'email'       => $order->get_billing_email(),
         'nome'   => $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(),
       )
@@ -807,9 +679,9 @@ class WC_Eupago_API
       'Content-Type: application/json',
       'Accept: application/json',
       'Authorization: ApiKey ' . $this->get_api_key(),
-      'X-App-Source'   => WC_Eupago::SOURCE,
-      'X-App-Version'  => WC_Eupago::VERSION,
-      'X-Runtime-Info' => 'PHP ' . PHP_VERSION
+      'X-App-Source: ' . WC_Eupago::SOURCE,
+      'X-App-Version: ' . WC_Eupago::VERSION,
+      'X-Runtime-Info: PHP ' . PHP_VERSION
     );
 
     $curl = curl_init();

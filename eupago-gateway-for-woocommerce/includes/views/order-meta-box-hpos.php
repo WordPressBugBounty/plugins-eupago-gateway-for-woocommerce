@@ -1,20 +1,26 @@
 <?php
-$order = wc_get_order($post->ID);
 $order_id = 0;
 
-// 1. From query var (thank-you page)
-if ( isset( $_GET['order-received'] ) ) {
-    $order_id = absint( $_GET['order-received'] );
-
+// 1. From the object WooCommerce passes to the metabox: a WC_Order with HPOS,
+//    a WP_Post without it. Reading $post->ID on a WC_Order triggers an
+//    "Order properties should not be accessed directly" notice.
+if (isset($post) && $post instanceof WC_Order) {
+  $order_id = $post->get_id();
+} elseif (isset($post->ID)) {
+  $order_id = absint($post->ID);
 // 2. From admin edit URL like ?id=1332
-} elseif ( isset( $_GET['id'] ) ) {
-    $order_id = absint( $_GET['id'] );
-
-// 3. If you already have a WC_Order object
-} elseif ( isset( $order ) && $order instanceof WC_Order ) {
-    $order_id = $order->get_id();
+} elseif (isset($_GET['id'])) {
+    $order_id = absint($_GET['id']);
+// 3. From query var (thank-you page)
+} elseif (isset($_GET['order-received'])) {
+    $order_id = absint($_GET['order-received']);
 }
+
 $order = wc_get_order($order_id);
+if (!$order) {
+    return;
+}
+
 $client = new WC_Eupago_API();
 $payment_method = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_payment_method() : $order->payment_method;
 $payment_method_title = version_compare(WC_VERSION, '3.0', '>=') ? $order->get_payment_method_title() : $order->payment_method_title;
@@ -26,7 +32,7 @@ switch ($payment_method) {
   case 'eupago_multibanco':
     if (trim($order->get_meta('_eupago_multibanco_referencia')) == '') {
       $pedido = $client->getReferenciaMB($order->get_id(), $order_total);
-      if ($pedido->estado == 0) {
+      if (is_object($pedido) && isset($pedido->estado) && $pedido->estado == 0) {
         $order->update_meta_data('_eupago_multibanco_entidade', $pedido->entidade ?? '');
         $order->update_meta_data('_eupago_multibanco_referencia', $pedido->referencia ?? '');
         $order->update_meta_data('_eupago_multibanco_data_fim', $pedido->validade ?? '');
@@ -60,17 +66,20 @@ switch ($payment_method) {
     break;
 
   case 'eupago_cc':
-    if (trim($order->get_meta('_eupago_cc_referencia')) == '') {
-      $lang = get_post_meta( $post->ID, 'wpml_language', true );
-      if ( empty( $lang ) ) {
-        $lang = 'pt-pt';
-      }
-      $logo='https://woo.eupago.pt/wp-content/plugins/eupago-gateway-for-woocommerce/includes/views/images/avatar.png'; 
-      $return_url='https://eupago.pt'; 
-      $comment='';
+    if (trim($order->get_meta('_eupago_cc_referencia')) == '' && class_exists('WC_Eupago_Payment_Return')) {
+      $lang = $order->get_meta('wpml_language');
+      $lang = $lang ? strtoupper(substr($lang, 0, 2)) : 'PT';
 
-      $pedido = $client->pedidoCC($order->get_id(), $order_total, $logo, $return_url, $lang, $comment);
-      if ($pedido['status'] == 0) {
+      // Same call shape as WC_Eupago_CC::process_payment() (REST v1.02, returns an array).
+      $pedido = $client->pedidoCC(
+        $order,
+        $order_total,
+        $order->get_checkout_order_received_url(),
+        $lang,
+        WC_Eupago_Payment_Return::get_url($order)
+      );
+      if (is_array($pedido) && isset($pedido['transactionStatus']) && strtolower($pedido['transactionStatus']) === 'success') {
+        $order->update_meta_data('_eupago_cc_tid', $pedido['transactionID'] ?? '');
         $order->update_meta_data('_eupago_cc_referencia', $pedido['reference'] ?? '');
         $order->update_meta_data('_eupago_cc_link', $pedido['redirectUrl'] ?? '');
         $order->save();
@@ -83,18 +92,8 @@ switch ($payment_method) {
     break;
 
   case 'eupago_cofidispay':
-    if (trim($order->get_meta('_eupago_cofidispay_referencia')) == '') {
-      $cofidispay_vat_number = get_post_meta($post->ID, 'nif', true);
-      update_post_meta($post->ID, '_eupago_cofidis_vat_number', $cofidispay_vat_number);
-
-      $pedido = $client->cofidispay_create($post->ID);
-      $pedido = json_decode($pedido);
-      if ($pedido->transactionStatus == 'Success') {
-        $order->update_meta_data('_eupago_cofidispay_referencia', $pedido->referencia ?? '');
-        $order->update_meta_data('_eupago_cofidispay_redirectUrl', $pedido->redirectUrl ?? '');
-        $order->save();
-      }
-    }
+    // CofidisPay was discontinued: existing orders keep showing their payment
+    // details, but no new payment request is ever created here.
     echo '<img src="' . plugins_url('assets/images/cofidispay.png', dirname(dirname(__FILE__))) . '" /><br />';
     echo '<b>' . esc_html(__('Reference', 'eupago-gateway-for-woocommerce')) . '</b>: ' . esc_html($order->get_meta('_eupago_cofidispay_referencia')) . '<br/>';
     echo '<b>' . esc_html(__('Value', 'eupago-gateway-for-woocommerce')) . '</b>: ' . wc_price($order_total) . '<br/>';
@@ -104,7 +103,7 @@ switch ($payment_method) {
   case 'eupago_payshop':
     if (trim($order->get_meta('_eupago_payshop_referencia')) == '') {
       $pedido = $client->getReferenciaPS($order->get_id(), $order_total);
-      if ($pedido->estado == 0) {
+      if (is_object($pedido) && isset($pedido->estado) && $pedido->estado == 0) {
         $order->update_meta_data('_eupago_payshop_referencia', $pedido->referencia ?? '');
         $order->save();
       }
@@ -116,10 +115,17 @@ switch ($payment_method) {
 
   case 'eupago_bizum':
     if (trim($order->get_meta('_eupago_bizum_referencia')) == '') {
-      $pedido = $client->getReferenciaBizum($order->get_id(), $order_total);
-      if ($pedido->estado == 0) {
-        $order->update_meta_data('_eupago_bizum_referencia', $pedido->referencia ?? '');
-        $order->update_meta_data('_eupago_bizum_redirect_url', $pedido->redirect_url ?? '');
+      // Same call shape as WC_Eupago_Bizum::process_payment() (returns a JSON string).
+      $pedido = json_decode($client->getReferenciaBizum(
+        $order->get_id(),
+        $order_total,
+        $order->get_checkout_order_received_url(),
+        $order->get_checkout_payment_url()
+      ), true);
+      if (is_array($pedido) && isset($pedido['transactionStatus']) && $pedido['transactionStatus'] === 'Success') {
+        $order->update_meta_data('_eupago_bizum_referencia', $pedido['reference'] ?? '');
+        $order->update_meta_data('_eupago_bizum_transactionID', $pedido['transactionID'] ?? '');
+        $order->update_meta_data('_eupago_bizum_redirect_url', $pedido['redirectUrl'] ?? '');
         $order->save();
       }
     }
@@ -167,7 +173,7 @@ switch ($payment_method) {
   case 'eupago_pagaqui':
     if (trim($order->get_meta('_eupago_pagaqui_reference')) == '') {
       $pedido = $client->getReferenciaPagaqui($order, $order_total);
-      if ($pedido->estado == 0) {
+      if (is_object($pedido) && isset($pedido->estado) && $pedido->estado == 0) {
         $order->update_meta_data('_eupago_pagaqui_reference', $pedido->referencia ?? '');
         $order->save();
       }

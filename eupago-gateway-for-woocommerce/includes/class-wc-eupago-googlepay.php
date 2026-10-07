@@ -59,7 +59,7 @@ if (!class_exists('WC_Eupago_GooglePay')) {
             //add_action('woocommerce_order_status_completed', [ $this, 'send_sms_completed_googlepay' ]);
             
             // Emails
-            add_action('woocommerce_email_before_order_table', [ $this, 'email_instructions' ], 10, 2);
+            add_action('woocommerce_email_before_order_table', [ $this, 'email_instructions' ], 10, 3);
         }
         
         public function init_form_fields()
@@ -281,20 +281,18 @@ if (!class_exists('WC_Eupago_GooglePay')) {
         }
         
         public function email_instructions($order, $sent_to_admin, $plain_text = false) {
-            if ($sent_to_admin || $order->get_payment_method() !== $this->id) {
+            if ($sent_to_admin || !$order->has_status('on-hold') || $order->get_payment_method() !== $this->id) {
                 return;
             }
-            
+
             wc_get_template(
-                'emails/email-instructions.php',
+                $plain_text ? 'emails/plain-instructions.php' : 'emails/html-instructions.php',
                 [
-                    'order'         => $order,
-                    'email_heading' => $this->title,
-                    'payment_method'=> $this->id,
-                    'instructions'  => $this->instructions,
-                    'transaction_id'=> $order->get_meta('_eupago_googlepay_tid'),
-                    'reference'     => $order->get_meta('_eupago_googlepay_reference'),
-                    'order_total'   => $order->get_total(),
+                    'method'       => $this->id,
+                    'payment_name' => $this->title,
+                    'instructions' => isset($this->instructions) && !empty($this->instructions) ? $this->instructions : '',
+                    'referencia'   => $order->get_meta('_eupago_googlepay_reference', true),
+                    'order_total'  => $order->get_total(),
                 ],
                 'woocommerce/eupago/',
                 (new WC_Eupago())->get_templates_path()
@@ -352,8 +350,12 @@ if (!class_exists('WC_Eupago_GooglePay')) {
             
             $lang       = $this->determine_language();
             $return_url = $this->get_return_url($order);
-            
-            $gpayResponse = $this->client->getReferenciaGooglePay($order, $order_total, $lang, $return_url);
+            // Only a successful payment may land on the thank-you page. A failed
+            // payment or the "back" button go through the payment-return endpoint,
+            // which leaves the order on-hold and restores the cart.
+            $cancel_url = WC_Eupago_Payment_Return::get_url($order);
+
+            $gpayResponse = $this->client->getReferenciaGooglePay($order, $order_total, $lang, $return_url, $cancel_url);
             
             if (!is_array($gpayResponse)) {
                 $logger->error("Invalid API response (not array): " . print_r($gpayResponse, true), $context);
@@ -361,17 +363,20 @@ if (!class_exists('WC_Eupago_GooglePay')) {
                 return [ 'result' => 'fail' ];
             }
             
-            $redirect_url = $gpayResponse['redirectUrl'] ?? '';
-            if (empty($redirect_url)) {
-                $logger->error("No redirectUrl in response", $context);
-                wc_add_notice(__('Erro ao obter URL de redirecionamento do gateway.', 'eupago-gateway-for-woocommerce'), 'error');
-                return [ 'result' => 'fail' ];
-            }
-            
+            // Check the status before the redirect URL: a rejected request has no
+            // redirectUrl, and the rejection reason (e.g. URL_INVALID) is what
+            // has to reach the log and the customer.
             if (isset($gpayResponse['transactionStatus']) && strtolower($gpayResponse['transactionStatus']) !== 'success') {
                 $error_message = $gpayResponse['text'] ?? __('Erro desconhecido.', 'eupago-gateway-for-woocommerce');
-                $logger->error("Transaction rejected: {$error_message}", $context);
+                $logger->error("Transaction rejected: {$error_message} (code=" . ($gpayResponse['code'] ?? 'n/a') . ")", $context);
                 wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error');
+                return [ 'result' => 'fail' ];
+            }
+
+            $redirect_url = $gpayResponse['redirectUrl'] ?? '';
+            if (empty($redirect_url)) {
+                $logger->error("No redirectUrl in response: " . print_r($gpayResponse, true), $context);
+                wc_add_notice(__('Erro ao obter URL de redirecionamento do gateway.', 'eupago-gateway-for-woocommerce'), 'error');
                 return [ 'result' => 'fail' ];
             }
             
@@ -381,7 +386,7 @@ if (!class_exists('WC_Eupago_GooglePay')) {
             
             $order->update_status('on-hold', __('Aguardando pagamento via Google Pay.', 'eupago-gateway-for-woocommerce'));
             
-            $this->reduce_stock_levels($order->get_id());
+            $this->reduce_stock_levels($order);
             
             WC()->cart->empty_cart();
             WC()->session->__unset('order_awaiting_payment');

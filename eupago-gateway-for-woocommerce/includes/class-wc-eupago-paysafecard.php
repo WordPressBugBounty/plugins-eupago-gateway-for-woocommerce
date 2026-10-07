@@ -253,7 +253,7 @@ if ( !class_exists( 'WC_Eupago_PF' ) ) {
 
       if ($error_message = $this->check_order_errors($order_id)) {
         wc_add_notice( __('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error' );
-        return;
+        return ['result' => 'failure', 'redirect' => ''];
       }
 
       $lang = $order->get_meta( 'wpml_language', true );
@@ -264,31 +264,14 @@ if ( !class_exists( 'WC_Eupago_PF' ) ) {
       $eupagoPF = $this->client->pedidoPF( $order, $order_total, $this->get_return_url( $order ), $this->get_comment_table( $order, $order_total ) );
 
 
-      if (extension_loaded('soap')) {
-        if ( $eupagoPF->estado != 0 ) {
-          $error_message = $eupagoPF->resposta;
-          wc_add_notice( __('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error' );
-          return;
-        }
-      } else {
-        $eupagoPF_decode = json_decode($eupagoPF, true);
-        if ( $eupagoPF_decode['estado'] != 0 ) {
-          $error_message = $eupagoPF_decode['resposta'];
-          wc_add_notice( __('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error' );
-          return;
-        }
+      if ( ! is_object( $eupagoPF ) || ! isset( $eupagoPF->estado ) || $eupagoPF->estado != 0 ) {
+        $error_message = is_object( $eupagoPF ) && isset( $eupagoPF->resposta ) ? $eupagoPF->resposta : '';
+        wc_add_notice( __('Payment error:', 'eupago-gateway-for-woocommerce') . ' ' . $error_message, 'error' );
+        return ['result' => 'failure', 'redirect' => ''];
       }
 
-      if (extension_loaded('soap')) {
-        // update_post_meta ($order_id, '_eupago_pf_referencia', $eupagoPF->referencia);
-        $order->update_meta_data( '_eupago_pf_referencia', $eupagoPF->referencia);
-        $order->save();
-      } else {
-        $eupagoPF_decode = json_decode($eupagoPF, true);
-        // update_post_meta ($order_id, '_eupago_pf_referencia', $eupagoPF_decode['referencia']);
-        $order->update_meta_data( '_eupago_pf_referencia', $eupagoPF_decode['referencia']);
-        $order->save();
-      }
+      $order->update_meta_data( '_eupago_pf_referencia', $eupagoPF->referencia ?? '' );
+      $order->save();
 
       // Mark as on-hold
       $order->update_status('on-hold', __('Awaiting PaySafeCard payment.', 'eupago-gateway-for-woocommerce'));

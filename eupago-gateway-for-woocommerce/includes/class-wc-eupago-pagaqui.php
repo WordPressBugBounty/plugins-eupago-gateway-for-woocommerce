@@ -31,7 +31,7 @@ if (!class_exists('WC_Eupago_Pagaqui')) {
       global $woocommerce;
       $this->id = 'eupago_pagaqui';
 
-      $this->icon = plugins_url('assets/images/pagaqui_icon.png', dirname(__FILE__));
+      $this->icon = plugins_url('assets/images/pagaqui_logo.png', dirname(__FILE__));
       $this->has_fields = false;
       $this->method_title = __('Pagaqui (Eupago)', 'eupago-gateway-for-woocommerce');
 
@@ -342,7 +342,7 @@ if (!class_exists('WC_Eupago_Pagaqui')) {
 
       if ($error_message = $this->check_order_errors($order_id)) {
         wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . $error_message, 'error');
-        return;
+        return ['result' => 'failure', 'redirect' => ''];
       }
 
       $pagaquiResponse = $this->client->getReferenciaPagaqui($order, $order_total);

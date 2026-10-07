@@ -24,9 +24,10 @@ const ContentCC = (props) => {
 const LabelCC = (props) => {
 	var icon = React.createElement('img', {
 	  src: '/wp-content/plugins/eupago-gateway-for-woocommerce/includes/woocommerce-blocks/cc/cc_icon.jpg',
+	  // Size comes from assets/css/checkout.css (one rule for both checkouts).
 	  style: {
-		display: 'inline',
-		marginLeft: '5px', // Adjust the value as needed
+	    display: 'inline',
+	    marginLeft: '6px',
 	  },
 	});
 	var span = React.createElement('span', {

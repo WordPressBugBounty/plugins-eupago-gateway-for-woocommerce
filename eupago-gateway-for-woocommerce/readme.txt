@@ -1,21 +1,23 @@
 === Eupago Gateway For Woocommerce ===
 Contributors: eupagoip
-Tags: woocommerce, payment, gateway, multibanco, atm, debit card, credit card, bank, ecommerce, e-commerce, eupago, mb way, payshop, cofidispay, bizum, europix, pagamento, refund, reembolso
+Tags: woocommerce, payment, gateway, multibanco, atm, debit card, credit card, bank, ecommerce, e-commerce, eupago, mb way, payshop, bizum, europix, pagamento, refund, reembolso
 Author URI: https://www.eupago.pt/
 Plugin URI: 
-Requires at least: 4.4
-Tested up to: 6.8.3
-Requires PHP: 7.0
-Stable tag: 4.7.4
+Requires at least: 6.0
+Tested up to: 7.1
+Requires PHP: 7.4
+WC requires at least: 7.1
+WC tested up to: 11.1.0
+Stable tag: 4.7.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 
-Plugin para recebimento de pagamentos via Multibanco, PayShop, MB WAY, Cartão de Crédito, Paysafecard, CofidisPay, Bizum e EuroPix. O plugin permite ainda fazer reembolsos directamente pela plataforma do WooCommerce.
+Plugin para recebimento de pagamentos via Multibanco, PayShop, MB WAY, Cartão de Crédito, Paysafecard, Bizum e EuroPix. O plugin permite ainda fazer reembolsos directamente pela plataforma do WooCommerce.
 
 == Description ==
 
-Testado até à versão 8.2.11 de PHP
+Testado até à versão 8.3 de PHP
 
 = Features: =
 
@@ -26,7 +28,6 @@ Este plugin permite disponibilizar aos clientes finais novos meios de pagamento 
 * geração de referências PayShop Reference. O pagamento é realizado numa vasta rede nacional;
 * geração de um pedido de pagamento MB WAY. O pagamento é realizado na aplicação da MB WAY;
 * geração de pedido de pagamentos via Cartão de Crédito;
-* geração de pedido de pagamentos via CofidisPay (para valores estipulados pela Cofidis);
 * geração de pedido de pagamentos via Bizum;
 * geração de pedido de pagamentos via EuroPix;
 * possibilita de fazer reembolsos directamente através da plataforma e-commerce;
@@ -44,6 +45,31 @@ Para começar a receber pagamentos deve primeiro aderir aos serviços da Eupago.
 O cliente dispõe de cerca de 4 minutos para realizar o pagamento após a finalização da compra. Este tempo é definido pela própria MB WAY.
 
 == Changelog ==
+= 4.7.5(17/09/2026) =
+* Removed: CofidisPay payment method, discontinued by the provider. It is no longer offered on the checkout nor configurable; existing CofidisPay orders keep their payment details and callbacks
+* Feature: WordPress 7.0 and 7.1 compatibility (tested up to WordPress 7.1 and WooCommerce 11.1)
+* Fix: "Back" button and failed payments on Credit Card, Google Pay and Apple Pay return the customer to the checkout with the cart restored (order stays on-hold)
+* Fix: Payment details block in the on-hold email now works for every payment method
+* Fix: Google Pay and Apple Pay description was shown twice on the block checkout
+* Fix: Remove third-party CDN jQuery from the settings page, use the one bundled with WordPress
+* Fix: Callback no longer returns HTTP 500 when the Eupago settings page was never saved
+* Fix: Refund request no longer fails with a fatal error on PHP 8 when the amount is empty or the order is invalid
+* Fix: Saving the settings no longer performs a dead HTTP request and prints an error on screen
+* Fix: Remove the unused Refund user and password fields.
+* Fix: Remove PHP warnings on the order screen
+* Fix: Telemetry headers (X-App-Source, X-App-Version, X-Runtime-Info) were never sent because they were built as associative array entries; API requests now carry them
+* Fix: EuroPix SMS no longer falls through to the Google Pay case and sends the wrong payment details
+* Security: webhook 2.0 callbacks are now signature-checked with the channel key whether or not the body is encrypted; callbacks are ignored for orders not paid through Eupago
+* Fix: Apple Pay and Google Pay no longer crash at checkout when stock is reduced at order time
+* Fix: Order screen (HPOS) no longer crashes when opening a Credit Card or Bizum order without a stored reference
+* Fix: Block checkout no longer breaks with a server error when Multibanco, Payshop, Paysafecard or Pagaqui reject a payment; the error message is shown instead
+* Fix: Block cart and checkout no longer crash when Floa is enabled but the terms have not been accepted yet
+* Change: Credit Card requests now use the REST API v1.02
+* Change: Multibanco, Payshop and Paysafecard now use the REST API first and only fall back to SOAP when the REST request cannot be completed; the SOAP extension is no longer required for Credit Card
+* Change: Eupago no longer emails the customer directly (customer.notify = false), the shop's WooCommerce emails are used
+* Improvement: New design for the payment details block in emails
+* Improvement: Uniform payment method icons on both checkouts, new Pagaqui logo
+
 = 4.7.4(17/07/2026) =
 * Fix: Remove invalid use statements that caused PHP warnings visible on client websites
 

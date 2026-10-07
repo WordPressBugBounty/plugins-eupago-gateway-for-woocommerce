@@ -51,8 +51,7 @@ final class GooglePayBlock extends AbstractPaymentMethodType {
     public function get_payment_method_data() {
         return [
             'title'       => $this->settings['title'] ?? 'Google Pay',
-            'description' => $this->settings['description'] ?? 'Pague com Google Pay via Eupago.',
-            'instructions' => $this->settings['instructions'] ?? 'Pague com Google Pay via Eupago.',
+            'description' => $this->settings['description'] ?? '',
             'supports'    => [ 'products' ],
         ];
     }

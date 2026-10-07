@@ -457,7 +457,7 @@ if (!class_exists('WC_Eupago_Multibanco')) {
             if ($error_message = $this->check_order_errors($order_id)) {
                 wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . $error_message, 'error');
 
-                return;
+                return ['result' => 'failure', 'redirect' => ''];
             }
 
             if (isset($this->deadline) && $this->deadline > 0) {
@@ -471,38 +471,16 @@ if (!class_exists('WC_Eupago_Multibanco')) {
                 $eupagoMultibanco = $this->client->getReferenciaMB($order_id, $order_total, $this->duplicate_payments);
             }
 
-            if (extension_loaded('soap')) {
-                if ($eupagoMultibanco->estado != 0) {
-                    $error_message = $eupagoMultibanco->resposta;
-                    wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . $error_message, 'error');
+            if (!is_object($eupagoMultibanco) || !isset($eupagoMultibanco->estado) || $eupagoMultibanco->estado != 0) {
+                $error_message = is_object($eupagoMultibanco) && isset($eupagoMultibanco->resposta) ? $eupagoMultibanco->resposta : '';
+                wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . $error_message, 'error');
 
-                    return;
-                }
-            } else {
-                $eupagoMultibanco_decode = json_decode($eupagoMultibanco, true);
-
-                if ($eupagoMultibanco_decode['estado'] != 0) {
-                    $error_message = $eupagoMultibanco_decode['resposta'];
-                    wc_add_notice(__('Payment error:', 'eupago-gateway-for-woocommerce') . $error_message, 'error');
-
-                    return;
-                }
+                return ['result' => 'failure', 'redirect' => ''];
             }
 
-            if (extension_loaded('soap')) {
-                // update_post_meta ($order_id, '_eupago_multibanco_entidade', $eupagoMultibanco->entidade);
-                // update_post_meta ($order_id, '_eupago_multibanco_referencia', $eupagoMultibanco->referencia);
-                $order->update_meta_data('_eupago_multibanco_entidade', $eupagoMultibanco->entidade);
-                $order->update_meta_data('_eupago_multibanco_referencia', $eupagoMultibanco->referencia);
-                $order->save();
-            } else {
-                $eupagoMultibanco_decode = json_decode($eupagoMultibanco, true);
-                // update_post_meta ($order_id, '_eupago_multibanco_entidade', $eupagoMultibanco_decode['entidade']);
-                // update_post_meta ($order_id, '_eupago_multibanco_referencia', $eupagoMultibanco_decode['referencia']);
-                $order->update_meta_data('_eupago_multibanco_entidade', $eupagoMultibanco_decode['entidade']);
-                $order->update_meta_data('_eupago_multibanco_referencia', $eupagoMultibanco_decode['referencia']);
-                $order->save();
-            }
+            $order->update_meta_data('_eupago_multibanco_entidade', $eupagoMultibanco->entidade ?? '');
+            $order->update_meta_data('_eupago_multibanco_referencia', $eupagoMultibanco->referencia ?? '');
+            $order->save();
 
             // Mark as on-hold
             $order->update_status('on-hold', __('Awaiting Multibanco payment.', 'eupago-gateway-for-woocommerce'));
